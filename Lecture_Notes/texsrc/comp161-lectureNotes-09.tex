@@ -1,0 +1,168 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath,amssymb,amsthm,color}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[pdftex]{graphicx}
+
+  
+\title{COMP 161 - Lecture Notes - 09 - Strings, Objects, and Arrays}
+\date{Spring 2014}
+
+\begin{document} 
+\maketitle
+
+\begin{abstract}
+In these notes we look at Object types by way of the C++ string class.
+\end{abstract}
+
+\section{Strings}
+
+A string is a sequence of zero or more characters. Any arbitrarily long sequence can be viewed as recursive object\sidenote{think Racket lists}:
+\begin{verbatim}
+A string is:
+----------------
+ - the empty string ""
+ - a single char value followed by another string
+\end{verbatim}
+
+An alternative way of viewing a string is an \textsc{indexed collection} of characters. From this perspective we think of the string as a kind of \textsc{random access} collection where each individual character is just as easy to access as any other character\sidenote{Notice this is very different then our recursive structure where we only have easy access to the first character.}  Access is made by way of the integer index values.  For a string of length $n$, the first character in the collection is indexed with $0$ and the last with $n-1$. 
+
+The C++ \textit{string} library provides a string type that allows the program to work from either perspective. 
+
+\section{Classes and Objects}
+
+Non-primitive data types are defined as \textsc{classes} in C++. In general, a literal value from a class is called an \textsc{object}.  Primitive types have clearly defined sets of operators where classes provide a set of \textsc{methods} and possibly operators.  A \textit{method} is a special type of procedure defined along side the class and only usable with an object or variable of that class type. 
+
+\subsection{Objects and Variables}
+
+Let's look at the \textit{string} class as an example\sidenote{\url{http://www.cplusplus.com/reference/string/string/}}. String literals are an exception to rule in that they have a special literal syntax.  The following are string essentially literals:
+\begin{verbatim}
+""
+"a string"
+"hello"
+"a"
+\end{verbatim}
+I say essentially because the compiler attributes the type \textit{char *} to these values, and not \textit{string}. In many\sidenote{most?} cases, the two types can be used inter-changeably, but you should be aware of the difference. If you want a proper \textit{string} type literal, then you'd do the following:
+\begin{verbatim}
+string("")e
+string("a string")
+string("hello")
+string("a")
+\end{verbatim}
+This syntax commonly used for object literals.  This syntax actually invokes a special procedure called the \textsc{constructor}. For C++ classes, constructors are named after the class. So the procedure named \textit{string} is one of the string type \textsc{constructors}\sidenote{like \textit{make-posn} from Racket}.  These examples show the constructor that creates a \textit{string} type value from a \textit{char *} type value.  Another important constructor is the \textsc{copy constructor} that constructs a string from a string.
+\begin{verbatim}
+string(string("hello"))
+\end{verbatim}
+
+
+More often then not, we'll need string variables to store our string values. Declaring class-based variables is the same as primitive types.  Un-initialized declaration looks like this:
+\begin{verbatim}
+string s;
+string t;
+\end{verbatim}
+We have several options for initializing our variables.  The preferred syntax is this:
+\begin{verbatim}
+string s("hello");
+string t(s);
+\end{verbatim}
+The first syntax uses the \textit{char *} constructor to build string s. The second uses the \textsc{copy constructor} to build $t$ as a copy of the string $s$. We could also initialize our variable with the following syntax:
+\begin{verbatim}
+string s = "hello";
+string t = s;
+string u = string("hello");
+\end{verbatim}
+These forms are less preferred as they involve the assignment operator. They'll work just fine for \textit{string} types, but when we write our own classes, we'll have to write our own assignment operator to ensure that these work as intended.  For now, you should understand that \textit{for strings}, all of these initialization forms have the same \textit{effect} but they achieve this effect in slightly different ways.  These differences can, for non-string types, mean different effects.   
+
+\subsection{Class Methods}
+
+We know how to express string literals, declare string variables, and initialize string variables.  So far, things look more or less like they did with primitive types. Now, we'll make a departure.  Classes almost always provide a set of class methods. These methods are special procedures meant to be invoked with an object from that class.  Rather than passing that object to the method, we use the \textsc{dot operator} to invoke the method \textit{with respect to the object}.  
+
+Let's look at the string \textit{length} method that returns the length of a string.  If it were a procedure, then we'd expect something like this\sidenote{as gTest statements}:
+\begin{verbatim}
+// string literal
+EXPECT_EQ(3 , length(string("dog")));
+
+// string variable
+string s("dog");
+EXPECT_EQ(3,length(s));
+\end{verbatim}
+
+However, length\sidenote{\url{http://www.cplusplus.com/reference/string/string/at/}} is a class method, so we do this:
+\begin{verbatim}
+EXPECT_EQ(3 , string("dog").length());
+
+string s("dog");
+EXPECT_EQ(3,s.length());
+\end{verbatim}
+The \textit{dot operator} effectively calls the class method to the left of the dot on the object or variable to the right of the dot. In the first example we used a string literal\sidenote{note that ``dog''.length() will not work as ``dog'' is of type \textit{char *} not \textit{string}}.  It is helpful to think of the object value to the left of the dot as the first\sidenote{or implied} parameter of the method to the right of the dot.  
+
+Now lets consider the methods that allow us to work with strings as a collection, namely the methods that let us select one or more characters from the string.  These are interesting methods as they require parameters in addition to the object.  First, \textit{at}\sidenote{\url{http://www.cplusplus.com/reference/string/string/at/}}, which selects by index.
+\begin{verbatim}
+EXPECT_EQ('a',string("at").at(0));
+EXPECT_EQ('t',string("at").at(1));
+EXPECT_EQ('t',string("at").at( string("at").length() - 1 ) );
+
+string s("dog");
+EXPECT_EQ('o',s.at(1));
+EXPECT_EQ('g',s.at(2));
+\end{verbatim}
+
+The \textit{substr}\sidenote{\url{http://www.cplusplus.com/reference/string/string/substr/}} method is a general purpose selector that allows you to get part of a string as a string. 
+\begin{verbatim}
+
+EXPECT_EQ("a",string("at").substr(0,1) );
+EXPECT_EQ("at",string("at").substr(0,2) );
+EXPECT_EQ("ello",string("hello").substr(1) );
+EXPECT_EQ("ello",string("hello").substr(1, 4) );
+EXPECT_EQ("ello",string("hello").substr(1, string::npos) );
+
+string s("daydream");
+EXPECT_EQ("dre",s.substr(3,3) );
+EXPECT_EQ("daydrea",s.substr(0,s.length()-1) );
+
+\end{verbatim}
+
+\subsection{Overloaded Operators}
+
+In order to allow programmers to use objects like primitive values, C++ allows class designers to define operators\sidenote{called \textsc{operator overloading}} for their classes. One of the most important operators for the string type is \textit{operator[]}\sidenote{\url{http://www.cplusplus.com/reference/string/string/operator[]/}} that allows for indexed based selection. This syntax is the most commonly used syntax in programming for element selection from index collections.
+\begin{verbatim}
+EXPECT_EQ('a',string("at")[0]);
+EXPECT_EQ('t',string("at")[1]);
+
+string s("dog");
+EXPECT_EQ('o',s[1]);
+EXPECT_EQ('g',s[2]);
+\end{verbatim}
+We read the expression $s[1]$ as ``s at 1''. Also note that while C++ refers to the operator as \textit{operator[]}, the actually operator only involves the $[]$. For more examples, check out the relational operators for string comparison\sidenote{\url{http://www.cplusplus.com/reference/string/string/operators/}}.
+
+\subsection{String Mutators}
+
+The string class provides mutators methods as well as accessor methods, so string variables are mutable. The \textit{push\_back} method adds a single character to the end of a string.
+\begin{verbatim}
+string s("do");
+EXPECT_EQ(2,s.length());
+EXPECT_EQ("do",s);
+
+s.push_back('g');
+
+EXPECT_EQ(3,s.length());
+EXPECT_EQ("dog",s);
+\end{verbatim}
+
+It is also possible to directly mutate individual characters through the use of single character assignment. Both the \textit{at} method and \textit{operator[]} provide direct references to individual characters within the string.
+\begin{verbatim}
+string s("dog");
+
+EXPECT_EQ("dog",s);
+s[0] = 'h';
+EXPECT_EQ("hog",s);
+
+s = "bat";
+EXPECT_EQ("bat",s);
+s.at(2) = 'g';
+EXPECT_EQ("bag",s);
+\end{verbatim}
+This type of character level manipulation is indicative of treating a string as an \textit{array of char} values.  An array type is the low-level C++ implementation of indexed collections.  When we treat a string as an array, we tend to ignore the higher-level string logic and focus on the fact that it's a collection of chars. 
+
+
+\end{document}

@@ -1,0 +1,52 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 - Lab 87 \& Homework 5}
+\author{}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+In this lab you continue your work on the \textit{FTo} program from lab 6 by completing the interactive UI for the program.  This involves writing a \textit{main} procedure with several UI loops.
+\end{abstract}
+
+\section{Implementation by Iterative Refinement}
+
+For this lab you'll develop the \textit{main} procedure using \textsc{iterative refinement}. In this process you identify a sequence of  iterations\sidenote{version} of the procedure such that each iteration adds a new feature or functionality to the previous iteration.  You then complete one iteration at a time, in order, testing each iteration for correctness before proceeding to the next iteration. For lab, you need to work on \textit{main} using the following sequence of iterations:
+\begin{enumerate}
+\item Main program flow without any looping
+\item Add main program loop to repeat until quit
+\item Add validation/reentry loop for user's menu choice input
+\item Add validation/reentry loop for user's Fahrenheit temperature input
+\end{enumerate}
+Iterative refinement lets us get the benefit of unit testing\sidenote{the testing in small chunks part} in a situation where we can't use our unit testing framework\sidenote{to test \textit{main}}.
+
+You have not written a procedure of this size yet, so the temptation to wait to compile until you complete an iteration will likely be great. Look for opportunities within each iteration to get the code to a compilable state and compile. This lets you clear out any syntax errors and warning in small chunks rather than in one big mass when you're ``done''\sidenote{Compile early and compile often or risk being overwhelmed by errors}.
+
+\subsection{Lab 7 }
+
+Work on iteratively completing the main procedure as described above. \textit{Stick to the order in which iterations are given above.}  Code for an iteration should not even appear in your program unless the iteration proceeding it is complete and tested. Towards that end, \textit{in a file called lab7-report.txt, keep a log of how you tested each iteration.} Your log must describe the testing of the iteration in terms of expected behavior on concrete situations\sidenote{just like all other testing we do}. One test for our first iteration might be described as follows:
+\begin{quote}
+Run the program. First I'll see the menu. Then I'll enter 1 as my choice. Next I'll see the prompt for entering a Fahrenheit temperature. I'll enter 32.0.  Then the program will close with no further output. 
+\end{quote}
+The key is that you are very explicit and specific. You don't need to give exact details for I/O prompts\sidenote{you covered that in the UI tests :)}, but you do need to state when they'll happen\sidenote{i.e. the flow of control}. Be certain that your test(s) ensure that every line of code you wrote for the iteration gets executed and tested.
+
+If you need or want my version of lab 6 and homework 4\sidenote{the UI and model libraries} they are zipped up and available for copying at in \textit{/home/comp161/sp14/}.  Use the command \textit{unzip} to extract the C++ files from the zip files.  At the end of lab submit the \textit{cpp} file containing your main procedure and your lab report document\sidenote{only two files!} as \textit{lab7} using \textit{handin}. 
+
+
+\subsection{Homework 5}
+\begin{center}
+\textbf{Due by class time, Friday 2/28}
+\end{center}
+
+For homework you must do two things:
+\begin{enumerate}
+\item complete the lab\sidenote{If you finished in lab, you do not have to resubmit your work}
+\item In a file named hwk5-report.txt, brainstorm other iteration sequences that might have been used in the development of this program. These should include, but are not limited to, re-ordering of the iterations used in lab, finer grained iterations\sidenote{think splitting up an iteration into smaller iterations}, and different iterations. In particular, try to imagine iteration sequences that begin with an iteration that is different from the one we used in lab. A lot of things depend on that initial iteration goal and it's useful to have options. Finally, comment on which of the possible iterative development sequences that you came up with is best and why.
+\end{enumerate}
+
+\end{document}

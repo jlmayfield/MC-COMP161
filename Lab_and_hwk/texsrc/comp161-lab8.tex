@@ -1,0 +1,96 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 - Lab 8}
+\author{}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For this lab you'll be exploring parts of the C++ \textit{string} library in order to get comfortable working with Object and array types.
+\end{abstract}
+
+\section{Write your own tests}
+
+Reading the reference for a library of code is often step one in learning how to use the library.  However, you must, at some point put your theoretical knowledge of the library to the test by actually using the code.  It's often better to do this outside of your intended application.  In our case, we'd like to know the ins and outs of strings before we write an obviously string based program: hangman. A simple way to get at the library without worrying about bigger applications is to \textit{write your own set of tests for the code you intend to use}. This simple exercise let's you verify that you know how to invoke the code and that your expectations for the code match the reality.  
+
+Your goal for the day is to get comfortable with the C++ string library and in particular the string class\sidenote{The reference documentation can be found on \url{http://www.cplusplus.com/reference/string/}}. To accomplish this goal you'll first need to read the documentation for a specific procedure and then write some gTest unit tests\sidenote{You'll want these \url{https://code.google.com/p/googletest/wiki/Primer\#String_Comparison}} for that procedure to test and demonstrate your understanding of the documentation.  At the end of lab, submit the file with your tests as \textit{lab8} using \textit{handin}.  Your tests should all be new and just copies of test cases found on cplusplus.com.
+
+\section{String Class Methods}
+
+Most of the procedures we need are actually \textsc{object methods} for the C++ string class\sidenote{recall: a class is a non-primitive type}.  As we discussed in class, this means we use the \textit{dot operator} and call the method relative to a specific string as opposed to passing that string to the procedure as an input. This also means the methods must be invoked on a \textit{string variable} and not a \textit{string literal}. The string class is documented here: \url{http://www.cplusplus.com/reference/string/string/}.
+
+\subsection{Strings as Recursive Objects}
+
+As we know from working with Racket lists, working with recursive data requires three things: the ability to recognize the non-recursive empty case, the ability to select the first of an non-empty recursive data structure, and the ability to select the rest of a non-empty, recursive data structure. It is often advantageous to treat string data as a recursive data structure.  The string library gives us everything we need for this.  Write a TEST block for each of the following bullet points:
+\begin{itemize}
+\item \textsc{Empty} Write tests to demonstrate how you can the method \textit{empty}, \textit{size}, or \textit{length} to see if a string is empty or not\sidenote{"" is the empty string literal}.  
+\item \textsc{First} Write tests to demonstrate how you can use the method \textit{at} or the operator \textit{[]} to select the first, location $0$, character of a string. 
+\item \textsc{Rest} Write tests to demonstrate how you can use the method \textit{substr} to get the rest (all but the first) of a string. 
+\item \textsc{Last} Write tests to demonstrate how you can use \textit{at} or \textit{[]} to select the last character in the string.
+\item \textsc{ButLast} Write tests to demonstrate how you can use \textit{substr} to select all but the first character of a string
+\item \textit{LeftHalf} Write tests to demonstrate how you can use \textit{substr} to select the left half of a string.
+\item \textit{RightHalf} Write tests to demonstrate how you can use \textit{substr} to select the right half of a string.\sidenote{Be certain your left and right halves should combine back to the whole, original string.} 
+\end{itemize} 
+As some of the cases above imply, recursion doesn't have to happen in the first+rest fashion you're used to.  Tuck that thought away for later. 
+
+\subsection{Comparing Strings}
+
+The comparison of strings can seem a bit quirky at first. There are two ways to compare strings: the \textit{compare} method and overloaded \textit{relational operators}\sidenote{== , !=, <=,>=,<,>}.  Write a TEST block for each of the following bullets. Use a mixture of \textit{compare} and the relational operators.
+\begin{itemize}
+\item Write tests to demonstrate that string comparison is case-sensitive. 
+\item Write tests to demonstrate what comes first, lower or upper case\sidenote{i.e. demonstrate the exact effect of cases on string comparison}
+\end{itemize}
+
+\subsection{Searching Strings}
+
+The string class provides a robust set of methods for finding strings within strings.  Write a TEST block for each of the following bullets.
+\begin{itemize}
+\item Write tests to demonstrate the use of \textit{find} to determine the location of the first occurrence a specific letter in a string. Now find a string of length greater than 1.
+\item Write tests to demonstrate the use of \textit{find} to determine that a specific letter is not in a string. Now detect the absence of a string of length greater than 1.
+\end{itemize}
+
+\subsection{Mutator methods}
+
+So far we've looked at accessors or predicates; none of the methods we've used are string mutators. Let's return to some of the recursion logic and consider a mutation based approach. Write a TEST block for each of the following bullets.
+\begin{itemize}
+\item Write tests to demonstrate the use of \textit{erase} to change a string to its rest (all but the first).
+\item Write tests to demonstrate the use of \textit{erase} to change a string to its butLast (all but the last).
+\end{itemize}
+Remember that strings have two key data properties: the character sequence and the size.  So, the expected change should be reflected in both of these properties. 
+
+
+\subsection{	getline}
+
+By default, streaming input reads everything up to the first whitespace character.  Sometimes you want to get a whole line, i.e. everything up to the ``enter key'' character.  The string class provides a method specifically for doing this.  Write a TEST block for each of the following bullets.
+\begin{itemize}
+\item Write tests to demonstrate the use of \textit{getline} to read an entire line of input from the standard input.
+\end{itemize}
+
+
+\section{Library Procedures for Number to String}
+
+We often encounter string representations of numbers where we need actually numbers\sidenote{or numbers where we need strings}.  Thankfully, the string library\sidenote{not class} provides some convenient procedures for managing these conversions. Write a TEST block for each of the following bullets.
+\begin{itemize}
+\item Write tests to demonstrate the use of \textit{to\_string} to convert numerical values to strings
+\item Write tests to demonstrate the use of \textit{stoi} to convert ints to strings
+\item Write tests to demonstrate the use of \textit{stod} to convert doubles to strings
+\end{itemize}
+
+
+\section{More?}
+
+\textit{At this point you're done. Submit your tests.} However, consider exploring the following tasks.
+\begin{itemize}
+\item All of the methods you tested are accessors or predicates.  Consider re-visiting the recursive procedures\sidenote{rest,butLast,leftHalf,rightHalf} using the string mutator \textit{erase}. 
+\item You know we're going to write a hangman game.  So if you see a method or procedure that seems useful in that context, test it out.  
+\item You might see if you can figure out how to use \textit{find} to find \textit{all} the locations of a specific letter\sidenote{hint: use a loop}.
+\item Another usefully exercises is to attempt to write your own versions of these methods/procedures using only basic C++ and \textit{length} and \textit{at}\sidenote{or []} methods.\sidenote{now that you really know \textit{what} these things are and what they do, deepen your understanding by figuring out \textit{how} they get it done. }
+\end{itemize}
+
+
+\end{document}

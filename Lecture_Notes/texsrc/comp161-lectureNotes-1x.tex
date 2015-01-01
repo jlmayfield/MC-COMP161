@@ -1,0 +1,93 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath,amssymb,amsthm,color}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[pdftex]{graphicx}
+
+  
+\title{COMP 161 - Lecture Notes - 10 - How to Design Procedures, Round 2}
+\date{Spring 2014}
+
+\begin{document} 
+\maketitle
+
+\begin{abstract}
+We then continue our exploration of data structures and procedure design by looking at compound and self-referencing data structures, including the C++ string type.
+\end{abstract}
+
+
+\section{More Kinds of Data}
+
+So far we've covered procedure design recipes for the following classes of data:
+\begin{enumerate}
+\item Atomics
+\item Itemizations
+\item State Variables
+\end{enumerate}
+
+We now turn our attention to the following classes.
+\begin{enumerate}
+\item Compound Structures \\
+\textit{Struct} types.  aka ``And'' data.  Compound data is a singular data type constructed from more than one value.  The racket \textit{posn} was probably your first foray into compound data.   
+\item Self-Referencing Structures \\
+aka Recursive data.  Lists are built up from smaller lists.  This is the essence of self-reference.  We also sometimes treat numbers in the same fashion: $5 = 1 + 4$, ``five is 1 plus another number, $4$''.
+\item Mutually-Referencing Structures
+Think a list of lists or lists of structs containing lists. Here we have types containing not just a self reference, but a reference to another kind of data which, in turn, refers back to the original data.
+\end{enumerate}
+
+The \textit{HtDP} templates capture some basic design guidelines for working with these kinds of structures.
+\begin{quote}
+\textsc{Compound}: Select each field, write helper procedures for the fields, and recombine the results of the fields, with another helper, as needed.
+\end{quote}
+\begin{quote}
+\textsc{Self-Referencing}: Use the itemization rule to determine if your dealing with a self-referencing variant. If you are, use the compound rule to separate the self-reference from the data. Recursively call the procedure on the self-reference, write helpers for the data, and recombine all helper results as needed.
+\end{quote}
+\begin{quote}
+\textsc{Mutual-Reference}: A combination of all other rules. 
+\end{quote}
+
+
+\section{Compound Structures}
+
+Recall structs from BSL Racket. The definition looks like this: 
+\begin{verbatim}
+(define-struct posn (x y))
+\end{verbatim}
+From this we get the following functions:
+\begin{itemize}
+\item A \textsc{Constructor} called \textit{make-posn} used to set the value of the fields $x$ and $y$.
+\item A \textsc{Selector} for each field: \textit{posn-x} and \textit{posn-y}. These are used to retrieve the value of a posn field.
+\item A \textsc{Type Predicate} named \textit{posn?} used to determine if a value is a posn. 
+\end{itemize}
+The first two of these are still vital components of C++ structs. The third is less present as the task of type checking is now carried out by the compiler at compiler time and rarely the programmer at run-time. 
+
+
+\subsection{C++ Struct Declarations}
+
+The following documents and declares a C++ \textit{posn} type. 
+\begin{verbatim}
+/**
+ *  A type for 2-D coordinates
+ *  @var x integer value of the x-coordinate
+ *  @var y integer value of the y-coordinate
+ */
+struct posn{
+  int x;
+  int y;
+};
+\end{verbatim}
+
+
+
+\subsection{Self-Referencing Structures}
+
+
+\subsection{Mutually-Referencing Structures}
+
+
+\section{On the Composition of Structures}
+
+\section{Multi-Argument Procedures}
+
+
+\end{document}

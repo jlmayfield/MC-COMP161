@@ -1,0 +1,418 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath,amssymb,amsthm,color}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[pdftex]{graphicx}
+
+  
+\title{COMP 161 - Lecture Notes - 06 - How To Design Procedures, Round 1}
+\date{Spring 2014}
+
+\begin{document} 
+\maketitle
+
+\begin{abstract}
+In COMP160, ``How to Design Programs'' was all about designing functions.  Now that we're programming procedurally, we need to revisit our design process for procedures.  Many things don't change beyond the obvious syntax shift from BSL Racket to C++.  However, we must now learn to account for procedures used for effect. We begin this process by looking at basic structures of data.
+\end{abstract}
+
+\section{Procedure Libraries}
+
+When we're developing programs in this class, we like to organize procedures in to libraries. We write our libraries using a two file system. The first file, the header\sidenote{a .h file}, simply declares and documents the library procedures. The second file, the implementation\sidenote{a .cpp file}, provides the full implementation details\sidenote{the definitions} for the library procedures. We'll also include a third file with all of our libraries. The file containing the tests for all the library procedures. 
+
+Libraries all have some basic boilerplate code that goes in them. You can see this code in the files \textit{libTemp.h}, \textit{libTemp.cpp}, and \textit{libTemp\_tests.cpp}. 
+
+Every file begins with a comment block called the file header\sidenote{different than a header file!}. In that header is three things:the name of the author, and a brief description of the file contents and their purpose. 
+
+The library header (the .h file) should always start with two things: define guards and a namespace declaration. The define guard has three parts: \#ifndef , \#define , and \#endif. We'll want to \#include our library in multiple files. Without these guards, the compiler will complain about multiple definitions.  The namespace is a way of organizing our code and helps prevent name conflicts.  In many respects its like assigning a second name to the procedures in your library. This ensures that your procedures aren't confused with another procedure by the same name from a different library. Notice that the define guards surround all the library code and that function declarations will go within the namespace block delimited by the curly braces.
+
+The implementation file includes the library header and then begins providing full declarations for each of the procedures in the library. Be sure to include the namespace name in the procedure header!
+
+The test file needs to include both the library header and the gtest library so that we have the procedures we're testing as well as the test macros. Generally speaking, you should write a test case for every procedure. The one exception to this rule might be combining tests for helper procedures with the tests for the procedure their helping.  In this case, the best thing to do might be to write one test case for the whole thing, but split the tests out by procedure\sidenote{you see this in the factorial library from our last lab}.
+
+You're going to write a lot of libraries, so get used to this code. An industrious student might take a crack at writing a bash script to automatically generate starter files for libraries. Such a script might take the library name as an input and then produce these three files with the boilerplate all filled in. Or you can do a lot of typing, copying, and pasting at the start of every program.
+
+\section{Design and Development Process}
+
+When designing and developing C++ procedures, you should try to stick to the following process.
+\begin{enumerate}
+\item (\textsc{Design})Analyze the problem, decide on your data model for the procedure's inputs and outputs, and document and declare the procedure in your library.
+\item (\textsc{Design})Write tests for the procedure in your test file. 
+\item (\textsc{Design})Compile the tests to an object to check for syntax errors and warnings.  
+\item (\textsc{Design})Stub the procedure in your library implementation. Write stubs to reflect template information whenever possible.
+\item (\textsc{Design})Compile the library to an object to check for syntax errors and warnings. 
+\item (\textsc{Design})Link library object and test object to make test executable. Run tests to ensure you're tests and stubs are all setup correctly. The test will fail. You're just checking to see that they run!
+\item (\textsc{Implementation})Finish the implementation of the procedure. 
+\item (\textsc{Implementation})Recompile the library object to check for syntax errors and warnings.
+\item (\textsc{Testing})Link the library object with tests object and run the tests. Debug as needed.
+\end{enumerate}
+This is pretty much the same process we used in COMP160.  What you'll notice here is we do a lot of compiling check-points along the way. This is meant to keep the number of compiler errors from getting too large. As you get more comfortable with C++ you can try compiling less often. Just remember that waiting to compile can mean a long, scary looking list of errors.
+
+Another thing that might be new is the use of \textit{stubs}. A stub is an implementation of a procedure that meets the signature but not the purpose. So if your procedure is supposed to return a number, then you just return some random number. We can expand on stubs to include a procedure template based on our analysis of the inputs and outputs.   
+
+\section{Kinds of Data}
+
+The most important part of program design happens before you write a single line of code.  The first thing a programmer must do is decide how best to \textsc{model} real-world \textsc{information} with \textsc{computational data}. For example, if your program is a Hangman game, then you need to decide what \textsc{data types} best capture the different parts of the game. The big design lesson from COMP160 is that data tends to exhibit a few different structural patterns, and if we recognize the structure in our data, then we can base the structure of our program on those patterns. We wrote \textit{data definitions} to explicitly state the type and structure of our problem data, then wrote templates as a reminder of the structural patterns inherent in our data. 
+
+Let's review the most basic patterns you should have encountered in COMP160.
+\begin{enumerate}
+\item Primitive, Atomic Structures \\
+These are the ``low-level'' data types that are built in to the system.  Things like numbers, booleans, and letters fall into this category.  From time to time, we'll treat non-atomic structures as if they were atomic.
+\item Itemization Structures \\
+aka Either-Or data or Unions.  We encounter this when we combine different kinds of data to form a new type of data. It also pops up when you need to consider different subsets or specific instances of atomics. Numerical intervals and enumerations of values are classic examples.
+
+\end{enumerate}
+The key thing to note as all these kinds of data have atomics at some level and all but atomics provide some means of building new structures/types from existing structures/types. Its this combinatorial behavior that lets us get so much mileage out of so few structures. So, where the world of information is infinite and complex, we've had a lot of luck reducing that complexity down to a few well understood structures.
+
+With each of these structures came a template that reflected design guidelines for dealing the the structure. We provide them here as ``rules'' rather than BSL Racket templates. 
+\begin{quote}
+\textsc{Atomic}: Compute. 
+\end{quote}
+\begin{quote}
+\textsc{Itemization}: Use conditionals to determine which variant you're dealing with, then write a helper procedure to process the variant specifically.
+\end{quote}
+
+\section{Static Types in C++}
+
+BSL Racket didn't require you to explicitly identify what type of data your function took as input and returned as output.  We of course would document this because passing the wrong type of data almost always leads to a \textsc{run-time error}\sidenote{typically the program crashes}. Languages like BSL Racket are called \textsc{dynamically typed} because the type of data associated with a particular name\sidenote{or identifier} isn't determined until run-time\sidenote{dynamic$\rightarrow$run-time}.  
+
+The other side of the coin is languages that are \textsc{statically typed}, like C++.  Static typing means that the type of value associated with an identifier\sidenote{or variable} is determined at compile time\sidenote{static$\rightarrow$compile time}.  This means that \textit{you must annotate your program with types so that the compiler knows exactly what type of data its dealing with}. The reason for static typing is correctness.  With static types, a compiler can catch obviously bad usage of data. So all those run-time errors from BSL Racket because compile-time syntax errors in C++.  This is good! The downside is you spend a lot of time annotating code and dealing with type errors at the compiler. So static types lead to better run-time correctness as the cost of the programmer's time. Dynamic types let the programmer make bad function calls, but often let you get code written quicker. It's all about trade-offs.   
+
+The last thing we need to be clear on before we move forward is what, exactly, is a type.  
+\begin{quote}
+A \textsc{type} is a set of values and operations on those values.  
+\end{quote}
+The important thing to note is that both values and operations have types. 
+
+\section{Common C++ atomic types}
+
+We'll begin our journey in to C++ types with four primitive types:
+\begin{itemize}
+\item \textit{int} Whole valued numbers
+\begin{verbatim}
+1 0 5 -34 19473 -878237
+\end{verbatim}
+\item \textit{double} Decimal values
+\begin{verbatim}
+1.0  0.0 5.0 -0.2345 14.234932 -3.14159
+\end{verbatim}
+\item \textit{char} letters and symbols
+\begin{verbatim}
+'a' 'A' 'c' '5' '+' '\0' '\n' '\t'
+\end{verbatim}
+\item \textit{bool}
+\begin{verbatim}
+0 1 false true
+\end{verbatim}
+\end{itemize}
+
+\subsection{Number Types}
+
+The two most common C++ number types are \textit{int}\sidenote{integers} and \textit{double}\sidenote{Double-Precision, Floating Point}. The \textit{int} type is used for whole valued numbers and the \textit{double} type for real-valued number, or numbers with a decimal point. There are many other numerical types that we'll look at as needed. The most important thing to point out right now is that you can either do double arithmetic or integer arithmetic but not a mix.  Integer arithmetic produces integer values and double arithmetic produces doubles. The most common gotcha is with integer division.  In math class $1/2$ is $0.5$, but in C++ $1/2$ is $0$.  See, the result must be an integer, and it doesn't know to round up or down because integers have no fractional part\sidenote{so basically it always rounds down}.  
+
+The other big thing we need to be aware of is that they have limited precision. As we saw in homework 2, int types can't store certain numbers\sidenote{\url{http://www.cplusplus.com/reference/climits/}} because they're too big.  The problem is that your limited to a fixed number of digits\sidenote{32 bits}. If I cut you off at three digits, then you can't do anything in the thousands.  With doubles the problem is worse. There are more distinct numerical values between 0 and 1 then there are integer values\sidenote{\url{http://en.wikipedia.org/wiki/Infinity\#Cardinality\_of\_the\_continuum}}. So while doubles have twice the storage capacity of an int\sidenote{64 bits}, they have infinite more values to attempt to represent! Furthermore, certain common values, like 0.1, are actually impossible to accurately represent in the binary system used by doubles.  What you need to take away from all of this is:
+
+\begin{quote}
+The math carried out by a computer is not always the math we learn in school. It's an approximation that often goes astray.
+\end{quote}
+
+If you weren't a fan of BSL Racket's prefix notation\sidenote{operator before operands} then you're in luck, C++ uses the same infix style you learned in math classes.  The basic set of numerical operations are what you'd expect for the most part.
+\begin{center}
+\begin{tabular}{ll}
++ & int and double addition \\
+- & int and double subtraction \\
+* & int and double multiplication \\
+/ & int and double division \\
+\% & int remainder
+\end{tabular}
+\end{center}
+
+Let's look at a few examples:
+\begin{verbatim}
+3 + 4 * 15 - 7
+
+3 % 2
+
+3.2 * 5.9 / 0.002
+
+5 + 3 / 4.0 
+\end{verbatim}
+The first two use \textit{int} operators and the third uses double.  The last is kind of tricky because the compiler will do the whole thing with double operators and convert\sidenote{aka \textsc{cast}} the \textit{int} values to doubles before it does.  In general, if one double is involved in the arithmetic, the whole thing will use double operators.
+
+\subsection{Letters}
+
+A single letter can be represented by a \textit{char}, or character type.  By default, C++ uses the ASCII encoding of letters and symbols. It's important to remember that a char value is only a single symbol.  The characters that might make you think otherwise are the characters that use the escape character $\backslash$.  The most common example of this is the character for a newline\sidenote{enter key}, '$\backslash$n'. There are several other characters using the backslash escape.  
+
+It's occasionally useful to recognize that ASCII characters have numerical values associated with them. This means that we can often trick the compiler\sidenote{not really. it knows what's going on} into doing unsigned integer arithmetic with characters.   While this is fun and does have its uses, you shouldn't resort to this until after you've checked out the standard set of character libraries for the operation you're looking for. The old C library \textit{ctype} is a good place to start\sidenote{\url{http://www.cplusplus.com/reference/cctype/}}. In C++ it's called \textit{cctype}. 
+
+These ``operators'' are really procedures, so using them requires a procedure call.
+\begin{verbatim}
+tolower('a')
+toupper('a')
+isdigit('5')
+isdigit(' ')
+\end{verbatim}
+The last two procedures are what we call \textsc{predicates}. A \textsc{predicate} evaluates its input for some logical property and therefore returns a boolean value.
+
+\subsection{Booleans}
+
+Booleans are, at first glance, dead simple. There's only two values: true and false.  The problem is that in C++ the integer value 0 is equivalent to false and any non-zero integer is true.  These days you don't have many good reasons to leverage this fact, but sometimes you run into it by accident. The standard boolean operators look a bit different in C++.
+
+\begin{center}
+\begin{tabular}{ll}
+\&\& & boolean and \\
+|| & boolean or \\
+! & boolean not \\
+== & equal? \\
+!= & not equal? \\
+$<$= & less than or equal for numbers \\
+$>$= & greater than or equal for numbers \\
+$<$ & less than for numbers \\
+$>$ & greater than for numbers
+\end{tabular}
+\end{center}
+
+The biggest change coming from BSL Racket that you'll experience is with the use of and and or.  Not only are the operators different and infix, but they're strictly binary.  Here's a BSL Racket expression and the equivalent C++.
+\begin{verbatim}
+(and a b c) 
+a && b && c 
+\end{verbatim}
+Similarly, the numerical comparison operators are strictly binary. Here we see a ternary Racket comparison and the equivalent C++ expression.
+\begin{verbatim}
+(< 5 b 10)
+5 < b && b < 10
+\end{verbatim}
+
+
+\section{Functional Procedures}
+
+We'll first look at functional procedures. These are procedures which take and return values and have no side effects\sidenote{just like Racket Functions}.  
+
+\subsection{Library Declarations}
+
+Before we get to writing the function, we first declare it in the library header. This mean making the function signature and purpose clear to the reader\sidenote{compiler and programmer}.  Declarations have two parts: the documentation and the function header. 
+\begin{verbatim}
+/**
+ * Carry out some computation on anAtom
+ * @param anAtom an integer
+ * @return another integer
+ */
+int function_on_atom(int anAtom);
+
+\end{verbatim}
+All the text between the /* and */ is a comment and ignored by the compiler.  This is documentation of the programmer. Notice how the documentation style we'll be using in C++ has all the things we used in BSL Racket, but presents them differently. We start with a purpose statement. Next we document each input with and \@param tag. Finally, we document the return value with an \@return.  We'll learn some other tags as we go along. 
+
+Next we notice the format for the function header\sidenote{the non-comment line}. The first occurrence of \textit{int} indicates the return type, or our procedure. Next we see the procedure name. The dash - is not allowed in C++ names so we either use the underscore \_ or a style called camel case, \textit{functionOnAtom}\sidenote{see the camel-like humps}. The procedure's argument is then given in parenthesis following the procedure name. The pattern here is:
+\begin{verbatim}
+RETURNTYPE NAME(ARGTYPE ARGNAME);
+\end{verbatim} 
+
+
+Our style of writing libraries puts function declarations inside namespace blocks. Let's see that:
+\begin{verbatim}
+namespace atomic{
+
+  /**
+   * Carry out some computation on anAtom
+   * @param anAtom an integer
+   * @return another integer
+   */
+  int function_on_atom(int anAtom);
+
+}
+\end{verbatim}
+If our library had more functions, then we'd put them in the same block. This block declares the \textit{atomic} namespace.  That's just a name we choose.  The importance of the namespace name is it adds another layer of naming to our functions. This seems like extra work and complexity at first, but it pays off in the long run. Calling functions declared in a namespace looks like this:
+\begin{verbatim}
+atomic::function_on_atom(5)
+\end{verbatim}
+
+So the pattern for calling functions is,
+\begin{verbatim}
+namespace_name::function_name( argument list..)
+\end{verbatim}
+There are a couple of ways around the namespace specifier. We'll save them for later. For now, writing out the ``full name'' of your functions is good reinforcement of what's going on in the organization of the code.
+
+\subsection{Writing Tests}
+
+Once the library declarations are written we can start writing tests.  The compiler knows enough about the function to at least recognize a properly written test. With that, we can build the object for our test file. In BSL Racket we'd use \textit{check-expect} to write tests.
+\begin{verbatim}
+(check-expect (function-on-atom 5) 10)
+(check-expect (function-on-atom 51) 13)
+\end{verbatim}
+
+In this class we're using a testing framework written by Google for testing their C++ code. The basis for testing is the same, check the result of the function against an expected value. However, we need to put a little more effort in to organizing tests. For each procedure we'll typically define one test case and at least one test. The basic template for a test is:
+\begin{verbatim}
+TEST(caseName,testName){
+  // expect statements
+}
+\end{verbatim} 
+\textit{Avoid underscores in case and test names}. If we want to do a basic equal test, then we'll typically use one of two expect statements. The first is for non-double values and the second is for doubles.
+\begin{verbatim}
+EXPECT_EQ(10,atomic::function_on_atom(5));
+EXPECT_FLOAT_EQ(10.0,atomic::function_on_double(5.0));
+\end{verbatim}
+The pattern here is:
+\begin{verbatim}
+EXPECT_*EQ(expected,actual);
+\end{verbatim}
+Notice the new convention to write expected values prior to actual computed values.
+
+Putting this together, our BSL Racket tests from before now get written as this gTest test case:
+\begin{verbatim}
+TEST(funOnAtom,allTests){
+  EXPECT_EQ(10,atomic::function_on_atom(5));
+  EXPECT_EQ(13,atomic::function_on_atom(51));
+}
+\end{verbatim}
+
+\subsection{Stubs for Atomics}
+
+If the input to your procedure is a primitive or atomic structure then you're free to compute with it. As a BSL Racket template, we might write something like this:
+\begin{verbatim}
+(define (function-on-atom anAtom)
+   (... anAtom ...) )
+\end{verbatim}
+
+Now in C++ we'd write something like this in our library implementation file:
+\begin{verbatim}
+int atomic::function_on_atom(int anAtom){
+    return	...anAtom...;	
+}
+\end{verbatim}
+\textit{Notice that we have to put the namespace name in front of the function name this time.}
+
+The body of the procedure is found within a set of curly braces\sidenote{not parenthesis}. The opening curly brace can also be written on the next line, but we'll prefer the style shown above in this class.  For our template body we write the outline of a \textsc{return statement}.  These statements tell the computer to return, as output the value of the expression following them.  The big thing to notice is that the statement is terminated with a semicolon. This is true of most statements, and given that procedures are sequences of statements, you need to get used to ending your statements with a semicolon. 
+
+In this class we'll prefer stubs over templates.  A \textsc{stub} is basically a template that compiles, and we always like to work with compilable code whenever possible. So leaving the ... sitting around isn't really something we want to do.  When writing a stub, your goal is to write a procedure that passes the compiler, not a procedure that does what you need it to do.  To turn the above to a stub we'd simply remove the dots.
+\begin{verbatim}
+/**
+ * Carry out some computation on anAtom
+ * @param anAtom an integer
+ * @return another integer
+ */
+int function_on_atom(int anAtom){
+    return	anAtom;	
+}
+\end{verbatim}
+This is now an actual C++ procedure that will return the value of anAtom.  Alternatively we could just return 0\sidenote{or any int literal}, but it's nice to keep the reminder that we probably need or want to do something with anAtom. 
+
+\subsection{Stubs for Itemization}
+
+Procedures on itemizations work from the following template:
+\begin{quote}
+If the procedure input is an itemization structure with $n$ variants, then use an $n$ branch conditional statement to determine to which of the $n$ variants your input belongs.
+\end{quote}
+
+Let's say we needed to solve some kind of classic tax problem where for numbers from 0 to 500 we do one thing, from 501 to 1000 we do something else, and for numbers above 1000 we do yet another thing. Well, then we're dealing with an itemization and as we know, we need a \textsc{conditional}.  Here's a BSL Racket skeleton:
+\begin{verbatim}
+(define (my-tax-func income)
+   (cond [(<= 0 income 500) ...]
+         [(<= 501 income 1000) ...]
+         [(> income 1000) ...]))
+\end{verbatim}
+
+In C++ we might go with the following stub\sidenote{let's assume this is declared in our library header}.
+\begin{verbatim}
+int atomic::myTaxFunc(int income){
+  
+  if( 0 <= income && income <= 500 ){
+     return 0;
+  }
+  else if( 501 <= income && income <= 1000){
+     return 1;
+  }
+  else if( income > 1000 ){
+     return 2;
+  }
+
+  return -1;
+}
+\end{verbatim}
+The \textit{if...else if} statement is our general purpose conditional statement in C++. You can probably quickly guess how it works from the above example. Here I choose to return different values for each case; it might help with debugging and testing later. We could also have returned \textit{income} for each case as the real goal here was get the variant checks setup. The final \textit{return -1;} is required by the compiler, which must be able to guarantee that an integer is, in fact, returned.  If all of your returns are behind and \textit{if} or and \textit{else if}, then the compiler can guarantee one of them will be reached.
+
+But what if we're not sure about the variant check? What then? Abandon the conditional? No Way!
+\begin{verbatim}
+int atomic::myTaxFunc(int income){
+  
+  if(true){
+     return 0;
+  }
+  else if(false){
+     return 1;
+  }
+  else if( false){
+     return 2;
+  }
+  return -1;
+}
+\end{verbatim}
+This stub still compiles and let's us get the conditional scaffolding up without having to worry about how to actually check each variant.  The moral of the story is: \textit{there's zero reason to not stub at least the conditional scaffold. }
+
+Now one quick note on the use of \textit{else}.  We could have approached the tax function like this:
+\begin{verbatim}
+int myTaxFunc(int income){
+  
+  if( 0 <= income && income <= 500 ){
+     return 0;
+  }
+  else if( 501 <= income && income <= 1000){
+     return 1;
+  }
+  else{
+     return 2;
+  }
+}
+\end{verbatim}
+The appealing part of this is that an unconditional \textit{else} saves us the odd \textit{return -1} from before\sidenote{do you see why?}. But notice there's a fundamental difference between this version and the one we had before. Do you see it? The \textit{int} type allows for positive and negative numbers.  So, in the version that uses \textit{else}, our else clause would catch negative numbers as well.  There are several ways to deal with this, but the main point is this: \textit{don't use else unless you truly mean all other possible inputs.}  
+
+\section{Completing the Function}
+
+Once we've got declarations, tests, and stubs in place, we can go ahead with implementing the function.  Let's consider an example:
+\begin{quote}
+Convert a Fahrenheit temperature to Celsius 
+\end{quote}
+What might the design setup look like?
+
+The header for our library contains:
+\begin{verbatim}
+namespace temperature{
+
+  /**
+   * Convert Fahrenheit to Celsius
+   * @param ftemp is a Fahrenheit temperature as a double
+   * @return the Celsius equivalent of ftemp, as a double
+   */
+   double FtoC(double ftemp);
+}
+\end{verbatim}
+
+And some tests for our test file:
+\begin{verbatim}
+TEST(FtoC,alltests){
+   EXPECT_FLOAT_EQ(0.0,temperature::FtoC(32.0));
+   EXPECT_FLOAT_EQ(-27.0,temperature::FtoC(-16.6));
+   EXPECT_FLOAT_EQ(27.0,temperature::FtoC(80.6));
+}   
+\end{verbatim}
+
+This is an atomic data problem, so we have an easy stub:
+\begin{verbatim}
+double temperature::FtoC(double ftemp){
+	return ftemp;
+}
+\end{verbatim}
+
+Now to implement we ``simply'' replace the stub value with an expression to compute our desired result.
+\begin{verbatim}
+(ftemp - 32.0)*(5.0/9.0)
+\end{verbatim}
+Notice I used \textit{double} literals to avoid any operator type confusion. So, putting this in the return statement we'd see:
+\begin{verbatim}
+double temperature::FtoC(double ftemp){
+	return (ftemp - 32.0)*(5.0/9.0);
+}
+\end{verbatim}
+
+We probably shouldn't expect all of our function to come out so simply. None, the less, these simple functions give us a good place to start and let us work the kinks out of basic C++ syntax and library development.
+
+
+\end{document}

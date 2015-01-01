@@ -1,0 +1,131 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 - Lab 6 \& Homework 4}
+\author{}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For this lab you'll be gearing up to put together a complete program by working on some key procedures for the program \textsc{model} and \textsc{view}.
+\end{abstract}
+
+\section{Program Overview}
+
+We'll be working on the complete design and implementation for a program to convert Fahrenheit temperatures to other temperature scales\sidenote{\url{http://en.wikipedia.org/wiki/Fahrenheit}}.  For today's lab you'll look at some key state and I/O procedures necessary for the user interface. For homework, you'll write some other procedures that use the same kind of design techniques we've been using for weeks now\sidenote{No variable mutation. No I/O}. In the week to come we'll use all this code to build a Model-View-Controller style program.
+
+To give this week's work some context, let's look at our end goal:
+\begin{framed}
+\begin{quote}
+The \textit{FTo} program will allow the user to convert a Fahrenheit temperature to a temperature on the Celsius, Kelvin, or Rankine scale. Conversions can be carried out using the following formulas:
+\begin{equation*}
+\begin{array}{rcl}
+C &=& \dfrac{5}{9}(F-32)  \\ \\
+K &=& \dfrac{5}{9}(F+459.67) \\ \\
+R &=& F+459.67 \\
+\end{array}
+\end{equation*}
+The program provides two user interfaces: command line and interactive.  The command line interfaces allows for for a single temperature conversion.  In this mode, the user feeds the Fahrenheit temperature and target scale to the program as command line arguments and the resultant conversion is reported.  In the interactive mode users begin the program with no command line arguments. They are then guided by a text menu and can do multiple temperatures conversions with one or more Fahrenheit temperatures. 
+\end{quote}
+\end{framed}
+Both interfaces share a lot of functionality and therefore a lot of library code. We'll begin this week with the implementation of this library code and then next week explore how that code comes together to make a complete program. 
+
+\section{Lab: Interface Procedures}
+
+The command line interface requires a mutator method for setting the temperature to the value read from the standard input\sidenote{after it has been validated of course}. Both interfaces require procedures for communicating results of a temperature conversion to the user. The interactive interface requires several I/O procedures:
+\begin{enumerate}
+\item Write the UI Menu text to standard out
+\item Read menu option input from the standard input
+\item Read a Fahrenheit temperature from the standard input
+\end{enumerate}
+
+For lab, you need to write and test a library called \textit{fToUI}\sidenote{For FTo User Interface}. In that library we'll create five procedures:
+\begin{enumerate}
+\item \textit{setFTemp} Used to set a state variable containing the Fahrenheit temperature. 
+\item \textit{ppConversion} Used to ``pretty print'' the results of the conversion to standard output
+\item \textit{writeMenu} Used to write the interactive UI menu to the standard output
+\item \textit{getMenuIn} Used to read a single menu option choice from the standard input
+\item \textit{getFTemp} Used to read a single Fahrenheit temperature from the user
+\end{enumerate}
+
+Details for each of the methods is given below. \textit{Be sure to follow the design processes laid out in lecture notes 07 for each procedure}. \textbf{At the end of lab, submit your source code for the UI library as assignment \textit{lab6} using handin.} If you do not complete this lab in the alloted two hours, you should try to do so by next week. You are not required to, but it is highly recommended that you do. 
+
+\subsection{setFTemp}
+
+When the command line interface is used, we'll need to do some validation on the potential number passed from the command line. After we're sure we have a proper Fahrenheit temperature\sidenote{see homework}, we can assign it to a state variable which maintains the current state of our model\sidenote{The Fahrenheit temperature to be converted}.  Thus, we need a simple \textit{mutator} to change our state variable from an initial value to a user specified value. This is a very basic \textsc{mutator} method and has been covered in class. 
+
+Recall that mutators require pass-by-reference variables and that when multiple arguments are passed to a mutator, we prefer by-value arguments to precede by-reference arguments. So, this procedure two take the new temperature by value and then the state variable by reference. We're designing this procedure with the precondition that the new temperature value is a valid Fahrenheit temperature. The postcondition is the mutator standard: the variable's state changed\sidenote{be more specific in your documentation}.
+
+\subsection{ppConversion}
+
+We could write three pretty printers, one for each of the conversions\sidenote{F$\rightarrow$C,F$\rightarrow$K, and F$\rightarrow$R}, but they'd all probably look way to similar. Similar code is always an opportunity for \textsc{abstraction}.  In this case, we can design a procedure that meets all of our pretty printing needs.  Our desired output is to first print the Fahrenheit temp with exactly two decimal places, then an F, then an $=$, then the converted temperature (again with two decimal places), then the conversion unit. Like this:
+
+\begin{verbatim}
+32.00 F = 0.00 C
+32.00 F = 273.15 K
+32.00 F = 491.67 R
+\end{verbatim}
+
+Notice that if we treat both the conversion value and the unit as variables then the pattern is \textit{$f$ F = $v$ $u$} where $f$ is the Fahrenheit value, $v$ is the converted value, and $u$ is the conversion unit letter.  This leads to the following signature\sidenote{less the namespace specifier}
+
+\begin{verbatim}
+void ppConversion(double fTemp, double convertValue, char convertUnit)
+\end{verbatim}
+
+Finish the design and implementation of this procedure under the \textsc{precondition} that all the values passed to the procedure are logically sound.  This means we can assume only the characters 'C', 'R', or 'K' and that the Fahrenheit temperature and the converted temperature are, in fact, equivalent. The \textsc{control} portion of our program will later ensure that our preconditions are enforced.
+
+\subsection{writeMenu}
+
+The \textit{writeMenu} procedure is simply a procedure to dump some text, namely the menu text, on the screen. Thus, it takes no inputs and produces no outputs; it simply produces the same effect every time.  That effect is to write exactly this to the standard output:
+\begin{verbatim}
+Select an option (press the corresponding number):
+   (1) Enter a Fahrenheit temperature
+   (2) Convert current Fahrenheit temperature to Celsius
+   (3) Convert current Fahrenheit temperature to Kelvin
+   (4) Convert current Fahrenheit temperature to Rankine
+   (5) Quit the program
+\end{verbatim}
+Be sure that your code for this\sidenote{and all} procedures is written in such a way that it will not wrap when printed\sidenote{Not more than 80 characters per line is a good rule of thumb}. Emacs has modes to enforce this for you.
+
+\subsection{getMenuIn}
+
+In interactive mode, our users will, when confronted with the menu, enter an integer in the interval $[1,5]$\sidenote{hopefully}.  We'll use a \textit{very} simple input procedure to read their response to a variable. Remember, input procedures are just different forms of \textsc{mutators}. So, they must take a variable by reference and then read a value from an input stream and write it to that variable rather than mutate the variable directly via the assignment operator.  As a mutator-like procedure, \textit{getMenuIn} has a clear postcondition. Do not check\sidenote{or \textsc{validate}} the user input here, instead we'll save that for the program \textsc{control}ler code that we'll write later. For the time being, we'll work under the assumption that the user will only type numerical\sidenote{floating point} literals, no words or other non-number input. 
+
+
+\subsection{getFTemp}
+
+Our final I/O procedure is another input procedure. This procedure gets a Fahrenheit temperature from the user.  Unlike the menu input procedure, we'll include a prompt with this procedure. The prompt should look like this:
+\begin{verbatim}
+Enter a Fahrenheit Temperature:  
+\end{verbatim}
+To save space, we'll take the user input on the same line as the prompt\sidenote{do not terminate the prompt with a newline}. So if the user types $32$, the screen should look like:
+\begin{verbatim}
+Enter a Fahrenheit Temperature: 32 
+\end{verbatim}
+Put a little space after the prompt. Because this procedure includes both Input and Output, we should document the expected output in our tests in addition to testing for the correct read effect.  
+
+
+\section{Homework: Procedures for the Model and Control}
+
+\begin{center}
+Submit as assignment \textit{hwk4} via \textit{handin}. \textbf{Due by class time on Monday 2/24}
+\end{center}
+
+For homework, you need to complete the design and implementation of some other procedures, procedures for managing the Fahrenheit temperature state, UI actions, and for managing the UI and state interaction:
+\begin{enumerate}
+\item \textit{isValidF} Is an accessor for the a Fahrenheit temperature variable that returns true if the value of our variable is in $[-459.67,\inf)$ and false otherwise.\sidenote{-459.67 is Absolute Zero}
+\item \textit{isMenuOption} Is an accessor for a user menu choice input variable that returns true if a menu choice variable value is in $[1,5]$.
+\item Three accessors for the Fahrenheit temperature variable that are used for the temperature conversion.
+\begin{enumerate}
+\item \textit{toC} which computes the equivalent in Celsius
+\item \textit{toK} which computes the equivalent in Kelvin
+\item \textit{toR} which computes the equivalent in Rankine
+\end{enumerate}
+\end{enumerate}
+
+
+\end{document}

@@ -1,0 +1,66 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath,amssymb,amsthm,color}
+\usepackage[pdftex]{graphicx}
+
+  
+\title{COMP 161 - Lecture Notes - 04 - The Structure of a C++ Program}
+\date{Spring 2014}
+
+\begin{document} 
+\maketitle
+
+\begin{abstract}
+We begin our exploration of C++ by consider the high-level structure of the basic C++ programs well spend the first part of the semester developing.  
+\end{abstract}
+
+\section{Procedures}
+In COMP160, your Racket programs were a collection of functions, and this is true of the first kind of C++ program we'll be developing in this course.  There are several key differences we need to be aware of though. 
+
+Racket functions were \textsc{pure functions}. They took inputs, produced an output, and had no side effects.  In C++ our ``functions'' have the option of taking no input, producing no output, and causing side effects.  For this reason we'll use a more general term\sidenote{as opposed to function, which is a well defined object from Mathematics}: \textsc{\textbf{Procedure}}. 
+
+Racket functions were constructed as a series of nested \textsc{expressions}.  An \textsc{expression} has a specific value associated with it and so we can always \textsc{substitute} the expression for its value\sidenote{this is how the Racket interpreter worked. Go use DrRacket's stepper to see it in action}. Order of execution was determined by nesting; the inner most expressions were executed first.  In C++, procedures are a sequence of \textsc{statements}.  \textsc{Statements} are primarily written for effect, not for value\sidenote{However, they are typically built out of at least a few \textsc{expressions}}, and more or less correspond to a command issued to the computer\sidenote{aka an \textsc{imperative}}. The order in which \textsc{statements} within a \textsc{procedure} are executed corresponds to the order\sidenote{top to bottom} they appear on the page.
+
+The style of Racket programs we wrote in COMP160 revolved around the use of pure functions and so it's called  \textsc{Functional Programming}.  The style of C++ programming we'll begin with revolves around procedures and imperatives and so we call it \textit{Imperative, Procedural Programming.}
+
+\subsection{Main}
+
+Every C++ program must have one and only one procedure named \textit{main}.  The main procedure is the program; when you compile your program, the executable that results executes the main procedure of your program. We did not have such a strict requirement in Racket or bash. 
+
+The main procedure requirement can and will cause a few headaches:
+\begin{enumerate}
+\item Attempting to compile to an executable without a main procedure results in a long cryptic sequence of errors.  
+\item We'd like to compile and run some tests separate from our main program.  Running tests\sidenote{any code} requires a main.  So most of the time we'll need at least two separate programs, and therefore two separate files: one for tests and our actual program.
+\item In order to test code it must be compiled along with the main that runs the tests. In order to include it in our main program, it must be compiled with our main procedure.  This forces us to put any code we want to test in a file separate from our program's main procedure and our test's main procedure\sidenote{combining test logic and main program logic quickly become a bad idea}
+\end{enumerate}
+The result here is that organized, well-tested code requires multiple files and will require several different compilation procedures.  Thankfully, we have some tools that will help expedite the process of compiling and building our programs. So when compiling becomes time consuming, we can turn to these tools.
+
+\section{Libraries}
+
+We'll strive to section off a large chunk of our program code into files separate from the program's main procedure.  Essentially, we want to build \textsc{libraries} of code that can then be used by the main procedure\sidenote{This is analogous to the teachpacks you're used to from COMP160}.  Libraries are a vital part of software development for two reasons:
+\begin{itemize}
+\item They allow us to more easily test our code outside of the normal, expected execution of the program by separating code from the main procedure.
+\item They allow the library code to be reused in other programs without resorting to copy-paste jobs.  
+\end{itemize}
+
+
+In C++, libraries often involve the use of two files: a \textsc{header file} and the \textsc{implementation file}. The \textsc{header file} contains documentation and declarations of procedures\sidenote{and eventually other things like structures}.  It tells you and the computer what's in the library and how it may be used, but does not tell you or the computer how the library code actually works.  The \textsc{implementation file} contains the complete definition of the library; it tells you and the computer how the library does what it does.  Another way to look at it is that the \textsc{header} simply provides a description of the \textit{interface} provided by the library.  By physically separating the library's interface from it's actual implementation we give ourselves the chance to swap in different\sidenote{presumably better} implementations later on.  The power and impact of this idea cannot be overstated.  
+
+\section{Unit Tests}
+
+The style of testing you learned in COMP160 is called \textsc{Unit Testing}. In unit testing you write lots of little tests for the small parts\sidenote{units} of your program.  In C++, this means we want to test each procedure just like we tested every function in Racket.  Unlike in Racket, we'll be putting all our tests in a separate file from the code it's testing.  The reason is highly practical: we don't want to include the compiled test code with the finished product. Our users should not need to rerun our tests\sidenote{nor will they probably want to}. Furthermore, the compiled tests will cause the size of the executable to go up.  The tests are for us, the developer, not the user. So, we put them somewhere else so that we can exclude them from the finally, ``shipped'' product. 
+
+\section{File Types and usage}
+
+It's clear now that the typical C++ program is split across several files:
+\begin{enumerate}
+\item A file containing the program's \textit{main procedure} definition.
+\item Two files per library. One header and one implementation file.
+\item A file containing unit tests for the library.
+\end{enumerate}
+Library \textsc{headers} will all have the file extension \textbf{h}. All other C++ files have the extension \textbf{cpp}.  For example, in class and lab we'll look at a program containing the following files: factorial.h, factorial.cpp, fact\_tests.cpp, lab3\_main.cpp.  The first two files make up the factorial library which is tested in the third file. The final file contains the main procedure for our program. The important thing at this point is understanding how we glue all this code together. 
+
+\subsection{Include Directives and Linkers}
+
+When you're writing C++ that makes use of a library\sidenote{your own or one from a third party}, then you typically use an \textsc{include directive} in the file that uses the library code.  Include directives direct the compiler to \textit{include a library header}\sidenote{always include .h files, never .cpp} with the current file. Note that by including headers, we lack the actual implementations of the library code we're using.  To solve this problem we turn to the compiler, or more specifically the Linker.  As we'll see in our next set of notes, the linker is the part of the compiler that is capable of stitching together code from different files and and thereby providing the missing implementations of our library code.  
+ 
+\end{document}

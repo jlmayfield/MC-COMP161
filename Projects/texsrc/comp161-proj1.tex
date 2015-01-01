@@ -1,0 +1,70 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 - Project 1 - Hangman}
+\author{}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Your first project is to implement a Linux CLI version of the classic word guessing game Hangman.
+\end{abstract}
+
+\section{The Game}
+
+Hangman is a simple game\sidenote{\url{http://en.wikipedia.org/wiki/Hangman_(game)}}. The player must figure out a word by guessing one letter at a time.  If, over the course of the game, they guess seven\sidenote{or some fixed number} letters that do not appear in the word, then they lose.  Typically, each wrong guess corresponds to a part of the picture of a hanging stick figure: gallows, head, body, left arm, right arm, left leg, and right leg.  The player gets to knows how many letters the unknown work contains. When they guess a letter correctly, they get to see the location of each occurrence of that letter in the word.  
+
+\section{The Program Requirements}
+
+Your program must provide the usual elements of the game:
+\begin{itemize}
+\item Visual representation of the number of wrong guesses made/left\sidenote{does not need to be a gallows picture or any kind of picture}
+\item Visual display of the letters guessed so far
+\item Visual display of the target word with correctly guessed letters filled in.
+\item Case-insensitive words.\sidenote{The letter h and H are equivalent as far as the words are concerned}
+\end{itemize}
+You're free to play with the game UI as long as the above requirements are met. The code itself must be well-designed. Each procedure should be properly documented and tested. 
+
+\section{Logistics}
+
+We'll dedicate two labs and some class time to discussing issues related to the project.  The expectation is that you are putting in continual, consistent effort in to this project during that time. This effort needed always mean your programming. It can be problem analysis and program design tasks as well. 
+
+\subsection{Due Dates}
+\begin{enumerate}
+\item \textbf{Due by end of lab on 3/26} UI Mock up showing a complete run of your program.\sidenote{Like \url{http://en.wikipedia.org/wiki/Hangman_(game)\#Example_game} but showing \textit{exactly} what your program will show}
+\item \textbf{Due by class on 4/4} Complete project. Submit as \textit{proj1} via \textit{handin}.
+\end{enumerate}
+
+\subsection{Grading}
+
+Your project will be evaluated on the following criteria:
+\begin{itemize}
+\item Completeness,correctness and evidence of an iterative development process
+
+Ideally, your program is a complete working version of the game. To get to that point you should be working through a series of iterations, where each iteration produces a high-quality, but incomplete, version of the game.  \textit{This means that incomplete programs should clearly be a finished version of something and not an unfinished program.} This also means that the finished product \textit{should always compile, run, and do something.} 
+
+\item Usage of good program/procedure design principles
+
+We have a standard process for designing, documenting, and developing procedures. Lack of documentation and proper unit tests will result in a loss of points regardless of the level of completion or apparent correctness of the program itself.
+
+\item Usage of good code style
+
+Ugly code that works is still ugly code. Human beings read more C++ than compilers do and human beings struggle when reading ugly code. Don't write ugly code.  Properly indent your code and follow our standard conventions for writing C++.  You should also ensure that your code will not line wrap when printed.
+\end{itemize}
+
+\section{Challenge Problem}
+
+If you're looking for a little extra challenge, then consider the following additional program requirement:
+\begin{itemize}
+\item Allow the user to pass a positive valued integer to the program from the command line.  This integer indicates the length of the target word. So, if the user launches the program with the input of $5$, then the program finds a $5$ letter word for them to guess. 
+\item Allow for a command line argument that sets the number of allowable wrong guesses.  
+\item Add some other cool feature to the program.
+\end{itemize}
+Completing the challenge problems will not result in bonus points. Do it for the experience and the challenge. 
+
+
+\end{document}

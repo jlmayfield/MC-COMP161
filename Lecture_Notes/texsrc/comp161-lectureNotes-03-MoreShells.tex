@@ -1,0 +1,210 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath,amssymb,amsthm,color}
+\usepackage[pdftex]{graphicx}
+
+ 
+\title{COMP 161 - Lecture Notes - 03 - Shells, part 2}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+In these notes we'll dig deeper into  the CLI and see just how working with \textit{bash} gets us ready for the bigger changes in mindset we need to work with C++. 
+\end{abstract}
+
+\section{Paths}
+
+Paths tell you where in the file system a file or folder can be found and the come in two flavors: \textit{relative} and \textit{absolute}. Understand the differences between these path variants and how to use, or spot, one vs the other is pretty important.  
+
+\subsection{Absolute Paths}
+
+Absolute paths always begin from the beginning, \textit{root} or \textit{/}.  For that reason they're easy to spot:
+\begin{quote}
+When a path begins with \textbf{/}, then it's an absolute path. 
+\end{quote} 
+For example, everyone has a home directory on the system and all the home directories are found within the \textit{home} directory. The home director is in turn, housed within \textit{/}. So the absolute path to the home director for user \textit{jdoe} is:\marginnote{the ending \textit{/} on the path is optional. I like it because it makes the fact that we're explicitly dealing with a directory}
+\begin{verbatim}
+/home/jdoe/
+\end{verbatim}
+
+
+Absolute paths are great because they unambiguously specify a file and folder on the system. Dr. James Logan Mayfield, IV is my full, absolute, name. You're unlikely to get me confused with anyone else if you use it. On the other hand, they are often long, unwieldy to type\sidenote{TAB autocomplete solves this problem!}, and require some big picture understanding of the file system's organizational structure.  
+
+\subsection{Relative Paths}
+
+Relative paths specify a path relative to your current working director. Put another way, the absolute path to your working directory is an assumed prefix to the absolute path of file or folder in question.  There are a few ways to recognize and write relative paths.  The first is, in my feeling, more explicit and therefore less prone to ambiguity. The path to your current working directory can always be invoked with the shortcut \textbf{./}\sidenote{read \textit{./} as ``here''}. This leads to your first indicator of a relative path:
+\begin{quote}
+When a path begins with \textbf{./}, then it's a relative path.
+\end{quote}
+So if my current directory is \textit{/home/} then we can form the relative path to jdoe's home directory like this:
+\begin{verbatim}
+./jdoe/
+\end{verbatim}
+It turns out that the \textit{./} is optional and this leads to the other typical way of picking out a relative path.
+\begin{quote}
+When something shows up where a file/folder path specification is supposed to be and theres no leading \textit{/}, then it's a relative path.
+\end{quote}
+If we are once again in \textit{/home/} then \textit{jdoe/} is a valid relative path to jdoe's home directory.  In general, I like using \textit{./} because it's clear you're providing a path. Leaving off \textit{./} leaves it to the reader to decide the thing they're about to read is a path\sidenote{thankfully when the reader is the OS, you tend not to have problems}.
+
+\subsection{Shortcuts}
+
+In addition to \textit{./}, there are a two path shortcuts you should memorize.
+\begin{enumerate}
+\item \textbf{../}  \newline
+This shortcut always refers to the parent of \textit{./}.  If you're in your home directory, then \textit{../} is \textit{/home/}. If you're in \textit{/home/}, then \textit{../} is \textit{/}. The odd directory out is \textit{/}. It has no parent, so the system treats it as its own parent.  That means that relative to root, \textit{../} is still root.  So, when you're not in \textit{/}, \textit{cd ../} is like hitting the up button\sidenote{note necessarily the back button} in your GUI. 
+
+\item \textbf{~} \newline
+This shortcut is your home directory.  So \textit{cd ~} is the command to ``go home''.
+\end{enumerate}
+It's worth noting that adding \textit{-a} to \textit{ls} adds \textbf{.}\sidenote{here} and \textbf{..}\sidenote{parent of here} to the list of directory contents.
+
+ 
+\section{Racket Functions and CLI commands}
+
+Let's begin by leveraging what we know, Racket Functions, in order to better understand the world of CLI commands.  What do we know about Racket functions:
+\begin{itemize}
+\item They use \textit{prefix} notation in which the operator\sidenote{command name, function name, etc} comes before the operands\sidenote{arguments/inputs}. 
+\item Function invocations are surrounded by parenthesis. 
+\item Racket functions have one or more parameters and the number of parameters for a given function is fixed.  Additionally, the order in which you pass parameters matters. 
+\item Racket functions take data values as input and return them as output, always. Given the same input, a Racket function will always produce the same output.
+\end{itemize}
+The question we now ask is, in what ways are CLI commands similar to and different from Racket functions?
+
+\section{Some highly utilized commands}
+
+To ground our inquiry, lets look at some highly utilized CLI commands.
+\begin{enumerate}
+\item \textit{cd \textit{directory}} \newline
+The change directory command clearly highlights that, like Racket functions, CLI commands utilize prefix notation, but the do so without parenthesis. The big change here is that \textit{cd produces not output}.  Typically, the prompt changes, but there's not apparent output form cd, instead it seems to have an \textsc{\textbf{effect}}.  That being said, if we think in terms of absolute paths, it always\sidenote{unless the file system has changed!} produces the same effect for its inputs. 
+
+\item \textit{ls}, \textit{ls -l}, and \textit{ls -la} \newline
+The command \textit{ls} shows us that CLI commands can accept zero arguments and optional arguments.  What you probably don't know is that \textit{ls -la} and \textit{ls -al}  are both allowable and equivalent.  This means the order in which we chain together short optional arguments seems to not matter.  The biggie here though is that in terms of the actual files and folders listed, the output produced by \textit{ls} is independent of the inputs! Instead, something else drives the behavior of this command. That something else is the current \textbf{\textsc{state}} of the system, namely your current working directory. 
+
+\item \textit{rm -v \textit{file}} and \textit{rm \textit{file} -v} \newline
+The \textit{-v}\sidenote{verbose mode} argument forces \textit{rm} to output a record of what it deletes.  What you don't know is that you can usually put optional arguments after required arguments. Yet another blow to \textit{order of inputs matters.}\sidenote{the preferred style here is \textit{cmd options arguments}, so options first. stick to it!}  
+\end{enumerate}
+
+So while there are some similarities to Racket functions, the rules for CLI commands seem to be pretty loose in comparison.  The really big changes though are the introduction of notions of \textsc{state} and \textsc{effect}.
+
+
+\section{Variables}
+
+\textsc{State} is a big term in computing. You're probably more familiar with it as a geographic term, i.e. the 50 states of the US. Let's build off this. What would you expect to happen if you walked up to a police officer with a half ounce of marijuana? Well, in Colorado, I'd expect very little to happen. Here in Illinois, I'd expect to get arrested. Why? Well in Colorado it's now\sidenote{as of 2014} legal to carry up to one ounce on your person. In Illinois, possession of any amount is illegal. What we're seeing is that your surroundings, the state you're currently occupying and your \textbf{\textsc{environment}}, can cause different actions to have different effects.  
+
+In computing, state typically refers to a \textsc{variable}\sidenote{aka \textsc{state variable}}.  This is not the variable as you know it from Racket or Math. A \textsc{state variable} is, for the most part, a named abstract representation of a piece of memory; it's a \textit{named} location where we save some information about the state of the system\sidenote{or program!}. The value that we store in the the variable are changed by operations we call \textsc{mutators}.  On the other hand, if an operation just inspects the contents/value in the variable, then we call it an \textsc{accessor}. There's a third kind of operation that will be more important to our programming than to our work at the CLI.  An \textsc{initializer} operation is used to assign initial values to a variable. This is really important stuff; let's recap:
+
+\begin{quote}
+A \textsc{variable} is memory with an associated name.  It stores information about the current \textsc{state} of the computer or program.  They are first assigned values by an \textsc{initializer} operation. Subsequently, their values may be changed by \textsc{mutator} operations or retrieved by various \textsc{accessor} operations. 
+\end{quote}
+
+
+The \textsc{environment} is the collection of \textsc{state variables} under which your commands are currently executing. Type the following command:
+\begin{verbatim}
+printenv | less
+\end{verbatim}
+What you see is your current \textsc{environment}, a list of all your \textsc{variables} and their current values. There are a lot of variables there, but you should see \textit{PWD} on the list somewhere\sidenote{ \textit{printenv | grep "PWD"} will get all the lines with PWD in it.}  Let's talk about this variable and some of the operations related to it. 
+
+First, let's look at \textit{pwd}.  This command takes zero inputs but outputs the absolute path of your current working directly.  Maybe a better way to say this is, \textit{it's an \textsc{accessor} for the PWD variable}. Now consider \textit{cd}. The basic form of this command takes in a single input, a path, and produces no output.  Instead, it has an  \textsc{effect}; its mutates the value of the \textit{PWD} to the path argument, i.e. \textit{cd is a \textsc{mutator} for the variable PWD}.  To round things out, notice that when you login, you're always in your home directory regardless of where you were when you last logged out.  The system clearly runs an \textsc{initializer} on PWD that sets PWD to your home directory. 
+
+This is our new reality:
+\begin{enumerate}
+\item Systems\sidenote{programs} have \textsc{variables} which capture their current state. Operations execute in the \textsc{environment} defined by this state.
+\item \textsc{Variables} require us to think not just in terms of input and output but \textsc{effect}. 
+\item Operations involving variables can be categorized as \textsc{initializers}, \textsc{mutators}, or \textit{accessors}.  
+\end{enumerate}
+
+\section{I/O}
+
+When we talk about the output of a command on the CLI, we really talking about something different than the output of a Racket function.  This distinction can be tough to navigate at first but we'll get a lot of practice and it's much easier to manage in C++ than with bash.  
+
+Let's return to \textit{pwd}. Previously, we described something like this:
+\begin{verbatim}
+pwd
+purpose: determine the current working directory
+input: none
+output: the value stored by PWD
+effect: none
+\end{verbatim}
+This isn't technically accurate. Instead we should document \textit{pwd} as follows.
+\begin{verbatim}
+purpose: determine the current working directory 
+input: none
+output: none
+effect: write the value of PWD to the standard output
+\end{verbatim}
+
+You see the output produced by \textit{pwd} is really the result of a new \textit{effect}. When we introduced variables we had to allow for a change of value effect\sidenote{mutation}.  Our new effect is causes change to what we see on the \textsc{standard output}\sidenote{aka stdout, command-line out}.  What we've really discovered a specific example of \textsc{I/O}\sidenote{input/output}. 
+
+When we talk about \textsc{I/O} we're talking about the \textsc{read} and \textsc{write} effect taking place on a device  attached to the system. With the CLI, there are three big places where \textsc{I/O} takes place: 
+\begin{enumerate}
+\item \textsc{stdout} \& \textsc{stdin}  I/O on the standard input output device, the command-line itself\sidenote{keyboard and monitor}
+\item \textsc{files} input or output to a file\sidenote{hard drive}
+\item \textsc{stderr} the place that error messages are typically read from and written to
+\end{enumerate}
+The \textsc{stderr} is the odd one.  There isn't really a piece of hardware associated with it that we can think about. Instead we have to imagine it as an agreed upon \textsc{channel} where communication about errors can occur between processes on the system. In practice, writing to \textsc{stderr} typically results in output on the screen as systems users typically need to be made aware of errors.  
+
+\subsection{Redirects and Expansion}
+
+Now that we know about \textsc{I/O} devices and effects, we can look at bash redirection and expansion in a new light. 
+\begin{enumerate}
+\item \textbf{|} redirects a \textit{write} effect to \textsc{stdout} to a \textsc{read} effect from \textsc{stdin} \newline
+\item \textbf{$>$} redirects a \textsc{write} effect from \textsc{stdout} to a \textsc{write} effect to a\textsc{file}
+\item \textbf{$>>$} like \textit{$>$} but with a different spin or writing (append vs overwrite)
+\end{enumerate}
+The \textbf{$<$} redirect is a bit different as you're not really redirecting an effect as much as you're causing one.  That is, the name of a file is not an implicit command to write to stdout, and so using $<$ is probably best though of as a compound effect: \textsc{read} from \textsc{file} and \textsc{write} to \textit{stdin}.\marginnote{This is all probably a better description of the redirection we've seen, not all possibilities or bash redirection}
+
+\begin{quote}
+Redirects allow us to associate \textsc{I/O effects} with an \textsc{I/O device} other than the one for which it was originally intended.
+\end{quote}
+
+Now what about all the expansion stuff? In general, they're special rules for how to interpret some special forms and assign a value to them.  The key here is it's about the \textsc{value} of the expression being expanded.  For example, for user jdoe, \textbf{~} has the value as \textit{/home/jdoe/} and so the two can be used interchangeably.  In the case of wildcard and brace expansion, the expansions allow us write a pattern that will be expanded in to all things things\sidenote{often paths} that match that pattern. 
+
+Parameter expansion and command expansion are, for us, significant. \textit{They let us recapture the functional input and output we know from Racket.} In Racket we'd write things like $(f (g 5))$ and expect the \textsc{value} output by $(g 5)$ to be fed for $f$ as an input.  To get the same thing in bash, we use command expansion:
+\begin{verbatim}
+f $(g 5)
+\end{verbatim}
+Now stop.  How is that different than this:
+\begin{verbatim}
+g 5 | f
+\end{verbatim}
+The difference is very important to understand and can be a first tricky to navigate. 
+
+The bash command $f \$(g 5)$ is not a redirection. It takes the value of the output of $g 5$ and uses it as the input to $f$. On the other hand, $g 5 | f$ takes what $g 5$ writes to \textsc{stdout} and instead causes $f$ to read it from \textsc{stdin}.  The result in this case might be the exact same thing, but the first route avoids notions of \textsc{I/O} and instead uses \textit{functional computing}.  
+
+Now parameter expansion.  Try this:
+\begin{verbatim}
+echo PWD
+\end{verbatim}
+What you should see is \textit{PWD}.  You might have expected to see the same thing as the command \textit{pwd}, why? In Racket, feeding a variable to a function meant ``use the value associated with name''.  The PWD variable is a different beast and so we have to be more specific. Try this:
+\begin{verbatim}
+echo $PWD
+\end{verbatim}
+Now, we see the same thing as \textit{pwd} because the parameter expansion invoked by \textbf{\$} effectively retrieves the value associated with the variable \textit{PWD}. 
+
+The key with all of this is that we've returned to computation with functions and can there fore compose and nest a command like we did with Racket functions. The alternative is to chain together effects through redirects.\sidenote{ This is subtle and very very important. Give it serious thought}.
+\begin{quote}
+Parameter and command expansion allow us to compute functionally and thereby avoid \textsc{effect}-based command composition.
+\end{quote}
+
+\section{Big Picture}
+
+Something fundamental has changed. We now talk about things like actions involving hardware devices and modifying contents of the memory system. Much of this change is captured in the following terms: 
+\begin{itemize}
+\item \textsc{Effect}
+\item \textsc{Variable}
+\item \textsc{State}
+\item \textsc{Environment}
+\item \textsc{Accessor}
+\item \textsc{Mutator}
+\item \textsc{Initializer}
+\item \textsc{I/O}
+\item \textsc{stdin}
+\item \textsc{stdout}
+\item \textsc{file}
+\item \textsc{read}
+\item \textsc{write}
+\end{itemize}
+
+
+\end{document}

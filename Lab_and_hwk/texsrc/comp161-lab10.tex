@@ -1,0 +1,45 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 - Lab 10 \& Homework 7}
+\author{}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+For these assignments you'll work in small groups carry out a bit of scientific experimentation.
+\end{abstract}
+
+\section{Science is a team effort}
+
+For the next pair of assignments you'll be put in to small groups.  As a group you'll plan and carry out an experiment with different implementations of the vector procedures we wrote last week. Everyone, as an individual, should have at least two implementations per procedure.  As a group, it's likely that there will be subtle differences in implementations employing the same strategy.  So, each group should have no problem finding some points of comparison.  With that in mind, your first task as a group is to find two more more things to compare and a hypothesis to test. 
+
+A good experiment address a specific hypothesis. ``Which implementation is more efficient?'' is not specific; it's vague and overly broad in scope.  Instead we should ask about efficiency in terms of a specific resource\sidenote{work, space, or communication}.  Within that realm we can be even more specific. Consider exploring one or more specific situations as opposed to ``vectors of integers''. For example, you might only look at vectors filled with a sequential sequence of numbers and then try sequences of varying sizes.  Or you could fix the size and look at random data in a fixed size or size range like vectors in the hundreds of integers.  Yes, scientific inquiry addresses the big questions, questions like, ``Which is best?'' These questions are often addressed iteratively and incrementally by a whole community and rarely by one scientist answering the big question from scratch.
+
+Once you have a good hypothesis, then you go gather data test the validity of your hypothesis.  Notice we don't say the goal is to verify that your hypothesis is true. The goal of the hypothesis isn't just to make a prediction, but to give you a focal point for scientific inquiry. Sometimes we see what we expect to see and sometimes we don't. In both cases we learn a little bit more about the computational universe we're exploring. So, when choosing the vectors with which you'll test your hypothesis your goal is not to choose vectors that you expect to confirm your hypothesis, but instead to choose vectors that ruthlessly attack the validity of your hypothesis. No matter how sure of your hypothesis you are, you should proceed as if you think it were false and choose the test data that would prove the hypothesis invalid. After doing so, you can choose some data that you expect to confirm it.  The result of both experiments should be consistent. Either your hypothesis is true or it is not.  Good experiments are not biased towards a specific outcome just towards an unquestionable outcome. 
+
+\section{Lab}
+
+In lab you'll be put in to groups to do the following:
+\begin{enumerate}
+\item Brainstorm at least 10 specific hypothesis about different implementations and different problems within the scope of our previous lab and homework assignment. 
+\item Choose your favorite hypothesis and check with the instructor to see that it's specific enough
+\item Devise one or more experiments for testing your hypothesis. Your plan should include: what kinds of data to test with, and how many tests to run, and which group member is responsible for which tests.  You choices should be justified in terms of how the data generated will produce \textit{an} outcome. Every member should be responsible for gathering some data.
+\end{enumerate}
+
+By the end of lab, one member of the group should submit as \textit{lab10} via \textit{handin} a text document listing your potential hypothesis, your chosen hypothesis, your reasoning for choosing your hypothesis, and the details of your experimental plan. Everyone's name should be at the top of the document!
+
+\section{Homework}
+
+\begin{center}
+Due before lab on Wednesday 4/23. Submit source code and profiling reports as \textit{hwk7} via \textit{handin}.
+\end{center}
+
+For homework, each individual in your group needs to write the program that carries out their portion of the experimental and then gather the profiler data for that program. In addition to submitting the code for the experiment you need to submit the human readable reports of the data\sidenote{not the profiler generated data, the processed data}. 
+
+
+\end{document}

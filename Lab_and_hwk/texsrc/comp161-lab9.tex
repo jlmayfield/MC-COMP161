@@ -1,0 +1,50 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 - Lab 9 and Homework 6}
+\author{}
+\date{Spring 2014}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+In this lab you'll tackle iterative and recursive procedures for vectors.
+\end{abstract}
+
+\section{Choose your own adventure}
+
+You should tackle these problems one at a time in any order you want\sidenote{Note that they are listed in order of difficulty}.  Each problem can and should be done using iterative loops and recursion\sidenote{See Lecture notes 16 for more guidance}. In some cases, there are functional and stateful versions you should do as well.  As a reminder, functional procedures use function input and output without any side-effects. This means no I/O and no mutation. Stateful procedures are typically variable mutators.  In some cases you may need to mutate the vector itself.
+
+\begin{enumerate}
+\item \textit{isSorted} \newline
+This predicate takes a vector of integers and returns true if the contents of the vector are in least to greatest sorted order and false otherwise. This problem should be solved functionally using iteration and recursion.  
+
+\item \textit{find} a.k.a. \textit{search} \newline
+Given a vector of integers and a target number called the \textit{key}, find and return the location of the first occurrence of the key or if the key is not in the vector return $-1$. So, if a vector contains $\{0,2,4,6,8\}$ and the key is $4$, you should return $2$. If for that same vector the target was $1$, you'd return $-1$.  This problem should be solved functionally using iteration and recursion.  
+
+\item \textit{setToOdds} \newline
+This is the stateful version of \textit{mapToOdds}. Using \textit{setToOdds} modifies the existing vector rather than returning a new vector. Using \textit{setToOdds} on  a vector containing $\{2,4,6,8\}$ should change that vector's contents to $\{5,9,13,17\}$.  This problem should be solved statefully using iteration and recursion.  
+
+\item \textit{mapToOdds} \newline
+The function \textit{setToOdds} takes a vector of integers and computes the vector of all the odds for the given content. If the original vector contains the number $4$, this is mapped to the $4$th odd number, $2*4+1 = 9$.  So, the using \textit{mapToOdds} on a vector containing $\{2,4,6,8\}$ should return the vector containing $\{5,9,13,17\}$.  This problem should be solved functionally using iteration and recursion.  
+
+\item \textit{evensFilter} \newline
+This functional procedure should, when given a vector of integers, return the vector containing all the evens in the original vector. So, given a vector containing $\{1,2,3,4,5,6\}, \textit{evensFilter}$ should return a vector containing $\{2,4,6\}$. For this problem you'll need to dynamically size the vector. This will require some vector class methods we haven't seen so be ready to explore the documentation\sidenote{\url{http://www.cplusplus.com/reference/vector/vector/}}. Here's a hint: either start with the max possible size you'd need, then resize after you've filled it with evens, or add and increase the size as you go.  This problem should be solved functionally using recursion and iterative loops.  
+
+\item \textit{removeOdds} \newline
+This is the stateful version of \textit{evensFilter}. Given a vector containing $\{1,2,3,4,5,6\}, \textit{removeOdds}$ should modify the contents such that they're now the vector $\{2,4,6\}$. Just as was the case with the functional version, this will require resize a vector. This problem should be solved statefully using recursion and iterative loops.
+
+\end{enumerate}  
+
+\section{Lab 9 Assignment}
+
+Begin work on the problems and when lab is over submit what you have as \textit{lab9} using handin. Remember, do the problems one at a time, not as a batch. I don't want to see declarations and tests for everything with no implementation. I'd rather see one of the problems fully done and nothing for the others. 
+
+\section{Homework 6 Assignment}
+
+Complete the problem set and submit the complete set \textit{before the next lab period}. Submissions should be done via handin. The assignment is, of course, \textit{hwk6}.
+
+\end{document}
