@@ -3,7 +3,7 @@
 \usepackage{hyperref}
 
 
-\title{COMP161 - Lab2}
+\title{COMP161 - Homework 2 \& Lab 2}
 \author{}
 \date{Spring 2014}
 
@@ -11,35 +11,100 @@
 \maketitle
 
 \begin{abstract}
-For this lab lab you'll explore some basic Bash scripting by beginning Shotts' shell scripting tutorial\sidenote{\url{http://linuxcommand.org/lc3_writing_shell_scripts.php}}.  Shell scripting won't come up on a quiz, but it will teach you a lot about the shell as well as give you some concrete things to do with emacs and the CLI.  
+These assignments are designed to get you working with the GNU GCC, C++ compiler \textbf{g++}.  You'll be working with pre-written C++ code so that you're free to focus on the compiler and it's different usages. 
 \end{abstract}
 
-\section{Some Motivation and Perspective}
+\section{Homework 2}
 
-Shell scripts can automate repetitive tasks carried out at the command-line and thereby be a huge timer saver.  As we get in to C++ programming, you'll find that each lab\sidenote{and programming task really} begins with a pretty repetitive sequence of actions:
+\begin{center}
+\textsc{\textbf{Due before lab, Wednesday January 29.}}
+\end{center}
+
+For this homework assignment you need to complete the following tasks. Some more detailed instructions are given below the task list.
+
 \begin{enumerate}
-\item Make a folder to keep your files in
-\item Create ``starter'' versions of anywhere from one to four files.
-\end{enumerate} 
-The starter files are likely to look more or less the same every time. The folder itself will probably just be named after the assignment.  The key thing here is this: these tasks are repetitive and easily scripted with some basic shell scripting.  So, as you work through Shotts' tutorial, keep this in mind, and as the semester progresses, don't be afraid to take a crack at writing a shell script for tasks you find yourself carrying out on a regular basis.
-
-\section{Lab setup and submission}
-
-This lab\sidenote{and all future labs most likely} will involve several files.  In order to submit all these files with \textit{handin}, \textit{you must put them all in a folder.}  So, before you get started:
-\begin{itemize}
-\item Create a folder named \textit{lab2} in your home directory and change to that folder.  Do all your work for this lab in that folder.  
-\end{itemize}
-
-
-When the lab is over, you can simply use \textsc{handin} to submit that folder like this:
+\item Read the first two sections of Lecture Notes 05\sidenote{Up to and including \textit{Basic Compilation}}
+\item Copy the file \textit{comp161-lab3.zip} from \textit{/home/comp161/sp14/}. Unzip the file with the command \textit{unzip comp161-lab3.zip}. The files contained in this zip file are described in lecture notes 05.
+\item Compile the main program as directed in the lecture notes.  
+\item Use the program to compute the factorial of 1,5,10,15, and 20 and gather performance data about the execution of the program\sidenote{See below for details on using \textit{time}}. The results of all 20 executions of the program should be appended to a text file using the appropriate bash redirect.\sidenote{Be sure the text file has an appropriately descriptive filename, contains your name at the top, and has the \textit{txt} file extension.}
+\item In the file containing your performance data, answer the following questions:
 \begin{enumerate}
-\item Return to your home directory
-\item Run the command\sidenote{Note that the first \textit{lab2} is the assignment name and the second is the name of the folder being submitted.}: \textit{handin comp161 lab2 lab2}
+\item Compare and contrast the running times of the different versions. Is there a clear winner in terms of speed? What do you make of these results?
+\item Compare the computed results to the actual values\sidenote{See the factorial entry on wikipedia or google it}. What do you see? Now go look up \textit{integer overflow}. What do you make of this?
+\end{enumerate}
+\item Submit your text file as assignment \textit{hwk2} using \textit{handin}.
+\item Finish going over lecture notes 05 in preparation for lab 3.
 \end{enumerate}
 
-\section{The Lab}
+\subsection{Running the Factorial Program}
 
-Follow along with Shotts' shell scripting tutorial\sidenote{\url{http://linuxcommand.org/lc3_writing_shell_scripts.php}}. \textbf{When lab time is up, submit whatever you have}.  You do not need to complete the tutorial but are certainly encouraged to do so. The real goal this week is to \textit{get more practice with Emacs and the CLI as we move towards programming with C++}. 
+The program takes two inputs. The program computes the factorial of the first using a version of the factorial computation dictated by the second. The program attempts to error check your input, but the first number should be a postive integer or zero and the second should be 1,2,3, or 4. So, if the executable you compile is named factorial, then:
+\begin{verbatim}
+./factorial 5 3
+\end{verbatim}
+will compute $5!$ using version three of the factorial code. 
 
+\subsection{Timing the execution of a command}
+
+There's a command called \textit{time} that will time the execution of a command and report that time back to you.\sidenote{check out the man page for more details}. To time our earlier factorial execution we simply do the following:
+\begin{verbatim}
+time ./factorial 5 3
+\end{verbatim}
+The time data is, by default, written to the standard output along with any other information written by the program being timed. You'll see three time values: real, user, and system. Focus on real time, but see \url{http://stackoverflow.com/a/556411/1042494} for an excellent break down of the details of each time value.
+
+
+\subsection{Emacs and plain text}
+
+If you're writing plain text with emacs then there are two things you need to be aware of: controlling the width of the text and spell-check. If your text is too wide, spans too many columns, then it will print funny.  This is easily avoidable using fill commands\sidenote{\url{http://www.gnu.org/software/emacs/manual/html\_node/emacs/Fill-Commands.html}}. If you're like me, you're too reliant on spell-check.  Emacs integrates with a linux-based spell checker and provides some convenient commands to check your spelling\sidenote{\url{http://www.gnu.org/software/emacs/manual/html\_node/emacs/Spelling.html}}. \textit{Keep your document to a width of 60 characters and use spell-check.}
+
+\section{Lab 3}
+
+For this lab you'll continue playing with the compiler as well as learning how to run gTest unit tests. As you do you'll be asked to record some data to a text file like you did for the homework\sidenote{Once again, give your file an appropriately descriptive name, put your name at the top, and use the \textit{txt} file extension}. In the course of the lab you'll be asked a few questions, respond to those questions\sidenote{use full sentences!} in the same file as your data. At the end of lab, submit your text file (and nothing else!) as \textit{lab3} using the \textit{handin} command.
+
+\begin{enumerate}
+\item Open \textit{factorial.cpp} with emacs. What do you make of the code? What's your initial impression of C++?
+
+\item Compile each cpp file doing preprocessing only and write the results to a file\sidenote{can be done with g++ or using redirects}. Use the command \textit{wc}\sidenote{see below} to get some size statistics about the size of the original file as well as the file that results from preprocessing. Use CLI redirects to append all the \textit{wc} data to your text file.
+
+\item Which files get bigger as a result of preprocessing? Which grows the most? 
+
+\item Open the preprocessed version of \textit{factorial.cpp}. What do you make of this code? How does it compare to the original?\sidenote{Use emacs windows to open both files side by side}
+
+\item Now compile each cpp file using the preprocessor and compiler only to get the assembly code.  Once again, use \textit{wc} to record some basic data about the size of the assembly code files and write your results to your text file.
+
+\item What's larger the preprocessed C++ or the assembly? 
+
+\item Open the assembly version of \textit{factorial.cpp} with emacs. What do you make of assembly code?
+
+\item Now compile each cpp file down to an object file\sidenote{i.e. do everything but link}. Once again, use \textit{wc} to get size data and record your data to your file.
+
+\item How does the size of the object file compare to the other versions of the file?
+
+\item Open the object file for \textit{factorial.cpp} with emacs. What do you make of that stuff?
+
+\item Compile the gTest main program as described in the lecture notes. 
+
+\item Run the program with the option to print all the test cases and names and write the results to your text file.
+
+\item Now, run each test \textit{case} individually and write the results to your file. 
+
+\item Compile \textit{factorial.cpp} down to assembly code using each of the three optimization levels. Use \textit{wc} to gather size data about each version.
+
+\item How do the sizes of the four versions\sidenote{original and three optimization levels} compare? What do you make of this?
+
+\item Compile a version of the main program for each optimization level. Be sure to name each version something different. 
+
+\item Compute the factorial of 10 with each of the four versions of the computation and using all four optimization levels for each version. Use \textit{time} to record timing data for all 16 computations and add this data to your text file.
+
+\item What do you make of the results your timing experiments? 
+
+\end{enumerate}
+ 
+If you've completed all the tasks listed above, then you're done. Submit your text file.  If you're looking for something else to play with, start deleting stuff from \textit{factorial.cpp} and compiling the file to see what kind of error messages arise. Be systematic with what you delete and experiment to see if you can start getting a sense what typos produce what errors.  
+
+
+\subsection{The word count (wc) command}
+
+The command \textit{wc} counts newlines, words, and bytes in a file\sidenote{As always, see the manual page for more details}. Focus your attention on the third number reported by wc, the bytes.
 
 \end{document}

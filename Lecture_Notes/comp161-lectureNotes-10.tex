@@ -15,50 +15,6 @@
 In these notes we begin exploring C++ \textsc{loop} control structures.
 \end{abstract}
 
-\section{Predicates}
-
-Functions\sidenote{procedures sans side-effects} that return a \textit{bool} value are called \textsc{predicate} or boolean-valued functions. Boolean expressions can always be replaced by predicate functions, and since boolean expressions are an integral part of loop structures, we'll stop and talk about a clean, concise style of writing predicates.
-
-In many cases, predicates can, and should, be written without the use of conditional statements.  Let's say we need a predicate \textit{isEven} which takes an \textit{int} type and returns true if it is even and false otherwise.  We could do this:
-\begin{verbatim}
-bool isEven(int n){
-  if( n % 2 == 0 ){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
-\end{verbatim}
-
-However, notice that the \textit{boolean expression} \textit{n \% 2 == 0} takes on exactly the value we want to return. So, a better implementation is to return the value of that expression.
-\begin{verbatim}
-bool isEven(int n){
-  
-  return n % 2 == 0 ;
-
-}
-\end{verbatim}
-
-Maybe you tested to see if it was odd?  That's OK, you can always use ! to negate a boolean value. This implementation,
-\begin{verbatim}
-bool isEven(int n){
-  if( n % 2 == 1 ){
-    return false;
-  }
-  else{
-    return true;
-  }
-}
-\end{verbatim}
-becomes,
-\begin{verbatim}
-bool isEven(int n){
-  
-  return !(n % 2 == 1) ;
-
-}
-\end{verbatim}
 
 \section{Basic Loop Types}
 
