@@ -5,35 +5,18 @@
 \usepackage[pdftex]{graphicx}
 
   
-\title{COMP 161 - Lecture Notes - 06 - How To Design Procedures, Round 1}
-\date{Spring 2014}
+\title{COMP 161 - Lecture Notes - 06 - How To Design Procedures for Atomics and Itemized Types}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In COMP160, ``How to Design Programs'' was all about designing functions.  Now that we're programming procedurally, we need to revisit our design process for procedures.  Many things don't change beyond the obvious syntax shift from BSL Racket to C++.  However, we must now learn to account for procedures used for effect. We begin this process by looking at basic structures of data.
+In COMP160, ``How to Design Programs'' was all about designing functions.  Now that we're programming procedurally, we need to revisit our design process for statement based, functional procedures and effectful procedures. Many things don't change beyond the obvious syntax shift from BSL Racket to C++.   We begin this process by basic forms of data and how they appear in C++.
 \end{abstract}
-
-\section{Procedure Libraries}
-
-When we're developing programs in this class, we like to organize procedures in to libraries. We write our libraries using a two file system. The first file, the header\sidenote{a .h file}, simply declares and documents the library procedures. The second file, the implementation\sidenote{a .cpp file}, provides the full implementation details\sidenote{the definitions} for the library procedures. We'll also include a third file with all of our libraries. The file containing the tests for all the library procedures. 
-
-Libraries all have some basic boilerplate code that goes in them. You can see this code in the files \textit{libTemp.h}, \textit{libTemp.cpp}, and \textit{libTemp\_tests.cpp}. 
-
-Every file begins with a comment block called the file header\sidenote{different than a header file!}. In that header is three things:the name of the author, and a brief description of the file contents and their purpose. 
-
-The library header (the .h file) should always start with two things: define guards and a namespace declaration. The define guard has three parts: \#ifndef , \#define , and \#endif. We'll want to \#include our library in multiple files. Without these guards, the compiler will complain about multiple definitions.  The namespace is a way of organizing our code and helps prevent name conflicts.  In many respects its like assigning a second name to the procedures in your library. This ensures that your procedures aren't confused with another procedure by the same name from a different library. Notice that the define guards surround all the library code and that function declarations will go within the namespace block delimited by the curly braces.
-
-The implementation file includes the library header and then begins providing full declarations for each of the procedures in the library. Be sure to include the namespace name in the procedure header!
-
-The test file needs to include both the library header and the gtest library so that we have the procedures we're testing as well as the test macros. Generally speaking, you should write a test case for every procedure. The one exception to this rule might be combining tests for helper procedures with the tests for the procedure their helping.  In this case, the best thing to do might be to write one test case for the whole thing, but split the tests out by procedure\sidenote{you see this in the factorial library from our last lab}.
-
-You're going to write a lot of libraries, so get used to this code. An industrious student might take a crack at writing a bash script to automatically generate starter files for libraries. Such a script might take the library name as an input and then produce these three files with the boilerplate all filled in. Or you can do a lot of typing, copying, and pasting at the start of every program.
 
 \section{Design and Development Process}
 
-When designing and developing C++ procedures, you should try to stick to the following process.
+When designing and developing C++ procedures, we can stick to the same design procecess advocated by HtDP2e. Here we update things with respect to our new set of tools.
 \begin{enumerate}
 \item (\textsc{Design})Analyze the problem, decide on your data model for the procedure's inputs and outputs, and document and declare the procedure in your library.
 \item (\textsc{Design})Write tests for the procedure in your test file. 
@@ -45,31 +28,31 @@ When designing and developing C++ procedures, you should try to stick to the fol
 \item (\textsc{Implementation})Recompile the library object to check for syntax errors and warnings.
 \item (\textsc{Testing})Link the library object with tests object and run the tests. Debug as needed.
 \end{enumerate}
-This is pretty much the same process we used in COMP160.  What you'll notice here is we do a lot of compiling check-points along the way. This is meant to keep the number of compiler errors from getting too large. As you get more comfortable with C++ you can try compiling less often. Just remember that waiting to compile can mean a long, scary looking list of errors.
+What you'll notice here is that I advocate for a lot of compiling check-points along the way. This is meant to keep the number of compiler errors from getting too large. As you get more comfortable with C++ you can try compiling less often. Just remember that waiting to compile can mean a long, scary looking list of errors.  Its been my experience that people prefer fix just a few bugs at a time to many tens of bugs at a time.  Additionally, errors beget errors so staying as close to a syntax error free program as possible is a good idea.
 
 Another thing that might be new is the use of \textit{stubs}. A stub is an implementation of a procedure that meets the signature but not the purpose. So if your procedure is supposed to return a number, then you just return some random number. We can expand on stubs to include a procedure template based on our analysis of the inputs and outputs.   
 
-\section{Kinds of Data}
+\section{Kinds of Data and Data Models}
 
-The most important part of program design happens before you write a single line of code.  The first thing a programmer must do is decide how best to \textsc{model} real-world \textsc{information} with \textsc{computational data}. For example, if your program is a Hangman game, then you need to decide what \textsc{data types} best capture the different parts of the game. The big design lesson from COMP160 is that data tends to exhibit a few different structural patterns, and if we recognize the structure in our data, then we can base the structure of our program on those patterns. We wrote \textit{data definitions} to explicitly state the type and structure of our problem data, then wrote templates as a reminder of the structural patterns inherent in our data. 
+The most important part of program design happens before you write a single line of code.  The first thing a programmer must do is decide how best to \textsc{model} real-world \textsc{information} with \textsc{computational data}. For example, if your program is a Hangman game, then you need to decide what \textsc{data types} best capture the different parts of the game. The big design lesson from COMP160 is that data tends to exhibit a few different structural patterns, and if we recognize the structure in our data, then we can base the structure of our program on those patterns. We wrote \textit{data definitions} in COMP160 to explicitly state the type and structure of our problem data, then wrote templates as a reminder of the structural patterns inherent in our data. Those pattens then guide us towards an implementation for our function.\sidenote{It's logical boilerplate!}. 
 
-Let's review the most basic patterns you should have encountered in COMP160.
+Let's review the two most basic patterns you should have encountered in COMP160.
 \begin{enumerate}
 \item Primitive, Atomic Structures \\
-These are the ``low-level'' data types that are built in to the system.  Things like numbers, booleans, and letters fall into this category.  From time to time, we'll treat non-atomic structures as if they were atomic.
+These are the ``low-level'' data types that are built in to the system.  Things like numbers, booleans, and letters fall into this category.  From time to time, we treat non-atomic structures as if they were atomic.
 \item Itemization Structures \\
-aka Either-Or data or Unions.  We encounter this when we combine different kinds of data to form a new type of data. It also pops up when you need to consider different subsets or specific instances of atomics. Numerical intervals and enumerations of values are classic examples.
-
+aka Either-Or data or Unions.  We encounter this when we combine different kinds of data to form a new type of data. It also pops up when you need to consider different subsets or specific instances of atomics. Numerical intervals and enumerations of values are classic examples. 
 \end{enumerate}
-The key thing to note as all these kinds of data have atomics at some level and all but atomics provide some means of building new structures/types from existing structures/types. Its this combinatorial behavior that lets us get so much mileage out of so few structures. So, where the world of information is infinite and complex, we've had a lot of luck reducing that complexity down to a few well understood structures.
-
-With each of these structures came a template that reflected design guidelines for dealing the the structure. We provide them here as ``rules'' rather than BSL Racket templates. 
+One key thing to note is that Itemizations are built from atomics and maybe other itemizations. In short, all roads lead to atomics. What this means is that our templates for non-atomic data tend to revolve around how we get at atomics, where we actually do the computation. For example, here's the templates for our two kinds of data.
 \begin{quote}
 \textsc{Atomic}: Compute. 
 \end{quote}
 \begin{quote}
 \textsc{Itemization}: Use conditionals to determine which variant you're dealing with, then write a helper procedure to process the variant specifically.
 \end{quote}
+With itemizations, we figure out which variation of the item we're dealing with and call a helper that works with that type of data.  If that type is atomic, then we'll compute. If it's another itemization, then we'll repeat until we hit something atomic.  
+
+Now that we've done some really high-level review, let's see what the concrete world of C++ data types looks like.
 
 \section{Static Types in C++}
 
@@ -413,6 +396,52 @@ double temperature::FtoC(double ftemp){
 \end{verbatim}
 
 We probably shouldn't expect all of our function to come out so simply. None, the less, these simple functions give us a good place to start and let us work the kinks out of basic C++ syntax and library development.
+
+\section{Predicates}
+
+Functions\sidenote{procedures sans side-effects} that return a \textit{bool} value are called \textsc{predicate} or boolean-valued functions. Boolean expressions can always be replaced by predicate functions, and since boolean expressions are an integral part of loop structures, we'll stop and talk about a clean, concise style of writing predicates.
+
+In many cases, predicates can, and should, be written without the use of conditional statements.  Let's say we need a predicate \textit{isEven} which takes an \textit{int} type and returns true if it is even and false otherwise.  We could do this:
+\begin{verbatim}
+bool isEven(int n){
+  if( n % 2 == 0 ){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+\end{verbatim}
+
+However, notice that the \textit{boolean expression} \textit{n \% 2 == 0} takes on exactly the value we want to return. So, a better implementation is to return the value of that expression.
+\begin{verbatim}
+bool isEven(int n){
+  
+  return n % 2 == 0 ;
+
+}
+\end{verbatim}
+
+Maybe you tested to see if it was odd?  That's OK, you can always use ! to negate a boolean value. This implementation,
+\begin{verbatim}
+bool isEven(int n){
+  if( n % 2 == 1 ){
+    return false;
+  }
+  else{
+    return true;
+  }
+}
+\end{verbatim}
+becomes,
+\begin{verbatim}
+bool isEven(int n){
+  
+  return !(n % 2 == 1) ;
+
+}
+\end{verbatim}
+
 
 
 \end{document}

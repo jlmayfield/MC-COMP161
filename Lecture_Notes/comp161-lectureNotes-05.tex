@@ -275,9 +275,9 @@ To clean up our working directory we typically remove all the object files, our 
 \begin{verbatim}
 .PHONY : clean
 clean : 
-     rm *.o *~ fact_tests fact_main 
+     rm -f *.o *~ fact_tests fact_main 
 \end{verbatim}
-The first line tells \textit{make} that the target \textit{clean} is a phony. This prevents a few potential problems.  We then note that this rule has no dependencies and that the rule simply runs a familiar remove command. 
+The first line tells \textit{make} that the target \textit{clean} is a phony. This prevents a few potential problems.  We then note that this rule has no dependencies and that the rule simply runs a familiar remove command. It should be noted that we're using the \textit{-f} option here in order to avoid error messages when files aren't found and as a result this command will also not prompt you when deleting. You're free to use a different version of \textit{rm} in your clean rules. 
 
 Another common phony command is \textit{all}. This command is used to build all of your executables and is a typical default make rule\sidenote{i.e. the first thing in the file}.
 \begin{verbatim}
