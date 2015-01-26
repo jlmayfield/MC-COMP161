@@ -5,18 +5,18 @@
 
 \title{COMP161 - Lab 3 \& Homework 3}
 \author{}
-\date{Spring 2014}
+\date{Spring 2015}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Lab 3 and Homework 3 give you practice with writing and testing basic procedures.  
+Lab 3 and Homework 3 give you practice with writing and testing basic functional procedures.  
 \end{abstract}
 
-\section{Lab 4}
+\section{Lab 3}
 
-For lab you'll complete the development of a single C++ procedure, and then complete the design phase for several more\sidenote{which will be completed as homework}. The problems you'll be solving come from the first edition of \textit{How to Design Programs}.
+For lab you'll be working with the following problem from the first edition of \textit{How to Design Programs}.
 \begin{framed}
 \begin{quote}
 \textbf{Exercise 3.3.1.}   The United States uses the English system of (length) measurements. The rest of the world uses the metric system. So, people who travel abroad and companies that trade with foreign partners often need to convert English measurements to metric ones and vice versa.
@@ -40,29 +40,21 @@ Develop the functions inches$\rightarrow$cm, feet$\rightarrow$inches, yards$\rig
 Then develop the functions feet$\rightarrow$cm, yards$\rightarrow$cm, rods$\rightarrow$inches, and miles$\rightarrow$feet.
 Hint: Reuse functions as much as possible. Use variable definitions to specify constants.
 \end{quote}
-\end{framed}
+\end{framed}\sidenote{You cannot use $->$ in function names in C++, so you'll need to adjust the names accordingly.}
 
-First, let's work the whole design, implement, and test process for a single procedure\sidenote{See Lecture Notes 06 and class notes for more details}.
-\begin{enumerate}
-\item (Design) Start the library header and declare and document an inches$\rightarrow$cm procedure.
-\item (Design) Start the library tests file and write tests for the inches$\rightarrow$cm procedure.
-\item (Design) Compile the test file to an object and fix any syntax errors and warnings\sidenote{don't forget to use -Wall}.
-\item (Design) Start the library implementation file and stub the inches$\rightarrow$cm procedure.
-\item (Design) Compile the library implementation file to an object and fix any syntax errors and warnings.
-\item (Design) Link the tests with the library and run the tests\sidenote{which should all fail}. 
-\item (Implement) Now go back and complete the procedure definition.
-\item (Test) When you think the procedure is done, recompile the library object, relink with the tests, and run the test. Debug your implementation\sidenote{or tests} as needed.
-\end{enumerate}
 
-Now for the remaining procedures, complete the design process only. Do not implement the procedure unless the procedure is fully documented and all tests are written.  Write a new test case for every procedure; do not test multiple procedures within a single test case. If I see more than one complete procedure in your lab submission, then you'll lose points.\sidenote{I won't always be so strict, but I need to see you work the process at least once}. I want documentation, stubs, and tests. That's it.  Submit your source documents\sidenote{cpp and h files} as assignment \textit{lab4} with \textit{handin}.  Do not submit objects, executables, temporary files created by emacs, or any other non-source file. 
+This problem lists several functions. \textbf{For lab you must complete and submit the inches to centimeters conversion}. Submit your source documents\sidenote{cpp and h files} as assignment \textit{lab3} with \textit{handin}.  Do not submit objects, executables, temporary files created by emacs, or any other non-source file. 
 
 \section{Homework 3}
 
 \begin{center}
-\textbf{\textsc{Due by class time Wednesday 2/12}. Submit as hwk3.}
+\textbf{\textsc{Due by class time Wednesday 2/4}. Submit as hwk3.}
 \end{center}
 
-Complete the implementation and testing of all the remaining unit conversion procedures and then design and develop a procedure for the following problem\sidenote{again, courtesy of \textit{HtDP1e}}
+\begin{enumerate}
+\item Complete the remainder of the functions from the lab problem for unit conversions.
+\item Design and develop a procedure for the following problem\sidenote{again, courtesy of \textit{HtDP1e}}
+\end{enumerate}
 
 \begin{framed}
 \begin{quote}
@@ -83,4 +75,22 @@ Determine by hand the pay-backs for a customer who charged \$2000 and one who ch
 Define the function pay-back, which consumes a charge amount and computes the corresponding pay-back amount.
 \end{quote}
 \end{framed}
+
+
+\subsection{Problem Set}
+
+These two problems are probably not enough practice with working the design recipe in C++.  Give some serious consideration to working on these problems. You never know, they should show up on a quiz...
+
+\begin{enumerate}
+\item From HtDP1e. Problems are listed as \textit{chapter.section.problem} numbers.\sidenote{\url{http://htdp.org/2003-09-26/Book/} }
+\begin{enumerate}
+\item (Atomics) 3.3.2 - 3.3.5
+\item (Itemized) 4.4.4
+\end{enumerate}
+\item HtDP Online Problem Sets\sidenote{\url{http://htdp.org/2003-09-26/Problems/}}
+\begin{enumerate}
+\item (Itemized) Section 4
+\end{enumerate}
+\end{enumerate}
+
 \end{document}
