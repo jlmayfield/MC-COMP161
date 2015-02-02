@@ -5,30 +5,30 @@
 
 \title{COMP161 - Lab 4}
 \author{}
-\date{Spring 2014}
+\date{Spring 2015}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For this lab you'll practice basic procedure design for atomic and itemized data in preparation for Monday's Quiz.
+Today's lab gives you practice with predicate functions, booleans, characters, and libraries.
 \end{abstract}
 
-\section{Problem Set}
+\section{A Character Predicate: \textit{isVowel}}
 
-Develop procedures for any of the following problems. 
-\begin{enumerate}
-\item From HtDP1e. Problems are listed as \textit{chapter.section.problem} numbers.\sidenote{\url{http://htdp.org/2003-09-26/Book/} }
-\begin{enumerate}
-\item (Atomics) 3.3.2 - 3.3.5
-\item (Itemized) 4.4.4
-\end{enumerate}
-\item HtDP Online Problem Sets\sidenote{\url{http://htdp.org/2003-09-26/Problems/}}
-\begin{enumerate}
-\item (Itemized) Section 4
-\end{enumerate}
-\end{enumerate}
- 
-Remember: Document+Declare $\rightarrow$ Write Tests $\rightarrow$ Stubs $\rightarrow$ Code $\rightarrow$ Run Tests. Any of the first four steps are fair game for the quiz. So understand each of them separately and how they work together in the course of procedure design and development. You can put all your procedures in a single library if you want\sidenote{call it something like lab5}.  Be sure to include the problem number in the documentation of each procedure. For problems from the problem set, label them \textit{PS.4.x} where $x$ is the problem number. At the end of lab, submit your source code as assignment \textit{lab5} using \textit{handin}.
+The C \textit{character type} library\sidenote{aka \textit{cctype} \url{http://www.cplusplus.com/reference/cctype/}} provides several useful predicates that check which variant of the character type you're dealing with. Take a moment to scan the library and see what's available. Your task today is create a new predicate named \textit{isVowel} that determines if a given character is an English vowel\sidenote{A,E,I,O,U,Y} or not. It should work for both uppercase and lowercase letters. \textit{Do not assume that the character in question is a letter.} Focus on getting it working correctly, then see if you can shorten it down and compress the logic to a single return statement with no conditionals\sidenote{assuming that you didn't do this the first go around}.
+
+Just a few reminders:
+\begin{itemize}
+\item Remember to put \textit{\#include <cctype>} in any file where a cctype library function is invoked.
+
+\item All characters have positive integer values associated with them\sidenote{see \url{http://www.asciitable.com/}}. The C ctype library was written expressly for ints, not chars, so all the cctype library functions take integer arguments and return integer results. The compiler will convert between \textit{int} and \textit{char} types as needed without trouble so you can pretend all those ints are chars.
+\end{itemize}
+
+At the end of lab or when you're done with \textit{isVowel}, whichever comes first, submit your source code and Makefile with \textit{handin}. The assignment designation is, of course, \textit{lab4}.
+
+\subsection{Practice/Challenge}
+
+Write an \textit{isConsonant}\sidenote{Non-Vowel letters} function. Leverage your existing \textit{isVowel} function if possible. Also, consider working problems for the problem set given with last week's lab.
 
 \end{document}
