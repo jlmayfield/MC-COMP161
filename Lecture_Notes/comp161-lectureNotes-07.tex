@@ -358,7 +358,7 @@ The cursor ends immediately below the h in hi.
 
 \subsection{Streaming Input}
 
-Once again, our example problem pretty much covers all the bases. Go back and read it carefully. 
+Once again, our example problem pretty much covers all the bases. Go back and read it carefully. Some key points to remember are: 
 \begin{itemize}
 \item You cannot do streaming input without variables because you must have a place to store the value that $>>$ gets from the stream
 \item Data from the stream is broken up by whitespace. This includes the enter key, so hitting enter doesn't terminate input, reading tokens does.
@@ -368,12 +368,12 @@ Once again, our example problem pretty much covers all the bases. Go back and re
 
 \section{Program 2: CLI Input}
 
-The CLI is built of string data.  When we want to take input from the CLI for our C++ programs, then we have to take it as strings.  So, to get our second program working, we need to start looking at strings. We'll start with a quick and dirty overview of just some essentials for managing this program and get into more details in lectures down the line.
+The CLI is built on top of strings. When we want to take input from the CLI for our C++ programs, then we have to take it as strings.  So, to get our second program working, we need to start looking at strings. We'll start with a quick and dirty overview of just some essentials for managing this program and get into more details in the next set of lecture notes.
 
 Without further ado, here's a version of this program that lets you pass in your test values from the CLI. The tradeoff here is that there is no loop. We have to re-run this for each new set of data\sidenote{or write a looping Bash program to run this maybe}.
 \begin{verbatim}
-#include <iostream>
-#include <sstream>
+#include <iostream> // std::cout, std::cerr
+#include <sstream> //std::istringstream
 #include "ln7.h"
 
 int main(int argc, char* argv[]){
@@ -391,13 +391,13 @@ int main(int argc, char* argv[]){
   }
 
   // Let's assume we typed numbers as arguments
-  istringstream xstream(argv[1]);
+  istringstream xstream{argv[1]};
   xstream >> x;
 
-  istringstream ystream(argv[2]);
+  istringstream ystream{argv[2]};
   ystream >> y;
 
-  istringstream rstream(argv[3]);
+  istringstream rstream{argv[3]};
   rstream >> r;
 
 
@@ -407,12 +407,73 @@ int main(int argc, char* argv[]){
 
   return 0;
 }
-
 \end{verbatim}
+
+First off, take note that we're using two libraries: \textit{iostream} and \textit{sstream}. The first is familiar. It provides basic I/O capabilities and access to \textit{std::cout} and \textit{std::cin}. The second library is for string streams\sidenote{\url{http://www.cplusplus.com/reference/sstream/}}. It provides us with the \textit{istringstream}\sidenote{input string stream} type that lets you treat a string as if it were an a streaming input device.  
+
+At a very high-level this program proceeds as follows:
+\begin{quote}
+Declare variables to store the CLI input. Check that a sufficient number of CLI arguments were given and if not, end the program and signal and error. Create input string streams from each of the CLI input strings and read the data from those streams to the variables. Output the results.
+\end{quote}
 
 \subsection{CLI Inputs and \textit{main}'s arguments}
 
+When we run our programs from the CLI, the operating system will take the command run, package each piece as a string, count the number of pieces, and hand all of this off to the program as arguments to main. 
+
+Let's look at main's signature:
+\begin{verbatim}
+int main(int argc, char* argv[])
+\end{verbatim}
+The first parameter, the integer \textit{argc}, is the number of arguments or the argument count. This includes the name of the command as well as all the other arguments. For example, if our executable is named \textit{runIsWithin} and we run the following CLI command,
+\begin{verbatim}
+./runIsWithin 2.3 4.5. 10.6
+\end{verbatim}
+then the value of \textit{argc} is 4. The arguments themselves are stored in the parameter \textit{argv}.
+
+The parameter \textit{argv} is an \textit{array of C-Strings}. We know this because the type \textit{char*} is, informally, the C-String type and when you put a set of square brackets after a variable or parameter name you're indicating that its an array. Arrays are important structures and we'll look at them more in the future. For now it's enough to know that they are collections of homogeneous data. In this case, the array \textit{argv} is a collect of C-strings. If we had the parameter \textit{int vals[]} or \textit{double vals[]}, then we'd be working with a collection of integers or doubles, respectively. Arrays are an \textsc{indexed} collection such that each datum is accessible via its index number. The first element in the collection is always 0\sidenote{say it again, ``the first element in an array is always zero''} and the index values increase sequentially from there. 
+
+Returning to our example from above, we demonstrate how to access the array \textit{argv} and how CLi arguments are stored through some gTest unit tests\sidenote{EXPECT\_STREQ is used to test two C-Strings for equality}.
+\begin{verbatim}
+EXPECT_STREQ("./runIsWithin" , argv[0]);
+EXPECT_STREQ("2.3" , argv[1]);
+EXPECT_STREQ("4.5" , argv[2]);
+EXPECT_STREQ("10.6" , argv[3]);
+\end{verbatim}
+Restating the first test in plain English, we'd say, ``Expect the value of \textit{argv} at 0 to be the same as the string ``./runIsWithin''''. 
+
+It's a recipe for disaster to attempt to access an array at a location where no data exists. We call this an \textsc{index out of bounds} error and it's a classic bug in software.  Thankfully, the value of \textit{argc} always tells us exactly which index values are OK and which are not-- it tells us the size of \textit{argv}\sidenote{arrays of size $s$ have index values from $\{0,\ldots,(s-1)\}$}. For our program we need exactly 4 arguments, the executable name and the three numbers. It's easy enough to check that we have exactly 4 and we should do so. 
+\begin{verbatim}
+// Quick error check for enough arguments
+if( argc != 4 ){
+  cerr << "Not enough arguments. Usage: " << argv[0] << " x y r\n";
+  return 1;
+}
+\end{verbatim}
+Here we check the value of \textit{argc} and if it's not 4, we output a message to \textit{cerr}\sidenote{where errors go}. Notice we include the executable name in the message and attempt to remind the user, i.e. ourselves, how to use the program properly. Finally, we end \textit{main} by returning 1. Here we assume that a non-zero return value signals an error condition of some kind. 
+
 \subsection{Streaming Strings}
 
+The central obstacle to our CLI-based program is that we're given C-string data and need doubles. The C++ streaming I/O system has already solved the problem of reading a series of characters and determining what numerical value they represent, so let's just re-use that code by way of using string streams. Specifically, we'll turn our C-Strings into input string streams, which we can then use along with the streaming input operator. Here's the first example:
+\begin{verbatim}
+istringstream xstream{argv[1]};
+xstream >> x;
+\end{verbatim}
+Our first statement declares the input string stream\sidenote{istringstream} \textit{xstream} and initializes it with the first numerical argument.  The second statement then gets the first value from that stream and reads it, as a double, to the variable \textit{x}. We repeat this two more times, once for each remaining argument.
+\begin{verbatim}
+istringstream ystream{argv[2]};
+ystream >> y;
+
+istringstream rstream{argv[3]};
+rstream >> r;
+\end{verbatim}
+Assuming the strings can be read as double literals, then that's it.  We've now read our CLI arguments in as doubles. The final statement in our program is the same as version 1, we just report the results with an output statement.  
+
 \section{This Doesn't Scale Well}
+
+You've seen the basics of streaming I/O and started to get some sense of how to work with variables through basic statements in C++. The problem with only knowing statements is that it doesn't scale. Complex effects typically need to be abstracted away from main, or whatever procedure initiated them, and turned into a procedure in their own right. Doing this simplifies program logic by breaking it down to task-specific procedures and provides us with an opportunity to test our effect-based code. 
+
+As it stands, the only way we can tell if our testing programs are producing the desired effect is to run them.  This is mainly due to the fact that the effect-based statements are in main and not abstracted away into a helper procedure. The other problem is that the effects are generally taking place on the standard input and output devices and there is no way to tell the computer to inspect those devices. 
+
+We can easily solve the first problem by laying down some ground rules for designing and writing procedures whose purpose is to carry out a desired effect. We can work around the later problem by designing our procedures in such a way that they leverage the Object-Oriented design of the C++ streaming I/O system. We'll be able to write general purpose I/O procedures and test them relative to string streams. We can then use them on cin, cout, and even file file streams without changing the code. Before we can do any of this, we really need to take a moment to study the world of strings in C++. 
+
 \end{document}
