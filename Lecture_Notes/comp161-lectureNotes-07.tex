@@ -3,47 +3,260 @@
 \usepackage{multirow}
 \usepackage{booktabs}
 \usepackage[pdftex]{graphicx}
+\usepackage{framed}
 
   
 \title{COMP 161 - Lecture Notes - 07 - Procedures for Effect: I/O and State}
-\date{Spring 2014}
+
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at something new: procedures for effect. We'll discuss how they might arise in the course of program design and how to properly implement and test the most common procedure forms.
+In these notes we look at effects. We'll discuss how they might arise in through program design and consider recipes for designing and developing effect-based procedures.
 \end{abstract}
 
-\section{Thinking about Architecture}
+\section{Interactive Testing}
 
-When you designed Universe programs in BSL Racket, you used a particular architectural pattern to organize you code.  First you did what we always do, \textit{develop a computational \textsc{model} of your problem's information}.  You then wrote a series of functions to manage three things:
+So far, you've only interacted with your functions by writing and running tests. While having frameworks like gTest are great. It's also really nice to interact with the code yourself. If we put this in the context of testing, it'd be nice to be able to choose an input on the fly, feed that to the function, and see the result. We want to interact with the code in a dynamic fashion. This can be an important part of debugging and problem solving, so we should learn how to do it. It also turns out that the programming tools we need to do interactive testing are the same tools we need to write interactive programs. So, while we're just going to think about the problem of testing functions. You should be imagining how these new tools lead to the kind of interactive functionality we know of love form computers. 
+
+\subsection{The Function}
+
+Let's look at problem 1 from section 4 of the HTDP1e online problem set\sidenote{\url{http://htdp.org/2003-09-26/Problems/4.html}}. I've renamed the function to conform with our C++ standards rather than BSL standards. 
+
+\begin{framed}
+\begin{quote}
+Develop the function \textit{isWithin}, which consumes three numbers representing the $x$ and $y$ coordinates of a point and the radius $r$ of a circle centered around the origin It returns true if the point is within or on the circle. It returns false otherwise. The distance of the point to the origin is the square root of $x^2 + y^2$.
+\end{quote}
+\end{framed}
+
+Here's the end product of our development process\sidenote{Recreate this process for practice}
+\begin{verbatim}
+// In the header
+
+namespace TwoD{
+  
+  
+  /**
+   * Determine if the point (x,y) is on or within a 
+   * circle with center (0,0) and radius r
+   * @param x the x coordinate of the point
+   * @param y the y coordinate of the point
+   * @param r the radius of the circle
+   * @return true if (x,y) is in or within the circle
+   * @pre radius r is positive or 0
+   */
+  bool isWithin(double x, double y, double r);
+
+}
+
+// In the tests
+
+TEST(isWithin,all){
+  using namespace TwoD;
+  
+  // Positive Tests 
+  EXPECT_TRUE(isWithin(0,0,0));
+  EXPECT_TRUE(isWithin(0,0,0.5));
+  EXPECT_TRUE(isWithin(0,0,2.5));
+  EXPECT_TRUE(isWithin(1.0,0.5,2.5));   
+  EXPECT_TRUE(isWithin(2.5,0.0,2.5));
+  EXPECT_TRUE(isWithin(0.0,2.5,2.5));
+	  
+  // Negative Tests
+  EXPECT_FALSE(isWithin(1.0,0,0));
+  EXPECT_FALSE(isWithin(0,1.0,0.5));
+  EXPECT_FALSE(isWithin(2.5,2.5,2.5));
+  EXPECT_FALSE(isWithin(0,0.501,0.5));   
+  EXPECT_FALSE(isWithin(2.5,0.1,2.5));
+  EXPECT_FALSE(isWithin(0.0,3.0,2.5));
+  
+}
+
+// In the Library Implementation
+
+#include <cmath>
+
+namespace TwoD{
+
+  bool isWithin(double x, double y, double r){
+     return r >= sqrt(x*x + y*y);
+  }
+
+}
+\end{verbatim}
+
+With this kind of function we can expect to run into some double arithmetic rounding problems. In particular, when we're checking for the point one the edge of the circle, the equality case, things could easily get off and produce erroneous results. So, it might be nice to interactively test this function to see when that kind of problem crops up. It might also be nice to try some new values without the need to write new tests. 
+
+
+\section{Goal: Two Programs for Interactive Testing}
+
+Let's identify two programs that would allow us to test \textit{isWithin} in an interactive fashion:
 \begin{enumerate}
-\item \textsc{model} Function like your tick handler which update and work with the data model
-\item \textit{view} Functions to draw your model and display a user interface.
-\item \textit{controller} Functions to oversee the interaction of the model and the view/UI.
+\item an primative REPL\sidenote{Read Evaluate Print Loop} program that prompts you for input values and prints the results until you close it. The looping part is really optional. We could just do one test, then relaunch the program for more tests as needed.
+\item a CLI program that lets the user pass the \textit{isWithin} inputs as CLI arguments. This is like the previous program without a loop and without any prompts. 
 \end{enumerate}
-The real \textsc{controller} was \textit{big-bang} which glued all of these things together and managed the event-handling.  We did provide some essentials for things like key presses and a stop condition. This \textsc{software architecture} is an industry standard in many programming situations and it is called \textsc{model-view-controller}\sidenote{MVC}.  It allows you, the programmer, to maintain relative independence between your data model and your user interface. It is highly useful for several reasons:
-\begin{itemize}
-\item we often need to employ non-obvious models and algorithms on those models.  In these cases, the structure of the model and the logical ``view'' of the information do not match and this separation is vital\sidenote{the user cares about information, not clever models}. 
-\item we often need to check, validate, and pre-process data coming from the UI and this architecture provides the breathing room in which to do that. 
-\end{itemize} 
 
-So far we've really just been looking at writing functions with an eye towards our model. We'll now start looking at interfaces to and views of our model. The MVC architecture lets us maintain the all important \textit{separation of concerns} when developing our complete program. If we do it right, then we can develop our model logic and interface logic \textsc{systems} more or less independently of one another.
+We'll first focus on program number one, the REPL program. It's a bit easier to get off the ground and exposes to wide and wonderful world of effect-based, imperative, procedural programming. We'll also checkout program number two, but will likely hand-wave over a few details that we'll explore in depth later on down the line.
 
-\subsection{Interest Program}
+\subsection{Problem: Effects}
 
-As soon as we start thinking about user interfaces\sidenote{UI}, we start thinking about \textsc{I/O} and \textsc{state}. Let's say you're developing a program to allow someone to better understand the interest rate and interests associated with their bank account, and that the program provides the following functionality: 
-\begin{itemize}
-\item Get the initial account balance from the user
-\item Deposit and withdraw some funds.
-\item Communicate the current interest rate for the current balance to the user
-\item Communicate the interest earned for the current balance to the user
-\end{itemize}
-The first reason you might need state is to act as a \textit{communication channel} between the UI and the model. Our program can create a \textsc{state variable} that the UI can write data in to.  The program can then read from that variable and react to the value. Changes in the state of the variable\sidenote{i.e. its value} thereby determine how the program executes. 
+Before we dive into the guts of these programs, let's make it clear why we need effect-based code. Clearly we need \textsc{I/O}\sidenote{Input/Output} effects as we must \textsc{read} data from the CLI input, aka \textsc{stdin} and feed it as inputs to our function.  We then want to \textsc{write} the results of our computation to the CLI output, \textsc{stdout}.  Racket did this kind of thing implicitly in the interactions window. We have no such system now and need to explicitly manage it ourselves. 
 
-This is our new systems oriented view of programming\sidenote{as opposed to our old functional view}. We've clearly associated parts of the computer with this problem. The user types at the keyboard and we write that data to  memory\sidenote{our variable}. We can then read from that place in memory to determine what the user wrote. Our program plays the role of the CPU in this story. 
+What's less clear is why we need \textsc{state mutation}. The short answer is because you cannot read from stdin directly into a function. You must first read into a variable\sidenote{i.e. memory}, then pass the value of that variable to the function.  This means declaring and initializing a variable, then using \textsc{mutation} to change the value to what is read from stdin. There are good reasons for this requirement. Sometimes the read fails. If that happens when you're attempting to call the function, then your program will probably crash. It's also just a bad idea to assume that what's coming in from \textit{stdin}, or input devices in general, is well-formed, valid data. You might be expecting a number, but the user could, for whatever reason, give you string data. This can be an honest mistake or malicious intent. In web-based systems, you want to check all user input from a form before acting on it in order to avoid SQL injection\sidenote{\url{http://en.wikipedia.org/wiki/SQL_injection}}. 
 
+When dealing with CLI arguments as we'll do with program two, we don't have to worry about reading from stdin. The operating system takes the CLI command, parses it, and sends it to our program as C strings.  This is great if we needed strings, but we need numbers. The solution is actually to use a C++ library that allows us to treat a string as a input device. We can then read from the string(s) in the exact way we read from the CLI. The end result is the same, we just have to work through an intermediate step. 
+
+\section{Program 1: Interactive REPL}
+
+Let's dive right into the first program. We'll first look at the whole main procedure, then we'll break down the logical steps. I've included the \textit{\#include} statements to highlight the standard C++ I/O library, \textit{iostream}\sidenote{\url{http://www.cplusplus.com/reference/iostream/}}. 
+
+\begin{verbatim}
+
+#include <iostream> //std::cout std::cin std::boolalpha
+#include "ln7.h"    // TwoD::isWithin
+
+int main(int argc, char* argv[]){
+  using namespace TwoD;
+  using namespace std;
+
+  // Declare Variables to hold user input
+  double x{0.0};
+  double y{0.0};
+  double r{0.0};
+
+  // explicit infinite loop
+  // Use Ctrl-C to kill the program at the CLI
+  // This is a terrible idea more often than not, but
+  // works for this application.
+  while(true){
+     
+    // Prompt and get x,y
+    cout << "Enter point coordinates: ";
+    cin >> x >> y;
+    // Prompt and get r
+    cout << "Enter circle radius: ";
+    cin >> r;
+    
+    // Compute and report results
+    cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
+      boolalpha << isWithin(x,y,r) << '\n';
+      
+  } //end while
+
+  return 0;
+}
+\end{verbatim}
+
+The first two lines of the procedure are the familiar \textit{using namespace} statements. The first namespace is for \textit{isWithin}. The later, \textit{std}, is the \textit{standard} namespace that contains all the elements of the \textit{iostream} library. 
+
+
+\subsection{Variable Declaration and Initialization}
+
+The first step of the procedure is to declare and initialize variables for our user input. 
+\begin{verbatim}
+// Declare Variables to hold user input
+double x{0.0};
+double y{0.0};
+double r{0.0};
+\end{verbatim}
+
+Here we see three variable of type double, \textit{x}, \textit{y}, and \textit{r}, each assigned an initial value of $0.0$ using brace-initialization. This form of initialization is new to the c++11 standard\sidenote{this means we need to add the -std=c++11 compiler option to the Makefile rule for building objects}. Prior to the c++11 standard you'd see alternative initialization statements such as:
+\begin{verbatim}
+double y; //pure variable declaration. type and name
+y = 0.0; // then immediately assign "initial" value
+
+double x = 0.0; //declare and initialize with assignment
+
+double r(0.0); //constructor function style with parenthesis
+\end{verbatim}
+
+The first option is really a C style. It's only an initialization in that nothing happens between declaration and the assignment. I don't prefer this because you're tempted to not assign an initial value and you should always assign an initial value. The second line of this pair bears some comment. This is a \textsc{state mutation} or \textit{variable assignment} statement. It is not a mathematical equation. It is a statement that reads: ``Assign the value 0.0 to the variable with name y'' or ``Assign the value 0.0 to the memory location labeled with the name y''. We'll talk in more detail about assignment shortly.
+
+The second option for initialization is nice because it's one cohesive statement, but because it uses the assignment operator $=$ it can sometimes confuse people about the usage of variable type annotation. They see the \textit{double} in this statement and want to then continue to use double wherever they are referring to, and specifically assigning values to, \textit{x}.  I prefer my initialization statements to look completely different from my general purpose assignment statements.
+
+The final option is great from the perspective that it looks different than assignment and therefore reminds us that initialization and general purpose assignment are different things. The only reason we'll use braces instead of parenthesis is that the parenthesis become more meaningful as we explore more involved kinds of data.  Curly brace initialization was introduced to provide a consistent means of initializing data for standard C++ types. 
+
+We'll always use the new brace initialization style as it really sets apart initialization and is fairly uniform across the types of data we'll use. You should recognize other initialization styles because you may need to read or write them someday, but \textit{always initialize and always use brace initialization in this class}\sidenote{second reminder: this requires the compiler option -std=c++11}.
+
+\subsection{Infinite Loop}
+
+Next you're confronted with an infinite loop, specifically an infinite \textit{while} loop. 
+\begin{verbatim}
+while(true){
+  // Loop body
+}
+\end{verbatim}
+A \textit{while} loop will repeat everything in it's curly brace block\sidenote{called the loop body} for as long as the boolean expression in the parenthesis evaluates to \textit{true}\sidenote{If you can't wait to learn more: \url{http://www.cplusplus.com/doc/tutorial/control/}}. In this case, we've explicitly put \textit{true} in parenthesis so this loop will repeat forever. We'll explore loops quite a bit soon, but it's really hard to separate loops constructs like this one from effects. A great many loops drive variable mutation over time or I/O like this one. In short, a loop is rarely, if ever, a functional, black-box process; they almost always have some kind of effect on the overall system with respect to your program.  
+
+There aren't a lot of good reasons to write infinite loops. This one makes sense from the perspective that we're writing a program only meant to be run by us and with a very special purpose. It's a quick and dirty solution to the problem of creating a REPL and we're not imagining this program will have much of a life span or user base. As soon as your program is going to be around awhile or used by people not you, you should find a better way than an infinite loop\sidenote{Like an explicit quit key}Be warned, I'll rarely expect an explicitly infinite loop as a solution to a problem on your homework. 
+
+\subsection{Prompt and Input Sequences}
+
+The body of our infinite loop contains our first I/O statements. What we see is a pattern of prompting the user for input then actually getting their input. Let's look at the first example. 
+\begin{verbatim}
+cout << "Enter point coordinates: ";
+cin >> x >> y;
+\end{verbatim}
+
+We want to think of these statements in terms of the binary \textsc{streaming output operator} $<<$\sidenote{``put to'' operator} and the binary \textsc{streaming input operator} $>>$\sidenote{``get from''}. Let's start with the first statement-- the output statement. To the left of the operator is the output stream \textit{cout}\sidenote{or std::cout because it's in the \textit{std} namespace}. It is our direct connection to the CLI standard output. The effect of this statement is to print the string literal ``Enter point coordinates: ''. 
+
+The input stream \textit{cin} connects us to \textit{stdin}. It reads values from the CLI and, in this case, writes them to variables. Data from \textit{cin} is, by default, separated by white space. In this case, we'll take the first \textsc{token} and read it like a double, because \textit{x} is a double, and save it to \textit{x}. The next token is also read as a double and then saved to \textit{y}. You can separate the two tokens with spaces, tabs, or even newlines as those all qualify as whitespace characters. It's important to note that the program will ready \textit{any} data as if it were a double.  If you type the string \textit{hello}, the program will attempt to interpret as a double literal and interesting and unexpected things will happen. 
+
+
+Our procedure continues with one more prompt and input sequence:
+\begin{verbatim}
+cout << "Enter circle radius: ";
+cin >> r;
+\end{verbatim}
+Let's just restate the effect of these statements in plain English:
+\begin{quote}
+Put the string literal ``Enter circle radius: '' to the standard output via the stream \textit{cout} get a value from the standard input stream \textit{cin} and write it as a double to the variable $r$.
+\end{quote}
+It's important to get a feel reading these statements as applications of streaming I/O operators. In doing so you'll be less attached to specific streams and more able to adapt this logic to alternate I/O streams.
+
+There is a great deal of effect-based programming going on under the hood of the streaming I/O objects \textit{cin} and \textit{cout}. We'll expose some details as needed. For now, it's enough to know that that they buffer\sidenote{temporarily store} data from their receptive devices and that the I/O operators mutate the contents of those buffers when you use them. They are your first example of \textsc{stateful objects}. They are not black-boxes. They have hidden internal state that combines with input to determine their output and behavior.
+
+\subsection{More Involved Output}
+
+The last statement in out loop is a fairly involved output statement.
+\begin{verbatim}
+cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
+      boolalpha << isWithin(x,y,r) << '\n'; 
+\end{verbatim}
+
+First note that this is a long statement and I split it across two lines. The compiler typically treats all white space the same and generally ignores it. This means we're free to split a line as long as we don't break up something important.\sidenote{Don't split the string literal or a $<<$}. To understand why we have a lot of $<<$ operators in this statement remember that the operator is binary only with one operand being the stream and the other a single datum. So, in order to output $n$ things, we'll need $n$ operators. 
+
+
+Before going further, let's see an example of the kind of output this produces:
+\begin{verbatim}
+isWithin( 3.4 , 5.6 , 10 ) -> true
+\end{verbatim}
+All of the spacing in that output \textit{is not the result of breaking things up with $<<$}. Put another way, \textit{additional $<<$ operators do not introduce any kind of white space to the output.}  If you go back and look at all the string values, you'll notice carefully placed spaces. This is how the actual output comes out nice and readable. Without those spaces it would all be smashed together.
+
+We could also get the exact same output with two statements instead of just the one.
+\begin{verbatim}
+cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> ";
+cout <<  boolalpha << isWithin(x,y,r) << '\n'; 
+\end{verbatim}
+This alternative sequence of output statements tells us that \textit{new output statements do not produce new lines in the output}. 
+
+Students first starting out with C++ I/O assume too much of their operators. So, commit this thought to memory now:
+\begin{quote}
+If you want spaces and newlines in your output, then you must explicitly put it there.
+\end{quote}
+
+
+There is one final thing of note in this statement. One of the tokens is not actual output, but a token used to modify how data in the stream following it is displayed. Any boolean values after the \textit{boolalpha}\sidenote{std::boolalpha} token will be printed as \textit{true} or \textit{false} rather than $1$ or $0$.  We call these tokens \textsc{I/O manipulators}. They are used to set the state of the I/O stream object and modify the way in which data is displayed.  They allow us to format how data is displayed. 
+
+Before moving on, let's restate this dozy of an output statement in plain English:
+\begin{quote}
+The the stream \textit{cout} put the following data, in this order: the string literal ``isWithin( '' the value stored in the variable x, the string `` , '', the value stored in y, the string `` , '', the value stored in r, and the string `` ) -> ''. Next, put the boolalpha manipulator to the cout stream in order to format boolean output to alphabetic. Finally, put the result of \textit{isWithin(x,y,r)} to cout and the newline character. 
+\end{quote}
+
+\subsection{Recap}
+
+This relatively straight forward example illustrates several key issues surround basic C++ stream I/O and variables.  Be sure you understand what's happening with this concrete example. In the following sections we'll explore the big picture and establish some general guidelines for variable and I/O effects.
 
 \section{State Variables}
 
@@ -52,68 +265,64 @@ We previously encountered variables when dealing with the linux CLI and noted th
 \item \textsc{Initialization} \\
 Assigning a starting, initial value to the variable.
 \item \textsc{Mutation} \\
-Assigning a new value to the variable
+Assigning a new value to a previously initialized variable
 \item \textsc{Access} \\
 Viewing or getting the current value in the variable.
 \end{itemize}
+Let's look at basic statements for each of these operations.
 
-In C++, variables are typed. This means they can only hold values of that type. When we first add, or \textit{declare}, a variable to our program we must state its type and name and initialize its value.\sidenote{it's possible to declare variables and not initialize them. I'm not even going to show you how to do it because you shouldn't}. Let's declare a double typed variable called balance and initialize it to zero. 
+\subsection{Declaration and Initialization}
+
+In C++, variables are typed. This means they can only hold values of that type. When we first add, or \textit{declare}, a variable to our program we must state its type and name and initialize its value. Variable declarations simply provide the type and the name with no initial value-- \textit{you should never just declare a variable}. We'll be using the C++11 brace initialization syntax and so our variable declarations and initializations have the following template:
 \begin{verbatim}
-double balance = 0.0;
+TYPE NAME{INITIAL-VALUE};
 \end{verbatim}
-Let's break this down. 
 
-You should recognize things like \textit{double balance} from declaring procedure arguments. The purpose here is the same, to introduce a variable\sidenote{we don't always treat procedure arguments like variables, but they are}. The difference is all about context. Here we're talking about introducing variables to arbitrary sections of our code. With procedure argument variables, we're only introducing a variable to the procedure, and nowhere else. 
-
-After the declaration of type and name is the initialization. For this we use the \textsc{assignment operator}, \textbf{=}.  This is not the $=$ you know and love from mathematics. This is an operator which assigns a value from the right hand side to a variable on the left hand side. The $=$ symbol you know from mathematics is more closely related to the $==$ operator as it is used as an assertion of equality. \textit{The C++ $=$ is not a logical assertion its a \textsc{mutator}}.  Returning to our example, we see that we're assigning $0.0$ to the newly created variable \textit{double} and thereby initializing it.   
-
-There's another way of initializing variables. The benefit of this second syntax is that it is specifically designed for initialization. Our previous syntax used the assignment operator $=$, which we'll use for general purpose mutation as well as initialization. The following is equivalent to what we saw before.
+You've seen a few examples already, but here's a few more:
 \begin{verbatim}
-double balance(0.0);
+char achar{'a'};
+bool isOK{false};
+int  size{15};
+double amplitude{0.707};
 \end{verbatim}
-Here we put the initial value in parenthesis following the name of the variable.
 
-Now that you've declared and initialized a variable, you'll probably want to access it. For example, you might like to compute the interest earned for the balance given that the interest rate is $4.5\%$.  Accessing variables in C++ is as simple as using the name where you want the value.  The following expression\sidenote{not statement, expression. Know the difference?}, computes the interest.
+\subsection{Accessing Variables}
+
+When we talk about accessing a variable we mean retrieving the value currently stored in that variable. To do this we simply refer to the variable by name. You saw this in the output statements from our testing program and when we called the function.  Here's a few more examples of accessing variables.  I've reused the variables from above and written examples of accessing them in the context of gTest unit tests so that you get a sense for the substitution of variable name for value.
+
 \begin{verbatim}
-balance * 0.045
-\end{verbatim}
-Notice that \textit{you do not restate the type of the variable}.  That's a declaration thing, not a usage thing. You've already established that \textit{balance} is of type \textit{double}.  This mechanic of associating name with value is familiar to you from BSL Racket. The big difference is that in BSL Racket, the value associated with a name was constant. In C++, we can change, or mutate, the value. 
+EXPECT_EQ('a',achar);
+EXPECT_EQ('A',toupper(achar));
 
-Maybe you want to assign a new value to \textit{balance}. Well we've already seen the operator for this: $=$. To change \textit{balance} to $4500.00$ we'd use the following assignment statement.
+EXPECT_FALSE(isOK);
+EXPECT_TRUE(!isOK);
+EXPECT_TRUE(isOK || !isOK);
+
+EXPECT_EQ(15,size);
+EXPECT_EQ(-3,size-18);
+EXPECT_EQ(33,2*size+3);
+
+EXPECT_DOUBLE_EQ(0.707,amplitude);
+EXPECT_DOUBLE_EQ(1.414,2*amplitude);
+\end{verbatim}
+
+
+\subsection{Variable Mutation}
+
+To mutate a variable means to assign it a new value. This is carried out via the assignment operator $=$. This operator is binary. Its left-hand operand must be something with an associated location\sidenote{\textsc{l-value}}, i.e. the name of a variable. Its  right-hand operand must be an expression, i.e. something with an associated value\sidenote{\textsc{r-value}}. Let's look at a few examples and then break them down.
 \begin{verbatim}
-balance = 4500.00;
+size = 5;
+achar = toupper('R');
+size = size + 5;
+achar = toupper(achar);
 \end{verbatim}
-Again, notice we do not restate the type of \textit{balance.} This statement looks very similar to our first declaration and initialization statement. It's this similarly that makes the second initialization syntax appealing; there's no way to confuse that with this. It's also worth noting that in this context, the system interprets \textit{balance} not as value but a location. The technical distinction is made by calling balance in this context an \textsc{l-value}\sidenote{location value}. When we're using balance for it's stored value, then we call it an \textsc{r-value}\sidenote{thing to the right of $=$?}. These terms get thrown around by the compiler from time to time, so do not disregard them as overly technical. 
 
-Let's try another common form of mutation, updating. Say you want to add $500.00$ to the current balance. This very common form of mutation/assignment statement highlights the \textsc{l-value}/\textsc{r-value} distinction and the fact that $=$ is not $=$ from mathematics.
-\begin{verbatim} 
-balance = balance + 500.0;
-\end{verbatim}
-Here we see \textit{balance} used for both its \textsc{l-value} and its \textsc{r-value}. We also see an expression that makes zero sense mathematically\sidenote{$2 = 2 + 1$ is just bananas} but perfect sense as an expression of mutation. To the right of $=$ we'd compute the current balance value plus $500.0$ and then store that result back in balance. 
+The first example is straight forward: ``Assign the value 5 to the variable \textit{size}''.  The second example assigns the return result of \textit{toupper('R')} to the variable achar. The next example looks nuts if you confuse assignment $=$ with how we read $=$ in mathematics. As a C++ assignment statement it reads: ``Assign the value of size+5 back to size''.  If the current value in size is 10, then it changes to 15 as a result of this statement.  If we read this statement like mathematics then it says: ``size is the same as itself plus 5''. That's nuts. No number is equal to five plus itself.  The final assignment example is like the second in that we're first computing the toupper of the current value in achar, then assigning that back to achar.
 
-Let's recap. We have basic statements and operators to support the three fundamental usages of variables.
-\begin{itemize}
-\item \textsc{Initialize} \\
-\begin{verbatim}
-double balance(0.0);
-\end{verbatim}
-\item \textit{Mutate} \\
-\begin{verbatim}
-balance = 500.0;
-\end{verbatim}
-\item \textsc{Access} \\
-\begin{verbatim}
-balance
-\end{verbatim}
-\end{itemize}
-The first two forms are complete statements. We use them for effect. The final is an expression that shows up in statements like \textit{balance = balance + 500.0}. We use it for value. 
-
-We also learned a new operator for variable assignment. Here it is along with some shortcut operators for updating assignment that you might find useful:
-
+Assigning a variable an updated value based on its current value is so common that several shortcut operators exist for just this purpose.
 \begin{center}
 \begin{tabular}{rl}
 Operator & purpose \\ \hline
-$=$ & assign r-value to l-value \\
 $+=$ & $a+=b$ is the same as $a = a + b$ \\
 $*=$ & like $+=$ but with $*$ \\
 $-=$ & like $+=$ but with $-$ \\
@@ -123,424 +332,87 @@ $/=$ & like $+=$ but with $/$
 
 \section{Streaming I/O}
 
-Without a GUI system in place, we have two basic means of interfacing with our model. 
-\begin{enumerate}
-\item the CLI \\
-Users interact with the program via the keyboard and monitor. This typically happens one of two ways:
-\begin{enumerate}
-\item Interactive \\
-While running, the program prompts the user for input and reacts according to their input
-\item Command-line arguments\\
-User input is given as command-line arguments. The program then proceeds, without user intervention, based on command line arguments.\sidenote{hybrid modes are also possible. Begin based on command line arguments, then ask for user intervention when needed}
-\end{enumerate}
-\item files \\
-Program I/O is done via files. Files can be read/written by human or computer users. 
-\end{enumerate}
+The C++ streaming I/O system provides a fairly uniform way of approaching I/O tasks. Streams provide buffered I/O access to a device and the operators $<<$ and $>>$ are used to put and get, respectively, data from those streams. Our testing REPL exposed us to the standard output stream \textit{cout} and the standard input stream \textit{cin}. The \textit{iostream} library also provides the output stream \textit{cerr}, which is the standard error output. The \textit{fstream} library allows us to create I/O streams for files. The \textit{stringstream} library allows us to treat string objects like streaming I/O devices and in doing so lets us leverage the streaming I/O capabilities for interpreting characters as typed data, and vice versa, when processing string data. Our first use for this will be working with arguments passed to our programs form the command line.
 
-In C++ we have a generalized I/O framework that provides a fairly uniform I/O experience for both CLI and file based I/O: \textsc{I/O Streams}. A stream is an arbitrarily long sequence of data made available over time.  The C++ \textit{iostream} library captures I/O devices as streams and provides the programmer with operators for adding data to or taking it out of these streams.  The \textit{fstream} library allows us to create I/O streams from files.  Finally, the \textit{stringstream} library lets you create a stream from string data\sidenote{which is how we receive command line arguments, so we'll come back to this one}.  
+The following examples will all use \textit{cout} and \textit{cin} as our representative stream objects. Later we'll see that we can replace \textit{cout} with another output stream object and \textit{cin} with an input stream object and get the same general results, just to different I/O devices.
 
-\subsection{Output on the Standard Output and Standard Error}
+\subsection{Streaming Output}
 
-The \textit{iostream} library provides our two standard output streams, both are defined within the \textit{std} namespace. The standard output is called \textit{cout}\sidenote{or std::cout} and the standard error output is called \textit{cerr}\sidenote{std::cerr}. The streaming output operator, $<<$. lets you add a typed value to the stream. 
-
-Perhaps the biggest gotcha with output streams is that they'll output only what you add to the stream. So, if you wanted to print 3 numbers, each separated by a space, to \textit{std::cout}, then you'd have to add both the numbers and the spaces. People often leave out the spaces.  Here's an output statement for printing 3 space separated numbers.
+As we've seen already, streaming output is done via the ``put to'' operator \textit{$<<$}. Our example program really highlights all the key issues for working with streaming output, so it bears close examination. The main things to remember are that:
+\begin{itemize}
+\item the only white space that gets written is the white space you explicitly add to the stream
+\item you chain together multiple uses of $<<$ with a single stream as long as its one datum per operator
+\end{itemize}
+To illustrate these points I give you one example. 
 \begin{verbatim}
-std::cout << 4 << ' ' << 3.2 << ' ' << -56;
+cout << 7 << 8.36 << " isn't ";
+cout << 7 << " " << 8.36 << "\n" << "hi\n";
 \end{verbatim}
-Notice that You need one operator per item added to the stream. The $<<$ operator is technically a binary operator. It takes an output stream on the left and some typed data to the right and effectively returns the stream again. Returning the stream is what allows us to keep adding more data. 
-
-The next big gotcha is assume that ending the statement line ends the printed line. The output statement above would effectively leave the output cursor after the $-56$, so the next thing you add to the output stream would show up right next to that number. People often assume that ending the statement ends the printed line such that the next thing printed shows up on a new line.  That's not the case. You must add the newline character\sidenote{'$\backslash$n'} to the stream if that's what you want. We can revise the above statement 
+The result of these two statements is the output:
 \begin{verbatim}
-std::cout << 4 << ' ' << 3.2 << ' ' << -56 << '\n';
+78.36 isn't 7 8.36
+hi
+
 \end{verbatim}
+The cursor ends immediately below the h in hi. 
 
-Writing data to the standard error works the same way. You just swap out the streams!
+\subsection{Streaming Input}
+
+Once again, our example problem pretty much covers all the bases. Go back and read it carefully. 
+\begin{itemize}
+\item You cannot do streaming input without variables because you must have a place to store the value that $>>$ gets from the stream
+\item Data from the stream is broken up by whitespace. This includes the enter key, so hitting enter doesn't terminate input, reading tokens does.
+\item The way in which data is read from the stream is determined by the type of the variable in which the data is being stored and not by how it appears in the stream. 
+\item You can chain input together to read multiple values with a single statement.
+\end{itemize}
+
+\section{Program 2: CLI Input}
+
+The CLI is built of string data.  When we want to take input from the CLI for our C++ programs, then we have to take it as strings.  So, to get our second program working, we need to start looking at strings. We'll start with a quick and dirty overview of just some essentials for managing this program and get into more details in lectures down the line.
+
+Without further ado, here's a version of this program that lets you pass in your test values from the CLI. The tradeoff here is that there is no loop. We have to re-run this for each new set of data\sidenote{or write a looping Bash program to run this maybe}.
 \begin{verbatim}
-std::cerr << 4 << ' ' << 3.2 << ' ' << -56 << '\n';
-\end{verbatim}
+#include <iostream>
+#include <sstream>
+#include "ln7.h"
 
-We learned a new operator. Let's take note of it.
-\begin{center}
-\begin{tabular}{rr}
-Operator & Purpose \\ \hline
-$<<$ & Streaming output 
-\end{tabular}
-\end{center}
+int main(int argc, char* argv[]){
+  using namespace TwoD;
+  using namespace std;
 
-\subsection{Input form the Standard Input}
+  double x{0.0};
+  double y{0.0};
+  double r{0.0};
 
-The \textit{iostream} library defines an input stream for the standard input\sidenote{keyboard} called \textit{cin} within the \textit{std} namespace. We can then use the streaming input operator $>>$ to read data from the stream and into a variable. Notice the mechanism requires variables.  Let's say we wanted to get three numbers from our user. First we need three variables.
-\begin{verbatim}
-int x(0);
-int y(0);
-int z(0);
-\end{verbatim}
-It is possible to combine multiple variable declarations, for variables of the same type, in to one statement. Don't go nuts with this shortcut though.  It arguable decreases human readability and that's a bad thing. 
-\begin{verbatim}
-int x(0),y(0),z(0);
-\end{verbatim}
+  // Quick error check for enough arguments
+  if( argc != 4 ){
+    cerr << "Not enough arguments. Usage: " << argv[0] << " x y r\n";
+    return 1;
+  }
 
-Now that we have our variables we want to use input to write values to them. You again have options here. You can write input to the variable one at a time.
-\begin{verbatim}
-std::cin >> x;
-std::cin >> y;
-std::cin >> z;
-\end{verbatim}
-Or you can do them all at once.
-\begin{verbatim}
-std::cin >> x >> y >> z;
-\end{verbatim}
+  // Let's assume we typed numbers as arguments
+  istringstream xstream(argv[1]);
+  xstream >> x;
 
-Streaming input has its own quirks.  By default, the system assumes that your input \textit{tokens}\sidenote{logical chunk of data} are separated by white space characters\sidenote{white space is called the \textsc{delimiter}}. This includes space, tab, and the newline character. So the above examples work under the assumption that the user types the number then follows it with either spaces, tabs, or enter. Later we'll look at how to control the way in which data is read from the stream by setting things like the token delimiter.
+  istringstream ystream(argv[2]);
+  ystream >> y;
 
-We learned a new operator. Let's take note of it.
-\begin{center}
-\begin{tabular}{rr}
-Operator & Purpose \\ \hline
-$>>$ & Streaming input 
-\end{tabular}
-\end{center}
-
-\section{Designing for Effect}
-
-Let's return to our banking program. The system, as it stands, will use a single \textsc{state variable} to maintain the balance. The interface initializes the state through user input and then allows the user to modify state through deposits and withdraws. They then access the state when computing interest rates and amounts. Let's point out all the obvious I/O and Variable effects that will occur in this program:
-\begin{enumerate}
-\item State
-\begin{enumerate}
-\item Mutator(s) for adding and subtracting from the deposit state
-\item Accessors that compute interest rate and amount based on the deposit state
-\end{enumerate}
-\item I/O
-\begin{enumerate}
-\item Input initial value to deposit 
-\item Output interest rate and amount in human readable format\sidenote{sometimes called pretty printing}
-\end{enumerate}
-\end{enumerate}
-
-Remember that whole MVC architecture we talked about? Well it seems we're getting pretty well setup for that. The \textsc{model} is our state variable and the  \textsc{view} is carried out by various I/O procedures.  Eventually we'll write code to control the interaction of these two things. This code makes ups the \textsc{control} and a good portion of it will be housed in our \textit{main} procedure. As we proceed lets remember that one of the points of this architecture is to separate issues of the model from issues with the view. In our case that means keeping state procedures and I/O procedures as separate as possible. 
+  istringstream rstream(argv[3]);
+  rstream >> r;
 
 
-\subsection{Procedures for Effect}
+  cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
+    std::boolalpha << isWithin(x,y,r) << '\n';
 
-Thus far, we approached the design and develop procedures by doing the following:
-\begin{enumerate}
-\item Declare and Document the procedure
-\item Set clear input/output expectations by writing unit tests
-\item Stub the procedure to outline basic logic
-\item Complete the procedure by filling in the stub
-\item Test the procedure by running the unit tests.
-\end{enumerate}
-We use basic tests for two reasons: \textit{to help us understand the expected behavior of the procedure and to help us evaluate the correctness of our implementation.} The problem we face when procedures are run for effect is that effects do not occur through the usual function input, function output mechanic.  So, we either need to write different forms of tests than what we're used to, or we need to find another way to design expected behaviors and test for correct behaviors.
 
-\section{Procedures on State Variables}
-
-Let's say we have a procedure called \textit{foo} which takes a double as its input. Now, let's say we also have a double variable called \textit{aDub}. How should we interpret the following function call expression?
-\begin{verbatim}
-foo(aDub)
-\end{verbatim}
-We actually have two options:
-\begin{enumerate}
-\item pass the value, as in treat \textit{aDub} as a \textsc{r-value}
-\item pass the variable, as in treat \textit{aDub} as a \textsc{l-value}
-\end{enumerate}
-We call the first option, \textsc{pass-by-value}, and the second \textsc{pass-by-reference}.  C++ allows you to make this distinction for each input of a procedure. 
-
-\subsection{Pass-by-Value}
-
-The default behavior of C++ is \textsc{pass-by-value}. The procedures you've been working with thus far are all pass-by-value. Let's say \textit{foo} has the following signature:
-\begin{verbatim}
-double foo(double arg1);
-\end{verbatim} 
-Then the function call expression \textit{foo(aDub)} from before would initialize the variable \textit{arg1} with the current value of \textit{aDub)}. This is the essence of \textsc{pass-by-value} and is the exact same function call mechanic you're used to from BSL Racket\sidenote{\textsc{substitute} every occurrence of the variable for its value in the body of the function}. Using more technical terminology, we say that pass-by-value parameters can take, as inputs, any thing with an \textsc{r-value}. This includes both variables and literals. So, we could also make the call \textit{foo(5.0)} and the compiler would have no problem with this. 
-
-When it comes to working with our state variables, we'll prefer \textit{pass-by-value procedures for our \textsc{accessors}}.  By copying values rather than sharing variables we can be certain that we only access and don't get tempted to mutate.   
-
-\subsection{Pass-by-Reference}
-
-If we truly want a procedure to act on one of our variables, then we need the \textit{l-value} of the procedure's argument to be the same as the \textit{l-value} of our variable.  Put another way, we need the function's argument to be an \textsc{alias} for our variable such that the two procedures have \textsc{shared state}.  A subtle change in the procedure's signature will cause this to happen:
-\begin{verbatim}
-double foo(double &arg1);
-\end{verbatim}
-Now, when we call \textit{foo(aDub)} the system will effectively set the \textit{l-value} of \textit{arg1} to be that of \textit{aDub} thus causing \textit{arg1} to be an \textsc{alias} to \textit{aDub}. It's important to note that this means a by-reference parameter \textit{must have an \textsc{r-value}}. This means \textit{you cannot pass in literal values for by-reference parameters, you must pass variables!}
-
-\textsc{Pass-by-reference} is the required mechanism for \textsc{mutator} procedures. The called procedure cannot mutate a state variable without having direct access to that variable. That's what pass-by-reference accomplishes and pass-by-value does not. A systems oriented view of this new mechanic might describe this shared state as a \textit{communication channel} between the caller of the procedure and the called procedure\sidenote{the callee}. Prior to this option, we could only communicate between procedures by passing in values as input, and returning values as output. 
-
-Why make a big deal out of this communication centric view? Well, just like BSL Racket functions, we want out C++ procedures to be as independent as possible\sidenote{this is why pass-by-value is the default}.  We can essential view them in the same way we did CLI commands.  We construct more complex programs by combining these procedures. Just like on the CLI, we sometimes need these procedures to communicate either through state\sidenote{like how cd, pwd, and ls communicate} or by handing off results of one command to the next \sidenote{like using pipes or expansions}. 
-
-This new shared state mechanism is game-changing.  Sharing state is very powerful, but easily leads to problems. We'll try to be very careful and purposeful with pass-by-reference. Right now, we'll confine our usage of it to state mutator procedures. 
-
-\section{Designing Mutation Procedures}
-
-If you want a procedure to change the value stored in a variable then you need to pass it by reference. Typically, such a procedure requires no output as the desired behavior is a side-effect.\sidenote{the ``output'' is placed in the variable to be read as needed}. To declare that a procedure returns nothing, we give it the \textit{void} return type. When procedures have effects, like state mutation, then we need to clearly document the side-effect as a \textsc{post-condition} of the procedure. 
-
-Let's think about the problem of depositing and withdrawing from our bank account. We could write two procedures, one for withdraw and one for deposit. However, it's easy enough to kill to birds with one stone and just add a negative amount when withdrawing. So, lets write a general \textit{updateBalance} procedure. First we declare and document:
-\begin{verbatim}
-namespace banking{
-
- /**
-   * Update the current account balance
-   * @param upVal is the update value as a double
-   * @param balRef is a reference to the double balance state
-   * @return none
-   * @pre balRef is positive. and upVal will not overdraw the account
-   *    (balRef >=0 and upVal+balRef >= 0)
-   * @post balance state has increase/decreased by upVal
-   */
- void updateBalance(double upVal, double &balRef);
-}
-\end{verbatim}
-I stuck something new in there. The \textit{\@pre} tag is used to document the procedure's \textsc{pre-condition}. A \textsc{pre-condition} is an assumption the programmer makes about inputs to the procedure and sometimes the state of the system. In this case, we're assuming that the update value won't cause a negative value and that the current balance is positive. This frees us from having to check for overdraws here but probably means some other part of the system needs to do this for us. Pre-conditions and post-conditions are important parts of program correctness. They are particularly important when state enters the picture as they document state change across the system. Finally, I want to point out a stylistic convention used. Notice I used ``Ref''\sidenote{short for reference} in the name of the \textsc{alias}. This is a nice naming style that helps us remember that this thing is not just a variable, but a reference to another variable somewhere else in the system. 
-
-Now we want to document expected behavior in the form of tests.  But wait! This procedure produces no output and can't be tested like we're used to.  No worries. We're not testing for functional output anyway, we need to test for variable mutation effect. To do this right we should initialize a variable, check it before mutation, then check it after mutation to see if the desired change has occurred. When doing this right, our tests should not be dependent on one another. This can mean doing a fair amount of resetting between tests\sidenote{gTest provides some ways of automating this reset process, but its usage involves some C++ we haven't encountered. We'll get there.}. 
-\begin{verbatim}
-
-TEST(updateBalance,deposit){
-  // declare and initialize a variable
-  double bal(0.0);
-
-  bal = 0.0; //reset
-  EXPECT_FLOAT_EQ(0.0,bal); //before
-  banking::updateBalance(50.0,bal); //mutate
-  EXPECT_FLOAT_EQ(50.0,bal); //after
-
-  bal = 0.0; //reset
-  EXPECT_FLOAT_EQ(0.0,bal); //before
-  banking::updateBalance(0.0,bal); //mutate
-  EXPECT_FLOAT_EQ(0.0,bal); //after
-
-  bal = 0.0; //reset
-  EXPECT_FLOAT_EQ(0.0,bal); //before
-  banking::updateBalance(125.45,bal); //mutate
-  EXPECT_FLOAT_EQ(125.45,bal); //after
-}
-
-TEST(updateBalance,withdraw){
-  // declare and initialize a variable
-  double bal(0.0);
-
-  bal = 100.0; //reset
-  EXPECT_FLOAT_EQ(100.0,bal); //before
-  banking::updateBalance(-50.0,bal); //mutate
-  EXPECT_FLOAT_EQ(50.0,bal); //after
-
-  bal = 100.0; //reset
-  EXPECT_FLOAT_EQ(100.0,bal); //before
-  banking::updateBalance(0.0,bal); //mutate
-  EXPECT_FLOAT_EQ(100.0,bal); //after
-
-  bal = 100.0; //reset
-  EXPECT_FLOAT_EQ(0.0,bal); //before
-  banking::updateBalance(12.50,bal); //mutate
-  EXPECT_FLOAT_EQ(87.50,bal); //after
-}
-\end{verbatim}
-Notice that we honored the multiple purposes of the procedure\sidenote{deposit and withdraw} by grouping tests for each purpose together and not just lumping them all together in to one place. Next, you should notice that we not only tested that desired changes occurred, but also when change shouldn't occur\sidenote{when the update value is $0.0$}. We probably could have gotten away with leaving out the before tests for most of these. However, these tests make the expected behavior of the procedure crystal clear and clarity is always good. So, the time it takes to write these test is worth it.  
-
-Next we move on to the stub.
-\begin{verbatim}
-
-void banking::updateBalance(double upVal, double &balRef){
-    // upVal
-	// balRef
-
-	return;
+  return 0;
 }
 
 \end{verbatim}
-Here we tossed in the names of our variables as comments so that we remember to start working with them when we get to coding this thing. Otherwise, stubs for void return types are easy enough, just return.  In this context you can think of \textit{return} not as a command to send back a value, but to just go back to where the call happened.  
 
-We can now compile and run out tests to verify we're setup for development. Once that's done we can go ahead and knock this thing out.
-\begin{verbatim}
-void banking::updateBalance(double upVal, double &balRef){
-	balRef += upVal;
-	return;
-}
-\end{verbatim}
+\subsection{CLI Inputs and \textit{main}'s arguments}
 
-If we generalize everything we've seen so far, we see the following templates. First the declaration and documentation:
-\begin{verbatim}
-namespace LIBNAME{
-  /**
-   * A mutator procedure for the a state variable
-   * @param aVar a reference to the state variable
-   * @return none
-   * @pre Stuff we're assuming about inputs
-   * @post The state variable has changed
-   */
-  void MUTATOR_NAME(IN_TYPE IN_NAME, ... , VAR_TYPE &ALIAS_NAME, ...);
-}
-\end{verbatim}
-Notice that we prefer to list regular, by value, input parameters before the reference parameters, which can act as both input and output.
+\subsection{Streaming Strings}
 
-Next tests: 
-\begin{verbatim}
-TEST(MUTATOR_NAME,testCase){
-  VAR_TYPE VAR_NAME(init_value);
-
-  VAR_NAME = value; //reset
-  EXPECT_EQ(value,VAR_NAME); //before
-  MUTATOR(VAR_NAME); //mutate
-  EXPECT_EQ(new_value,VAR_NAME); //after
-
-  ...
-}
-\end{verbatim}
-
-
-And then stubs:
-\begin{verbatim}
-void LIBNAME::MUTATOR_NAME(VAR_TYPE &ALIAS_NAME){
-	// ALIAS_NAME	
-	return;
-}
-\end{verbatim} 
-
-\subsection{Access Procedures}
-
-\textsc{Accessor} procedures aren't anything new. By using \textsc{pass-by-value} for our these procedures we can treat them exactly the same as our functional procedures. Design them according to the same guidelines we've worked with previously. 
-
-\section{Procedures for I/O}
-
-Procedures for output provide a new challenge. If something is in memory\sidenote{variables} or the CPU\sidenote{functions} then we can compare it to another value. But we don't have commands to tell the computer to check what it just wrote to some output device.  However, we all have two eyes and are very capable of verifying that our procedure did, in fact, produce the expected output. The key, of course, is that \textit{our procedure design process clearly and firmly established an expectation of the output.}\sidenote{the correct output is not whatever the computer wrote, it's what you intended for it to write}.
-
-Input procedures are really just mutation procedures in disguise. So, from that perspective, we just design them with the same pattern as we did with \textsc{mutators}.  Where they differ is in testing and usage.  We'll have to get involved in testing and hit the keyboard a bit. The more subtle difference comes when we consider input procedures for some or all of our model. 
-
-\subsection{Output Procedures}
-
-Output procedures are often about displaying computational data in ways that tie it back to the information the user is expecting. From this perspective, they're just like your drawing function from BSL Racket universe programs. There you drew a picture of the model. Here, you'll print out a text-based message about the model. The problem is still the same though: the model is computational data, not real world information. With our banking program, the problem is that the dollar values we're tossing around aren't dollar values, they're \textit{double} values. So, when we need to report back how much interest someone will earn for their balance, we need to report that double value in a way that doesn't make the average user confused.
-
-First things first, let's recognize that computing the interest amount is a \textsc{model} problem and we should just worry about writing a procedure to report some pre-computed value. We'll plug the two pieces together with control code later. This has the added benefit of removing any temptation to pass state variables by reference to an output procedure. Let's get started with the declaration and documentation.
-\begin{verbatim}
-namespace bankingUI{
-
-  /**
-   * Report the amount of interest earned to the standard output.
-   * @param interestAmt is the interest earned as a double
-   * @return none
-   * @pre interestAmt is a valid interest value (positive)
-   * @post none
-   */
-  void reportInterest(double interestAmt);
- 
-}
-\end{verbatim}  
-
-So far so good. Of course, this procedure has no return type, it's meant to  cause a write effect to the standard output. Next step in the design process is tests. Here things take a different turn.  Recall that the goal of writing tests at this point is about making the expected behavior of the procedure crystal clear in our minds and not about actual testing\sidenote{can't test what you haven't written}. What's needed now is for us to decide what the output should look like and document that for ourselves. We can still use gTest as a vehicle for this even though no strict testing will occur.
-
-\begin{verbatim}
-
-TEST(reportInterest,all){
-
-   reportInterest(3.0);
-   // You'll earn $3.00 in interest.
-   
-   reportInterest(0.25);
-   // You'll earn $0.25 in interest.
-   
-   reportInterest(135.72);
-   // You'll earn $135.72 in interest.
-}
-
-\end{verbatim}
-There are not actual tests in this test case. It does, however, call our output procedure three times and give the expected output, as a comment, below each call. In doing this we get to decide exactly what we want from our procedure as well as document it for other programmers to see.\sidenote{and graders to see that you've thought about what you want this thing to do}.
-
-Now we stub. 
-\begin{verbatim}
-void bankingUI::reportInterest(double inerestAmt){
-	std::cout << "Stub! " << interestAmt << '\n';	
-	return;
-}
-\end{verbatim}
-For this stub, I chose to go ahead and print something and include the input value in that something. This is a good reminder that this procedure will write to standard out and that the output written is related to the input.\sidenote{do you know the exact output produced by that statement?} Now it's time to code \textit{reportInterest} out. To do so we'll need to explore some more of \textit{iostream} and the \textit{iomanip} library. The \textit{iomanip} library allows us to manipulate the way in which read and write values. 
-
-Double values have decimal precision beyond two places. Dollar values do not. We need to inject some information in to the stream in order to tell the standard output how to write doubles. 
-\begin{verbatim}
-void bankingUI::reportInterest(double interestAmt){
-	std::cout << "You'll earn $" << 
-	    std::fixed << std::showpoint << std::precision(2) <<
-	    interestAmt << " in interest\n";	
-	return; 
-}
-\end{verbatim}
-The manipulators \textit{std::fixed} and \textit{std::showpoint} actually come from \textit{iostream}. The former tells the stream that floating point values should be treated as fixed point values. Combined with \textit{std::precision(2)} from \textit{iomanip}, we get exactly two places after the decimal point. The manipulator \textit{std::showpoint} guarantees that the decimal place is always show, even when there isn't one. If we leave out the \textit{std::fixed}, then \textit{std::precision(2)} tells the stream to deal with only two digits total\sidenote{before and after the decimal place}. Leaving out \textit{std::showpoint} could mean that values like $3.0$ show up as $3$ instead.
-
-There are other useful I/O manipulators out there, we'll check them out as needed. If you just can't wait until then check out the documentation for \textit{iostream} and \textit{iomanip}.\sidenote{look for things like setfill and setw}.
-
-\subsection{Input Procedures}
-
-Input procedures are just mutation procedures in disguise. Recall that input require a variable. So, if you're getting input then you're mutating a variable. The only difference is the mutation mechanism. Let's look at a procedure to initialize the balance for our banking problem. 
-
-At first glance, you might imagine passing the balance state variable directly to our initializer procedure. This makes sense, if you completely trust your user to honor your \textsc{pre-conditions} about your model's state. What if they enter a negative balance? What if they decide to type their name instead of a dollar figure? What if they attempt some kind of code-injection attack on your software?\sidenote{\url{http://en.wikipedia.org/wiki/Code\_injection}}?  So what is a poor, paranoid programmer to do?
-
-The answer is temporary state. First we get user input for the initial balance and stick it in a variable for safe-keeping. This is the real purpose of the input function. We can then use some \textsc{controller} procedures to error check and \textit{validate} the input. So, let's proceed with our super basic input function.
-\begin{verbatim}
-namespace bankingUI{
-
-  /**
-   * Get an initial balance value from the user. 
-   * @param iValRef a reference to a double variable for user's value
-   * @return none
-   * @pre user types a number
-   * @post variable referenced by iValRef contains unchecked user input
-   */
-	void getUserBal(double &iValRef);   
-}	
-\end{verbatim}
-Notice that I made a point to mention that this procedure results in unchecked user input. We're also going to work on the assumption that the user type a single numerical value and not get too detailed in our input checking and validation just yet. From here on out, it's just like designing a \textsc{mutator}. Testing, however, will require you to press some keys. So we can setup before/after tests like we did with our mutator, but will need to mark as a comment what you're planning to press. Here's one example, I'll let you imagine more.
-\begin{verbatim}
-TEST(getUserBal,all){
- double userIn(0.0);
- 
- userIn = 0.0;
- EXPECT_FLOAT_EQ(0.0,userIn);
- getUserBal(userIn); // Type 350.0
- EXPECT_FLOAT_EQ(350.0,userIn);
-
-}
-\end{verbatim}
-
-Next we stub.
-\begin{verbatim}
-void bankingUI::getUserBal(double &iValRef){
-	//iValRef
-	return;
-}
-\end{verbatim}
-Not much new here. Do a simple return and at least comment out the variable name as a reminder for later. At this point we can compile and run our tests to verify that we're ready to roll with development. Once we've cleaned out errors and warnings, we move on to the coding stage:
-\begin{verbatim}
-void bankingUI::getUserBal(double &iValRef){
-	std::cout << "Please enter the initial value: ";
-	std::cin >> iValRef;
-	return;
-}
-\end{verbatim}
-Hey now! There's output in that procedure. True. If you expect the user to give you input, you should \textsc{prompt} them for it. We could write an output procedure for this, but that might be a bit too far. The point wasn't to only do input operations, it was to \textit{carry out a user input task}, which should involve prompting as well. 
-
-\section{Recap}
-
-We covered a lot of things in these notes. Let's break the big picture stuff down.
-\begin{enumerate}
-\item Procedure Design Process for Effect-Based Procedures
-\begin{enumerate}
-\item State Mutator Procedures
-\item Output Procedures
-\item Input Procedures
-\end{enumerate}
-\item Programming Concepts
-\begin{enumerate}
-\item \textsc{l-values} and \textsc{r-values}
-\item \textsc{pass-by-value} and \textsc{pass-by-reference} procedures
-\item \textsc{Model-View-Controller} architectures
-\item \textsc{data streams}
-\end{enumerate}
-\item C++
-\begin{enumerate}
-\item I/O Streams \textit{std::cout}, \textit{std::cerr}, and \textit{std::cerr}
-\item Streaming I/O operators $<<$  and $>>$
-\item Stream manipulators \textit{std::fixed}, \textit{std::setprecision($n$)}, and \textit{std::showpoint}
-\item Variable declaration and initialization.
-\item The assignment operator $=$
-\end{enumerate}
-\end{enumerate}
-
+\section{This Doesn't Scale Well}
 \end{document}
