@@ -6,7 +6,7 @@
 \usepackage[pdftex]{graphicx}
 
   
-\title{COMP 161 - Lecture Notes - 08 - Strings and Objects}
+\title{COMP 161 - Lecture Notes - 08 - Strings}
 \date{Spring 2014}
 
 \begin{document} 
@@ -77,13 +77,173 @@ EXPECT_EQ(" world!",ing);
 \end{verbatim}
 As far as the machine is concerned, a C-String, the expected value, and a C++ string object's value, the actual value, are not the same thing. This is subtle, annoying, and will cause you lots of headaches if you don't internalize this ASAP. Logically, we know they're the same. This stupid box we're programming doesn't know the difference a priori.
 
-It is sometimes useful to get the C-String version of a string object. To do this we can use a class method. Let's see this at work and then talk about what we're seeing. Here's the same tests as before but now we're comparing C-Strings using gTest's \textit{EXPECT\_STREQ}.
+It is sometimes useful to get the C-String version of a string object. To do this we can using a class method. Let's see this at work and then talk about what we're seeing. Here's the same tests as before but now we're comparing C-Strings using gTest's \textit{EXPECT\_STREQ}.
 \begin{verbatim}
 EXPECT_STREQ("hello",str.c_str());
 EXPECT_STREQ(" world!",ing.c_str());
 \end{verbatim}
+Class methods are invoked using the \textsc{dot operator}, \textbf{.}.  It's a binary operator whose left-hand operand is an object and right-hand operand is a method defined for that object's class. The object acts as an \textit{implicit} argument to the method. We say that the methods acts on the object with any parameters passed to the method. In the case of \textit{c\_str}, there are no arguments so the only real ``input'' is the object upon which it's called.  The \textit{c\_str} method could also be written as a single argument procedure that takes a string and returns a C string. As a class method we say it takes no arguments but acts on a string object. It's a subtle but important difference. 
+
+You don't necessarily need variables to invoke class methods\sidenote{it's the most typical use case, but the dot operator doesn't care if the left operand has a name or not}.  Here we see \textit{c\_str} at work on an unnamed string object.
+\begin{verbatim}
+EXPECT_STREQ("wierd",string("wierd").c_str());
+\end{verbatim}
+
+The string library contains a host of useful methods and operators and you're encouraged to spend some time with the reference to see what's out there\sidenote{\url{http://www.cplusplus.com/reference/string/string/}}. For now, I'll leave you with a few gTests that demonstrate a few of the more useful functional methods and operators and let you connect the dots on those:
+\begin{verbatim}
+string str{"hello"};
+string ing{" world!"};
+
+// Size/Length
+EXPECT_EQ(5,str.length());
+EXPECT_EQ(5,str.size());
+
+// Character Selection
+EXPECT_EQ(' ',ing[0]);
+EXPECT_EQ('w',ing[1]);
+EXPECT_EQ(' ',ing.at(0));
+EXPECT_EQ('w',ing.at(1));
+
+// Substring Selection
+EXPECT_EQ(string("ell"), str.substr(1,3));
+EXPECT_EQ(string("orld"), ing.substr(2,4));
+EXPECT_EQ(string(" wor"), ing.substr(0,4));
+EXPECT_EQ(string(" ld!"), ing.substr(4));
+
+// Concatenate 
+EXPECT_EQ(string("hello world!"), str + ing);
+\end{verbatim} 
+
+String class mutators expose us to the world of variable mutation. In order to demonstrate their effect on a string object with tests we must do a pre-post test. One test establishes the state of the variable prior to mutation, the second test is then run after the mutator is called to demonstrate that the desired change has occurred. This technique is import to understand-- you'll be writing a lot of tests like this as we start designing procedures for state mutation.  The first test you'll see demonstrates the effect of assignment\sidenote{$=$} with strings.  I'll then make use of assignment to reset variables post-mutation as needed.
+\begin{verbatim}
+// The assignment operator with C++ and C strings
+string s{""};
+EXPECT_EQ(string(""),s); //before
+s = string("hello!"); //mutation
+EXPECT_EQ(string("hello!") , s); //after .. and before
+s = "world";
+EXPECT_EQ(string("world") , s);
 
 
+string str{"hello"};
+string ing{" world!"};
+
+// string append
+EXPECT_EQ(string("hello") , str);
+str.append(ing);
+EXPECT_EQ(string("hello world!") , str);
+str = "hello"; // reset
+str.append("world!"); //works with C strings too
+EXPECT_EQ(string("helloworld!") , str);
+str = "hello"; // reset
+
+// erase
+EXPECT_EQ(string("hello") , str);
+str.erase(0,2);
+EXPECT_EQ(string("llo") , str);
+str = "hello";
+str.erase();
+EXPECT_EQ(string("") , str);
+str = "hello";
+str.erase(2,3);
+EXPECT_EQ(string("he") , str);
+str = "hello";
+
+// Single character assignment and append
+EXPECT_EQ(string("hello") , str);
+str[0] = 'H';
+EXPECT_EQ(string("Hello") , str);
+str[2] = 'L';
+EXPECT_EQ(string("HeLlo") , str);
+str.at(4) = 'O';
+EXPECT_EQ(string("HeLlO") , str);
+str.push_back('!');
+EXPECT_EQ(string("HeLlO!") , str);
+\end{verbatim}
+
+The last thing we'll look at from the string library is the \textit{getline} procedure. This is a classic example of a Input effect based procedure. The typical use is to read a whole line from an input stream object like \textit{cin}.  Typically, input is broken up by white space. Sometimes you want to read several tokens in and stop when you encounter the newline character.  For example, if you want to get my name as one string, ``Logan Mayfield'', you'd either need to read each piece in to a string, then concatenate or append, or use getline. Let's demonstrate\sidenote{assume my name is typed in the obvious places}.
+\begin{verbatim}
+string first{""};
+string last{""};
+string name{""};
+
+cin >> first >> last;
+
+EXPECT_EQ(string("Logan",first);
+EXPECT_EQ(string("Mayfield",last);
+
+name = first + " " + last;
+
+EXPECT_EQ(string("Logan Mayfield"), name);
+
+name = "";
+
+getline(cin,name);
+EXPECT_EQ(string("Logan Mayfield"), name);
+\end{verbatim}
+As an input procedure, \textit{getline} is also a mutator as it must assigned the input value to the second argument, namely a variable. This implies a key issue when working with input and mutation procedures: \textit{you must pass variables}. Something like \textit{getline(cin,string())} might work but is useless. Even if the  string object passed as the second argument were modified, we'd have no way of accessing the results. 
+
+\subsection{A Note on Testing Effects}
+
+The previous section merits careful study not just because it introduces key string functionality, but because it introduces how to establish and test expectation in our new effect-based world. Our testing regime is critical both for evaluating the correctness of our code and for helping us to establish expected behavior of our code before we even get down to writing it. Writing these tests is a vital tool for software development as well as general problem solving.
+
+When we test functions, we simply compare the actual function return value to the expected value. Effects are not about things returned but about change to the system. We need to know if a variable's stored value did or did not change. We need to know if input from a stream was read correctly. We need to know if the characters written to an output stream were written properly. 
 
 \section{String Streams}
+
+
+The string stream library\sidenote{\#include<sstream>}.  Provides us with classes for using C++ strings as streaming I/O devices. At first glance this might seem strange because string objects and string data are obvious I/O devices like stdout and stdin. However, all data printed as output ends its journey as character data and data read as input begins as character data; the whole I/O system is built around working with sequences of characters, i.e. strings.
+
+Using strings as streams is, in a way, like ignoring the output destination or input source. Streaming data to string let's you get the character sequence that you'd like to send to \textit{cout} prior to actually sending it.  Conversely, streaming input from a string is a bit like having the characters from standard in first saved to a string for you to then read.  The important thing here is that we can use these streams to mock up what happens at the standard output and standard input in such a way that we can test our I/O with frameworks like gTest. 
+
+The other use for string streams, in particular input string streams, that we've already seen is using the library to manage the conversion from character sequences to other types and vice versa. When you have a string that looks like a double value and you really want that double value, the string streaming lets you use the I/O library for reading the string to a double. The new C++11 additions to the string library actually provide functions for this kind of thing\sidenote{see \textit{stoi} and \textit{stod} and \textit{to\_string}}, but we'll focus on the streams as we'll need to get comfortable with them for I/O testing purposes. 
+
+The \textit{istringstream} type lets us read data from strings in the same fashion that we do from the standard input stream \textit{cin}. We can initialize istringstream objects from C and C++ strings. Here are few demonstrations:
+\begin{verbatim}
+
+istringstream istr{"Hello 1345 3.4 a"};
+string s{""};
+int x{0};
+double d{0.0};
+char c{'\0'};
+
+istr >> s >> x >> d >> c;
+EXPECT_EQ(string("Hello") , s);
+EXPECT_EQ(1345 , x);
+EXPECT_DOUBLE_EQ(3.4,d);
+EXPECT_EQ('a', c);
+\end{verbatim}
+
+The \textit{ostringstream} types lets us write data to a string in the same fashion we do from the standard output stream \textit{cout}. You can initialize the stream with some data, but it's probably more likely that we'll start with an empty string stream and fill it with data. To extract the string we use the class method \textit{str}.
+\begin{verbatim}
+ostringstream sout{""};
+
+sout << "Hello" << 1345 << 3.4 << 'a';
+
+EXPECT_EQ(string("Hello13453.4a"), sout.str() );
+\end{verbatim}
+
+Let's quickly return to our getline example to see how we can have testable I/O.  To test getline working with \textit{cin} you physically have to type input. With a string stream you can fill the stream and then test the I/O. All of this can be done by the computer and requires zero human intervention at the time of testing.
+\begin{verbatim}
+string first{""};
+string last{""};
+string name{""};
+
+istringstream sin{"Logan Mayfield"};
+sin >> first >> last;
+
+EXPECT_EQ(string("Logan"),first);
+EXPECT_EQ(string("Mayfield"),last);
+    
+name = first + " " + last;
+
+EXPECT_EQ(string("Logan Mayfield"), name);
+
+name = "";
+istringstream sin2{"Logan Mayfield"};
+
+getline(sin2,name);
+EXPECT_EQ(string("Logan Mayfield"), name);
+\end{verbatim}
+
 \end{document}
