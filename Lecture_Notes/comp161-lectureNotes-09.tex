@@ -5,164 +5,563 @@
 \usepackage[pdftex]{graphicx}
 
   
-\title{COMP 161 - Lecture Notes - 09 - Strings, Objects, and Arrays}
-\date{Spring 2014}
+\title{COMP 161 - Lecture Notes - 09 - Procedures for Effect}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at Object types by way of the C++ string class.
+In these notes we re-evaluate our procedure design and development process to account for procedures whose primary purpose is variable mutation or I/O effects.
 \end{abstract}
 
-\section{Strings}
+\section{ Designing for Effect }
 
-A string is a sequence of zero or more characters. Any arbitrarily long sequence can be viewed as recursive object\sidenote{think Racket lists}:
+We can build entire systems of purely functional principles, but we would not to do so using C++.  Program design with C++ lends itself better to a systems approach in which we interact with different components of a larger computing system.  Pure functions like we've been writing are still highly useful in this context. We can imagine a pure function as something that only involves the CPU and is independent of other parts of the system.  While this independence is great, it 's necessary to have some procedures interact with systems like memory or I/O.
+
+We'll consider the design of three types of effect-based procedures:
+\begin{itemize}
+\item Variable Mutation
+\item Output to a Stream
+\item Input from a Stream
+\end{itemize}    
+To look at mutation procedures we'll consider a classic example: swapping the values of two variables. We'll then return to our program from lecture notes 7 and revise and update it using I/O procedures
+
+\section{ Pass-by-Value and Pass-by-Reference }
+
+So far we've seen variable mutation happen one of two ways: assignment operators and mutator methods. For example,
 \begin{verbatim}
-A string is:
-----------------
- - the empty string ""
- - a single char value followed by another string
+double a{0.0};
+string d{"This is a string"};
+
+a += 5; // aka a = a + 5
+EXPECT_DOUBLE_EQ(5.0,a);
+
+d.push_back('!');
+EXPECT_EQ(string("This is a string!",d);
 \end{verbatim}
 
-An alternative way of viewing a string is an \textsc{indexed collection} of characters. From this perspective we think of the string as a kind of \textsc{random access} collection where each individual character is just as easy to access as any other character\sidenote{Notice this is very different then our recursive structure where we only have easy access to the first character.}  Access is made by way of the integer index values.  For a string of length $n$, the first character in the collection is indexed with $0$ and the last with $n-1$. 
-
-The C++ \textit{string} library provides a string type that allows the program to work from either perspective. 
-
-\section{Classes and Objects}
-
-Non-primitive data types are defined as \textsc{classes} in C++. In general, a literal value from a class is called an \textsc{object}.  Primitive types have clearly defined sets of operators where classes provide a set of \textsc{methods} and possibly operators.  A \textit{method} is a special type of procedure defined along side the class and only usable with an object or variable of that class type. 
-
-\subsection{Objects and Variables}
-
-Let's look at the \textit{string} class as an example\sidenote{\url{http://www.cplusplus.com/reference/string/string/}}. String literals are an exception to rule in that they have a special literal syntax.  The following are string essentially literals:
+The logic of both of these could be expressed as procedures.  Let's just pretend we have the procedure \textit{addN} which adds a value to a variable and \textit{push\_back} which adds a character to the end of a string. If these procedures existed, then we might write the above examples as follows:
 \begin{verbatim}
-""
-"a string"
-"hello"
-"a"
+double a{0.0};
+string d{"This is a string"};
+
+addN(a,5.0);
+EXPECT_DOUBLE_EQ(5.0,a);
+
+push_back(d, '!');
+EXPECT_EQ(string("This is a string!",d);
 \end{verbatim}
-I say essentially because the compiler attributes the type \textit{char *} to these values, and not \textit{string}. In many\sidenote{most?} cases, the two types can be used inter-changeably, but you should be aware of the difference. If you want a proper \textit{string} type literal, then you'd do the following:
+The idea is to pass the variable(s) to be mutated along with any other needed values to the procedure. The procedure then modifies the variable(s), leaving them changed from that point forward in the execution of our program. 
+
+There's something subtle going on here. For this to work we need to make certain that \textit{the mutator function has access to the variable itself}.  Normally, when we use a variable name in an expression, like a procedure call, then the system interprets that as a request for the value inside of the variable. This isn't what we want. If it were, then really our call to \textit{addN(a,5.0)} would be equivalent to \textit{addN(0.0,5.0)}. What this all tells us is that we must somehow signal to the compiler that when a variable is passed to a mutator, it should treat that variable differently than it does the rest of the time. Namely, the system should treat the variable in the context of the mutator as an expression of a location and not an expression of a value.
+
+We've actually seen this before.  Consider the expression \textit{a = a + 5}.  To the right of the assignment operator \textit{a} is an expression of value, the current contents of the variable \textit{a}.  To the left of the assignment operator \textit{a} is an expression of location, the place to store the result of \textit{a+5}.  This duality of meaning is so fundamental to many programming languages that the two values have formal names. The \textsc{l-value} is the location value of a variable and the \textit{r-value} is the content value of a variable.\sidenote{Remember l for left side of assignment, r for right side}. 
+
+Now consider the following function declaration:
 \begin{verbatim}
-string("")e
-string("a string")
-string("hello")
-string("a")
+int foo(int x);
+\end{verbatim} 
+What we're really declaring here is that the parameter \textit{x} is an integer value. We call this \textsc{pass-by-value} because \textit{foo} accepts any integer value as an argument. This can be a literal \textit{or} the r-value of a variable. If, instead, we wish to pass \textit{foo} an integer \textit{l-value}, the location where an integer is stored\sidenote{i.e. an integer-typed variable}, then we need to use \textsc{pass-by-referece}. One small change in syntax creates this major change in semantics\sidenote{syntax = how to write it. semantics = what it means}.
+\begin{verbatim}
+int foo(int& x);
 \end{verbatim}
-This syntax commonly used for object literals.  This syntax actually invokes a special procedure called the \textsc{constructor}. For C++ classes, constructors are named after the class. So the procedure named \textit{string} is one of the string type \textsc{constructors}\sidenote{like \textit{make-posn} from Racket}.  These examples show the constructor that creates a \textit{string} type value from a \textit{char *} type value.  Another important constructor is the \textsc{copy constructor} that constructs a string from a string.
+The type \textit{int\&} is the integer reference type. Appending the character \& to any type signals to the compiler that you're concerned with l-values of that type, references to locations where that type can be found. 
+
+By declaring a procedure parameter as a reference type, you've made a pretty drastic change to how arguments to that parameter are treated.  This is best illustrated through a concrete example.
+
+\subsection{Swap}
+
+A procedure to swap the values stored in two variables is extremely useful to have around. So much so that it's already defined in a C++ library\sidenote{\url{http://www.cplusplus.com/reference/algorithm/swap/}}, but we'll reinvent the wheel a bit here in order to explore mutation procedures and pass-by-reference vs pass-by-value semantics. 
+
+The procedure \textit{swap} is clearly a mutator; it changes the value stored in not one, but two variables. In order to mutate a variable within a procedure we must declare that variable parameter as a reference type. So, if we're going to swap the values of two double variables, then we need swap to work on two parameters of type \textit{double\&}. What about the return type? Its not at all clear that \textit{swap} should return anything, so what we'd like to do is declare that swap return nothing. This is done with the type \textit{void}\sidenote{\textit{void} isn't so much a type as a signal to the compiler that no value, of any type, is returned}.
 \begin{verbatim}
-string(string("hello"))
-\end{verbatim}
+namespace pbr{
 
+  /**
+    * Swap the value of two double variables
+    * @param x reference to first double object
+    * @param y reference to second double object 
+    * @return none
+    * @pre none
+    * @post the values in x and y have been swapped
+    */
+  void swap(double& x, double& y);
 
-More often then not, we'll need string variables to store our string values. Declaring class-based variables is the same as primitive types.  Un-initialized declaration looks like this:
-\begin{verbatim}
-string s;
-string t;
-\end{verbatim}
-We have several options for initializing our variables.  The preferred syntax is this:
-\begin{verbatim}
-string s("hello");
-string t(s);
-\end{verbatim}
-The first syntax uses the \textit{char *} constructor to build string s. The second uses the \textsc{copy constructor} to build $t$ as a copy of the string $s$. We could also initialize our variable with the following syntax:
-\begin{verbatim}
-string s = "hello";
-string t = s;
-string u = string("hello");
-\end{verbatim}
-These forms are less preferred as they involve the assignment operator. They'll work just fine for \textit{string} types, but when we write our own classes, we'll have to write our own assignment operator to ensure that these work as intended.  For now, you should understand that \textit{for strings}, all of these initialization forms have the same \textit{effect} but they achieve this effect in slightly different ways.  These differences can, for non-string types, mean different effects.   
+} //end namespace pbr
 
-\subsection{Class Methods}
-
-We know how to express string literals, declare string variables, and initialize string variables.  So far, things look more or less like they did with primitive types. Now, we'll make a departure.  Classes almost always provide a set of class methods. These methods are special procedures meant to be invoked with an object from that class.  Rather than passing that object to the method, we use the \textsc{dot operator} to invoke the method \textit{with respect to the object}.  
-
-Let's look at the string \textit{length} method that returns the length of a string.  If it were a procedure, then we'd expect something like this\sidenote{as gTest statements}:
-\begin{verbatim}
-// string literal
-EXPECT_EQ(3 , length(string("dog")));
-
-// string variable
-string s("dog");
-EXPECT_EQ(3,length(s));
-\end{verbatim}
-
-However, length\sidenote{\url{http://www.cplusplus.com/reference/string/string/at/}} is a class method, so we do this:
-\begin{verbatim}
-EXPECT_EQ(3 , string("dog").length());
-
-string s("dog");
-EXPECT_EQ(3,s.length());
-\end{verbatim}
-The \textit{dot operator} effectively calls the class method to the left of the dot on the object or variable to the right of the dot. In the first example we used a string literal\sidenote{note that ``dog''.length() will not work as ``dog'' is of type \textit{char *} not \textit{string}}.  It is helpful to think of the object value to the left of the dot as the first\sidenote{or implied} parameter of the method to the right of the dot.  
-
-Now lets consider the methods that allow us to work with strings as a collection, namely the methods that let us select one or more characters from the string.  These are interesting methods as they require parameters in addition to the object.  First, \textit{at}\sidenote{\url{http://www.cplusplus.com/reference/string/string/at/}}, which selects by index.
-\begin{verbatim}
-EXPECT_EQ('a',string("at").at(0));
-EXPECT_EQ('t',string("at").at(1));
-EXPECT_EQ('t',string("at").at( string("at").length() - 1 ) );
-
-string s("dog");
-EXPECT_EQ('o',s.at(1));
-EXPECT_EQ('g',s.at(2));
-\end{verbatim}
-
-The \textit{substr}\sidenote{\url{http://www.cplusplus.com/reference/string/string/substr/}} method is a general purpose selector that allows you to get part of a string as a string. 
-\begin{verbatim}
-
-EXPECT_EQ("a",string("at").substr(0,1) );
-EXPECT_EQ("at",string("at").substr(0,2) );
-EXPECT_EQ("ello",string("hello").substr(1) );
-EXPECT_EQ("ello",string("hello").substr(1, 4) );
-EXPECT_EQ("ello",string("hello").substr(1, string::npos) );
-
-string s("daydream");
-EXPECT_EQ("dre",s.substr(3,3) );
-EXPECT_EQ("daydrea",s.substr(0,s.length()-1) );
 
 \end{verbatim}
-
-\subsection{Overloaded Operators}
-
-In order to allow programmers to use objects like primitive values, C++ allows class designers to define operators\sidenote{called \textsc{operator overloading}} for their classes. One of the most important operators for the string type is \textit{operator[]}\sidenote{\url{http://www.cplusplus.com/reference/string/string/operator[]/}} that allows for indexed based selection. This syntax is the most commonly used syntax in programming for element selection from index collections.
+To further illustrate why pass-by-value won't work here, let's declare a second version.
 \begin{verbatim}
-EXPECT_EQ('a',string("at")[0]);
-EXPECT_EQ('t',string("at")[1]);
+namespace pbv{
 
-string s("dog");
-EXPECT_EQ('o',s[1]);
-EXPECT_EQ('g',s[2]);
-\end{verbatim}
-We read the expression $s[1]$ as ``s at 1''. Also note that while C++ refers to the operator as \textit{operator[]}, the actually operator only involves the $[]$. For more examples, check out the relational operators for string comparison\sidenote{\url{http://www.cplusplus.com/reference/string/string/operators/}}.
+  /**
+    * Swap the value of two double variables. This
+    * version does not work due to pass-by-value semantics
+    * @param x first double
+    * @param y second double
+    * @return none
+    * @pre none
+    * @post the values in x and y have been swapped (not really)
+    */
+  void swap(double x, double y);
 
-\subsection{String Mutators}
-
-The string class provides mutators methods as well as accessor methods, so string variables are mutable. The \textit{push\_back} method adds a single character to the end of a string.
-\begin{verbatim}
-string s("do");
-EXPECT_EQ(2,s.length());
-EXPECT_EQ("do",s);
-
-s.push_back('g');
-
-EXPECT_EQ(3,s.length());
-EXPECT_EQ("dog",s);
+} //end namespace pbv
 \end{verbatim}
 
-It is also possible to directly mutate individual characters through the use of single character assignment. Both the \textit{at} method and \textit{operator[]} provide direct references to individual characters within the string.
+We expect the first version to actually change the values of variables it is given as arguments. We expect the later to do nothing. Let's express this as some tests.
 \begin{verbatim}
-string s("dog");
+  TEST(swap,all){
 
-EXPECT_EQ("dog",s);
-s[0] = 'h';
-EXPECT_EQ("hog",s);
+    double a{3.141};
+    double b{2.718};
 
-s = "bat";
-EXPECT_EQ("bat",s);
-s.at(2) = 'g';
-EXPECT_EQ("bag",s);
+    EXPECT_DOUBLE_EQ(3.141,a);
+    EXPECT_DOUBLE_EQ(2.718,b);
+
+    pbv::swap(a,b); //has no effect
+
+    EXPECT_DOUBLE_EQ(3.141,a);
+    EXPECT_DOUBLE_EQ(2.718,b);
+
+    pbr::swap(a,b); //mutates a & b
+
+    EXPECT_DOUBLE_EQ(2.718,a);
+    EXPECT_DOUBLE_EQ(3.141,b);
+
+  }
 \end{verbatim}
-This type of character level manipulation is indicative of treating a string as an \textit{array of char} values.  An array type is the low-level C++ implementation of indexed collections.  When we treat a string as an array, we tend to ignore the higher-level string logic and focus on the fact that it's a collection of chars. 
+It is important to note that mutation tests must work by doing a before and after check of the value.  When the before value is clearly an initial value, we can usually leave off the before test.  Either way, the key observation is that the purpose of a mutator is to change the value in a variable, so our tests must check for just that.  We don't test against a return value because there is no return value and if there were it would be secondary to the purpose of the procedure: \textit{to change the value of variables}.
+
+It's important to point out that the names of the variables we're swapping\sidenote{\textit{a} and \textit{b}} do not match those of the parameters to \textit{swap}\sidenote{\textit{x} and \textit{y}}. There's no reason they should. Names, or \textsc{identifiers}, are, in this case, abstractions over memory addresses. Rather than refer to variables by address, we refer to them by name. In doing so, we're free to give a single address multiple names. When you pass a variable by reference you are creating an \textsc{alias} of the variable being passed. For the remainder of the procedure execution, the reference parameter name is an alias to a variable back in the calling procedure. In our tests, the \textit{x} and \textit{y} in \textit{pbr::swap} are alias to \textit{a} and \textit{b} in the test space. So what happens when you pass by value? You make \textit{copies not alias}. The \textit{x} and \textit{y} in \textit{pbv::swap} are copies of \textit{a} and \textit{b} in the test space. This observation is at the heart of how pass by value and pass by reference actually work. As we deal with more complicated objects, the copy effect of pass-by-value can have drastic effects. Imagine that you're passing the complete works of Shakespeare as a value. Do you really want to copy all that text? When this becomes an issue, we'll address it. For now, you need to get your head around the copy vs alias nature of pass by value and pass by reference.
+
+Before we look at the actually logic of swapping, let's talk about stubbing out this \textit{void} return type function. Recall that stubs are meant to complete a definition that satisfies the signature. Up until now that's meant returning a value of the same type as the return type.  Now, there's no requirement to return a value.  So, we use return simply to terminate the procedure and go back to the program at the point where the procedure was called.
+\begin{verbatim}
+void swap(double &x, double &y){
+	return;
+}
+\end{verbatim}
+You can, in fact, omit the return and stub \textit{void} return type functions like this:
+\begin{verbatim}
+void swap(double &x, double &y){
+
+}
+\end{verbatim}
+I'm not a fan of this style.  The return is implicit and making it explicit costs you nothing but a few seconds of typing. 
+
+Now, about the actual at of swapping.  At first glance you might decide to reassign the two values:
+\begin{verbatim}
+void swap(double &x, double &y){
+	x = y;
+	y = x;
+	return;
+}
+\end{verbatim}
+This is wrong. To see why, we should trace through the statement sequence. 
+
+Let's assume that \textit{x} and \textit{y} are alias for \textit{a} and \textit{b} as declared in our test\sidenote{x == 3.141 and y == 2.718}. The first assignment reassigns to \textit{x} the value stored in \textit{y}. At this point you should see the problem. Both \textit{x} and \textit{y} contain the same value and we've lost the original contents of \textit{x} all together. To solve this, we need some temporary storage. First save the value of \textit{x}. Then write the value of \textit{y} to \textit{x}. Finally, write the saved value of \textit{x} to \textit{y}. Here's how we say that in C++.
+\begin{verbatim}\
+void swap(double &x, double &y){
+	double temp{x}; // save x in temp
+	x = y; // overwrite x with y
+	y = temp; // write old x to y
+	return;
+}
+\end{verbatim}
+
+We can do this same sequence of assignments in the pass by value version. 
+\begin{verbatim}
+void swap(double x, double y){
+	double temp{x}; // save x in temp
+	x = y; // overwrite x with y
+	y = temp; // write old x to y
+	return;
+}
+\end{verbatim}
+We need to be sure we understand why this doesn't work.  It's clear that \textit{a} swap occurs between \textit{x} and \textit{y}.  If you're not convinced, throw in some output statements to see what's happening.
+\begin{verbatim}
+void swap(double x, double y){
+	cout << "x=" << x << " y=" << y << '\n';
+
+	double temp{x}; // save x in temp
+	x = y; // overwrite x with y
+	y = temp; // write old x to y
+
+	cout << "x=" << x << " y=" << y << '\n';
+	
+	return;
+}
+\end{verbatim}
+What you'll see is the values swap.  Back in the test, or wherever you're calling \textit{pbv::swap} from, no swap happens. We know why-- the procedure variables\sidenote{yes. parameters are variables} \textit{x} and \textit{y} are copies of their arguments, variables \textit{a} and \textit{b} from our gTests, not alias. They are two totally independent sets variables and the changes made to one set are not changes to the other.  More formally, the swap parameters for \textit{pbv::swap} do not share l-values with the arguments like they do in \textit{pbr::swap}.
+
+\subsection{ Mutator and Pass by Reference Recap }
+
+We started with mutators because they introduce pass by value vs pass by reference semantics without any other baggage. It turns out that for I/O procedures to work they way we'd like them to, we must use pass by reference. So, let's review the key details before moving on:
+\begin{itemize}
+\item Reference parameter types are declared by appending an \& after the usual type name used for value parameter types.
+
+\item Value parameters can take as their arguments any expression that can be interpreted as the appropriate type. This includes literal values, arithmetic expressions, and variables. 
+
+\item Reference parameters can take as their arguments only variables of the appropriate type. They require something with an l-value. 
+
+\item When objects are passed as arguments to a pass by value procedure parameter, then the procedure's parameters are copies of those objects. 
+
+\item When objects are passed as arguments to a pass by reference procedure parameter, then the procedure's parameters are alias of those objects.
+
+\end{itemize} 
+
+\section{ I/O Procedures }
+
+Our inspiration for I/O procedures is the C++ string procedure \textit{getline}. It is an input effect procedure that takes two arguments, a stream and a string. The input is done relative to the stream and the result is stored in the string. We can tease out a couple of general principles from this: take the stream as a parameter and input procedures are also mutators. The later observation clearly means we'll be using pass-by-reference on input procedures. What isn't obvious is that streams must be passed by reference. 
+
+Stream objects are non-trivial. We know they maintain a buffer for the data being input or output as well as other state to control how the data in that buffer should be displayed. In this regard they are \textsc{compound data}\sidenote{Like Racket's struct types} and the copy cost incurred by pass by value might be costly. This alone might give us reason to use pass-by-reference. Creating an alias is cheap compared to copying multiple values.  If this were our only concern, however, we'd use a technique called \textsc{pass by const reference} where we declare the stream a constant to prevent inadvertent copying. We'll see this pop us soon enough as it's a common occurrence when writing functional procedures for object types with potentially costly copy costs. 
+
+
+We're not just worried about the cost of copying stream objects though. Most of the operations we're going to use on our streams have the potential to modify the stream and we're likely to need those changes to propagate forward in the execution our program. Imagine using multiple input procedures to pull multiple inputs from a stream. We'd like each procedure to modify that stream by taking out the tokens relevant to its purpose. This is, in fact, exactly how the I/O operators behave. Each invocation of $<<$ or $>>$ is clearly modifying the same stream as they're used in succession. 
+
+
+\subsection{A Little Polymorphism}
+
+Throughout our time with C++, we'll be interested in three kinds of I/O streams:
+\begin{itemize}
+\item Standard streams like cout, cin, and cerr
+\item File streams for reading from and writing to files
+\item String streams for I/O-like management of strings and unit testing of I/O procedures.
+\end{itemize}
+At first glance we have a bit of a problem as each of these streams are defined as different classes. The standard streams are objects from the \textit{ostream} and \textit{istream} classes\sidenote{both defined in the \textit{iostream} library}.  File streams are of objects from the \textit{ofstream} and \textit{ifstream} classes\sidenote{from the fstream library}. String streams are objects from the class \textit{ostringstream} and \textit{istringstream}\sidenote{both in \textit{sstream}}. 
+So far we've had to be very specific about types.  If we wrote a procedure for doing output to a ostringstream object, then it wouldn't work for \textit{cout} because the types are different. 
+
+The C++ streaming I/O libraries leverage a key feature of Object-Oriented Programming\sidenote{OOP}, \textsc{polymorphism}.  Polymorphism, in this context, refers to a variables ability to take on objects of different types so long as those types are clearly defined as proper subtypes, or extensions of the variables type. In this case the file and string stream libraries are defined as extensions of the stream libraries in such a way that the compiler recognizes them as subtypes of streams. More specifically, we can use ostringstream and ofstream anywhere we'd use an ostream and istringstream and ifstream where we'd use istream. These subtypes do everything that the supertype does and then some. 
+The result is that if we write an output procedure such that it works for cout, an ostream, then we can pass it an ostringstream or an ostream instead and the compiler will allow it. If we write procedures instead for something like an ostringstream, then we cannot pass it the other output stream types because the compiler cannot guarantee that the procedure won't do something that is specific to the output string stream subtype. 
+
+To see this at work let's revisit our testing program from lecture notes 7. We'll set two goals for our new version:
+\begin{enumerate}
+\item Set it up so that pass no CLI arguments defaults to the REPL version, pass 3 runs a single test like our CLI command version, and passing any other number of arguments results in an error.
+
+\item Use basic I/O procedures to reuse code between the two versions.
+\end{enumerate}
+A side-effect of writing I/O procedures\sidenote{and polymorphism} is that we can unit test them using polymorphism.  Procedures we intend to use on stream objects like \textit{cout} and \textit{cin} can instead be tested with string stream objects.
+
+\subsection{Input Procedures}
+
+Our \textit{isWithin} tester needs to read in a 2D point and a circle radius.  The REPL version does so from \textit{cin}, an \textit{istream}.  The CLI-command version does so from \textit{istringstream}s initialized with the contents of \textit{main}'s argv array. Our new version will utilize two input procedures, \textit{getPoint} to read the point coordinates and \textit{getRadius} for the circle radius. When we're executing the REPL version, we'll read from \textit{cin}. When we're executing the CLI-command version we'll have to setup one or more istringstreams with our data. 
+
+In both cases we can make use of the same pair of procedures.
+\begin{verbatim}
+  /**
+   * Retrieve (x,y) coordinates from an input stream
+   * @param in input stream where user input is found
+   * @param x variable that stores x coordinate
+   * @param y variable that stores y coordinate
+   * @return none
+   * @pre in will produce two double tokens
+   * @post the value of x and y have been changed to data from
+   *  the stream and the stream has had two doubles read from it
+   */
+  void getPoint(std::istream& in, double& x, double& y);
+
+  /**
+   * Retrieve circle radius r from an input stream
+   * @param in input stream where user input is found
+   * @param r variable that stores circuit radius
+   * @return none
+   * @pre in will produce one double token
+   * @post the value of r has been changed to data from stream in and in
+   *   has had one double read from it.
+   */
+  void getRadius(std::istream& in, double& r);
+\end{verbatim}
+
+Let's start with the signatures. Both procedures take \textit{istream} objects reference parameters-- that is the rule for passing streams to procedures.  The remaining parameters are all by reference because they're the variables into which the input is stored. Remember, we already observed that input procedures, and statements, are by their very nature variable mutations. 
+
+In terms of documentation, the most important thing to notice is probably the pre and post conditions. Preconditions we're familiar with. Here we're assuming that the streams contain enough data tokens to fill our variables. Postconditions are the things that have changed about the system after the procedure has been executed. When we're talking about procedures called for effect, then \textit{postcondtions are where we document the expected effect.} It should be clear from this statement that you always, \textit{always}, write postconditions for I/O procedures. For these procedures we need to clearly document the fact that we've modified variables and removed data from the stream.  
+
+Writing stub definitions for these procedures is the same as \textit{swap}-- when the return type is void, you simply \textit{return} with no return value.  Let's look at some tests for these procedures and see polymorphism at work.
+\begin{verbatim}
+TEST(getPoint,all){
+  using namespace std;
+
+  istringstream in{"2.3 4.5"};
+  double a{0},b{0};
+
+  getPoint(in,a,b);
+  
+  EXPECT_DOUBLE_EQ(2.3,a);
+  EXPECT_DOUBLE_EQ(4.5,b);
+  EXPECT_TRUE(in.eof());
+}  
+\end{verbatim}
+First, let's point out the polymorphism. The procedure \textit{getPoint} was written to take an \textit{istream} object as its first argument. In these tests we passed it an \textit{istringstream} object, namely \textit{in}. The class \textit{istringstream} is defined as a subtype, or extension, of the \textit{istream} class, in a way the compiler recognizes and so this does, in fact, pass the type checker. Next, take careful note of the before-after nature of this test. We omit the before tests because we're clearly dealing with fresh initialized variables. If the before values of our objects weren't immediately clear, we would do some EXPECT tests to verify the values prior to mutation. The procedure itself is run as a single statement. It's not a part of a test statement. Finally, we check for the three expected changes: the two variables have new values and the stream is empty. The method \textit{eof} returns true if the stream's contents have all been read. It's short for ``end of file'', even though the stream may not be reading from a file. 
+
+The implementation of these procedures is really straight forward. All we're really doing is a wrapping a little abstraction around the statements we used in our previous program. 
+\begin{verbatim}
+void getPoint(std::istream& in, double& x, double& y){
+  in >> x >> y;
+  return;
+}
+
+void getRadius(std::istream& in, double& r){
+  in >> r;
+  return;
+}
+	
+\end{verbatim}
+In practice, we're might to want to do some error checking and validation relative to the input values and the stream so that the post-conditions are strictly enforced.
+
+\subsection{Output Procedures}
+
+Writing output procedures generally follows suit with input procedures with adjustments for writing data rather than reading it. In both cases the stream is passed by reference. For output, we typically pass some variables whose values need to be written to the stream. Those variables should not be changed as a result of writing output\sidenote{If you need data to look a certain way, format the output. Don't change the data.} and are passed by value, not reference. 
+
+For our new program we want two output procedures: \textit{reportResults} and \textit{CLIError}. The former is used to write the results of \textit{isWithin} in a clearly readable manner. The later is used to report usage errors to the user when they pass in the wrong number of CLI arguments. 
+\begin{verbatim}
+/**
+   * Print results of function isWithin to an output stream
+   * @param out the stream where results are printed
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * @param r the circle radius
+   * @return none
+   * @pre r >= 0.
+   * @post Results of isWithin(x,y,r) are written to the stream out
+   */
+  void reportResults(std::ostream& out, double x, double y, double r);
+
+  /**
+   * Print error message for bad CLI call to output stream
+   * @param out output stream for error message
+   * @param num_args number of arguments
+   * @param cmd_name name of command executable
+   * @return none
+   * @pre none
+   * @post Error message written to the output stream
+   */
+  void CLIError(std::ostream& err, int num_args, std::string cmd_name);
+\end{verbatim}
+
+Once again, a stub definition just requires a return without a value. This is the general pattern for \textit{void} return types. Let's skip writing it here and go right to tests.
+\begin{verbatim}
+TEST(reportresults,all){
+    using namespace std;
+
+    ostringstream out{""};
+    string expected{"isWithin( 2.3 , 4.5 , 10 ) -> true\n"};
+
+    reportResults(out,2.3,4.5,10);
+
+    EXPECT_EQ(expected,out.str());
+
+}
+
+TEST(clierr,all){
+    using namespace std;
+
+    ostringstream out{""};
+    string expected{"Given 1 arguments but expected 3.\n"};
+    expected.append("Usage: test! x y r\n");
+
+	CLIError(out,1,string("test!"));
+
+    EXPECT_EQ(expected,out.str());
+}
+\end{verbatim}
+Once again, polymorphism lets us use \textit{ostringstream} to test these functions that we eventually intend to use with streams like \textit{cout} and \textit{cerr}. The only effect we're looking at is the addition of data to the stream. We can tests this by comparing the string, as returned by the \textit{str} method, to a string we hard coded. The \textit{CLIError} test shows you one strategy for managing large strings. The expected result string, \textit{expected}, is built up in pieces. Part of the string is set as the initial value, then the \textit{append} method is used to modify the string by adding the remaining characters to the end of the initial string. 
+
+The actual definitions for these procedures are, once again, basic abstractions over what we had in our programs originally.
+\begin{verbatim}
+void reportResults(std::ostream& out, double x, double y, double r){
+    out << "isWithin( " << x << " , " << y << " , " << r << " ) -> ";
+    out << std::boolalpha << TwoD::isWithin(x,y,r) << "\n";
+    return;
+}
+
+void CLIError(std::ostream& err, int num_args, std::string cmd_name){
+    err << "Given " << num_args << " arguments but expected 3.\n";
+    err << "Usage: " << cmd_name << " x y r\n";
+    return;
+}
+\end{verbatim}
+
+\section{A new \textit{isWithin} tester}
+
+Now that we have a library of I/O functions to use in developing our \textit{UI} for \textit{isWithin}, we can return to our updated program. 
+\begin{verbatim}
+int main(int argc, char* argv[]){
+  using namespace std;
+
+  double x{0.0},y{0.0},r{0.0};
+
+  if( argc == 1 ) // no arguments, drop to REPL
+    while(true){
+      std::cout << "Enter x & y coordinates :";
+      getPoint(std::cin,x,y);
+      std::cout << "Enter circle radius: ";
+      getRadius(std::cin,r);
+      reportResults(std::cout,x,y,r);
+    }
+    
+  else if( argc == 4 ){  // 3 arguments for isWithin
+
+    istringstream clistrm{string(argv[1]) + "  "+
+    string(argv[2]) + " " +
+    string(argv[3])};
+
+
+    getPoint(clistrm,x,y);
+    getRadius(clistrm,r);
+    reportResults(cout,x,y,r);
+  }
+
+  else{ //argc is not 4 or 1
+    CLIError(cerr,argc-1,string(argv[0]));
+    return 1;
+  }
+
+  return 0;
+
+}
+\end{verbatim}
+We used a basic conditional to branch on \textit{argc}. When only the program name is used at the CLI, we drop into our REPL program. When three additional arguments are passed, we assume their doubles for \textit{isWithin} and carry-out the CLI version. Otherwise we got a weird number of arguments and need to print an error message. Notice that we're leveraging polymorphism in order to reuse our I/O functions here as well. The input procedures are called both with \textit{cin} and an \textit{istringstream}.  It's also worth noticing that we opted to create one long istringstream with all three input values for our CLI version. The fact that our input procedures modify the stream let's us \textsc{thread} the object through multiple procedures, modifying it as we go. The last thing we should notice is the variable declaration. When you're declaring multiple variables of the same type, you can do so in a single line separating each initialization with a comma like this
+\begin{verbatim}
+TYPE NAME{VAL},NAME{VAL},... ;
+\end{verbatim}
+ 
+
+\section{Procedure Chaining and Returning References}
+
+If you look at the signatures for the string function \textit{getline}, you'll notice that they return a reference to an istream. This is a common practice for I/O procedures and in several other scenarios we'll see this semester. The intent is usually to allow \textit{chaining} of procedure calls\sidenote{or operators or method calls}. A perfect example of this is the streaming I/O operators. 
+
+Both $<<$ and $>>$ return references to streams and by doing so they allow us to do things like this:
+\begin{verbatim}
+cout << 1 <<  3 << 'a' << b;
+\end{verbatim}
+Let's parenthesize this statement to highlight order of execution:
+\begin{verbatim}
+((((cout << 1) <<  3) << 'a') << b);
+\end{verbatim}
+First we put 1 to \textit{cout}. The return result is \textit{cout with 1 added to the buffer}. Let's just call that \textit{cout$^\prime$}. Now we effectively have \textit{cout$^\prime$ $<<$ 3} to do next. This process continues until the end. The key observation is that the modified stream returned by one operator becomes the stream input to the next operator. This is operator \textit{chaining}. 
+
+To see how we can leverage this with procedures, let's go back and redefine our input procedures to return references and then chain them together in our main program. First we need to revisit the basic declaration and documentation.
+\begin{verbatim}
+/**
+ * Retrieve (x,y) coordinates from an input stream
+ * @param in input stream where user input is found
+ * @param x varibale that stores x coordinate
+ * @param y variable that stores y coordinate
+ * @return reference to the input stream
+ * @pre in will produce two double tokens
+ * @post the value of x and y have been changed to data from
+ *  the stream
+*/
+std::istream& getPoint(std::istream& in, double& x, double& y);
+
+/**
+ * Retrieve circle radius r from an input stream
+ * @param in input stream where user input is found
+ * @param r variable that stores circuit radius
+ * @return reference to the input stream
+ * @pre in will produce one double token
+ * @post the value of r has been changed to data from stream in
+ */
+std::istream& getRadius(std::istream& in, double& r);
+\end{verbatim}
+The difference is fairly subtle. We've added a return type, a reference to an istream, and we've documented that return type. Nothing else about the procedure changes. 
+
+Now let's stub these procedures. Remember we \textit{must} return a stream reference. The smartest thing to do, the thing we'll ultimately do anyway if we want chaining to occur, is to return the stream argument. 
+\begin{verbatim}
+
+std::istream& getPoint(std::istream& in, double& x, double& y){ 
+   return in;
+}
+
+std::istream& getRadius(std::istream& in, double& r){
+	return in;
+}
+
+\end{verbatim}
+
+Testing is a little bit more complicated now. Before writing the tests lets lay out our expectations in plain English. We have three. The first two are hold overs from before, the last is to account for the return value.
+\begin{itemize}
+\item The variable arguments must be mutated relative to the contents of the stream
+\item The stream has had data removed from it.
+\item The return value is literally the same stream as the input stream.
+\end{itemize}
+The new expectation is a different beast than we've seen before. In the past our concern was with equality of value, specifically \textit{r-value}. Now, to enable chaining we need to be certain that the \textit{l-value}, the address of the input object and the returned object are the same. Now let's say all of this in C++.
+\begin{verbatim}
+TEST(getpoint,v2){
+    using namespace std;
+
+    istringstream in{"2.3 4.5"};
+    double a{0},b{0};
+
+    EXPECT_EQ(&in,&getPoint(in,a,b));
+
+    EXPECT_DOUBLE_EQ(2.3,a);
+    EXPECT_DOUBLE_EQ(4.5,b);
+    EXPECT_TRUE(in.eof());
+}
+
+TEST(getradius,v2){
+    using namespace std;
+
+    istringstream in{"10"};
+    double a{0};
+
+    EXPECT_EQ(&in,&getRadius(in,a));
+
+    EXPECT_DOUBLE_EQ(10.0,a);
+    EXPECT_TRUE(in.eof());
+}
+\end{verbatim}
+Most of the tests are hold-overs from before that check our first two expectations. The new element is checking the return value.  We can manage this in the same way we did for our functional procedures by comparing the return value of the procedure to an expected value. In both cases we want to be certain
+that \textit{in} and the return value are the same. I've demonstrated two ways of approaching this test.  
+
+The test for \textit{getPoint} utilizes the ``address of'' operator \& to get the actual memory address of the two objects. So  \textit{EXPECT\_EQ(\&in,\&getPoint(in,a,b))} literally compares the address of the two objects and passes if and only if they're the same. You can use the operator \& on any object or variable to effectively get the \textit{l-value} for the object. The effect of this operator also gives you some insight as to the source of the pass-by-reference syntax. 
+
+Finally, we implement.
+\begin{verbatim}
+std::istream& getPoint(std::istream& in, double& x, double& y){
+    in >> x >> y;
+    return in;
+}
+
+std::istream& getRadius(std::istream& in, double& r){
+  in >> r;
+  return in;
+}
+\end{verbatim}
+The only real difference here is the return statement. Just like when passing objects as reference arguments, it's not your job to do anything special to the return variable. By declaring the return type a reference and returning an object, the system will manage the r-value/l-value distinction. 
+
+So, what did all of this buy us? Not much really. For our problem we got the option to chain the input procedures together.  It's not clear that this is an improvement really. However, this technique is critical to some code we'll be writing soon, so this is a good opportunity to being our exposure to the idea of returning references and chaining procedures. 
+
+Here we modify our REPL prompt slightly to leverage chaining in both the REPL and the CLI versions.
+\begin{verbatim}
+using namespace std;
+
+  double x{0.0},y{0.0},r{0.0};
+
+  if( argc == 1 ) // no arguments, drop to REPL
+    while(true){
+      cout << "Enter point x & y coordinates and a circle radius r: \n";
+      UI2::getRadius(UI2::getPoint(cin,x,y),r);
+      UI::reportResults(std::cout,x,y,r);
+    }
+  else if( argc == 4 ){     istringstream clistrm{string(argv[1]) + "  "+
+        string(argv[2]) + " " +
+        string(argv[3])};
+
+    UI2::getRadius(UI2::getPoint(clistrm,x,y),r);
+    UI::reportResults(cout,x,y,r);
+  }
+  else{ //argc is not 4 or 1
+    UI::CLIError(cerr,argc-1,string(argv[0]));
+    return 1;
+  }
+
+  return 0;
+
+}
+\end{verbatim}
+Again, there is really no significant gain from our change to chainable procedures for the problem we're working on here.  On the other hand, composition of functions is clearly a boon to our ability to program. Composing systems is a corner stone of computing. What we've exposed here is composition while passing state, namely the stream, through the thread of execution.  Chaining procedures like we did here not only allows us to compose two lines into one, but it allows us to propagate effects across the composition. Using this technique we can next effects in the same fashion we nested functions. 
 
 
 \end{document}

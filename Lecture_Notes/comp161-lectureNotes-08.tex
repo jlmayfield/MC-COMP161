@@ -188,6 +188,49 @@ The previous section merits careful study not just because it introduces key str
 
 When we test functions, we simply compare the actual function return value to the expected value. Effects are not about things returned but about change to the system. We need to know if a variable's stored value did or did not change. We need to know if input from a stream was read correctly. We need to know if the characters written to an output stream were written properly. 
 
+\subsection{Strings and Procedures}
+
+Once you've included the string library, you can use string types in the same way you use other types. The only thing to be aware of is that unlike the base C++ types, the string type is defined in the \textit{std} namespace. Our current practice is to use \textit{using namespace} directives only in the body of a function. This means that instances of the string type that occur in the function header are not subject to this directive and we must explicitly state the namespace\sidenote{you can also put the using namespace directive in the file's global space, but we'll shy away from that practice}. Here's a complete function for strings to illustrate what I mean.
+
+\begin{verbatim}
+
+namespace ln8{
+  /**
+   * Return the rest, aka all but the first, of a non-empty string.
+   * @param astr A string
+   * @return the rest of astr
+   * @pre astr.length() > 0
+   * @post none
+   */
+  std::string rest(std::string astr);
+}
+
+std::string ln9::rest(std::string astr){
+	using namespace std;	
+	// a mutation based solution
+	astr.erase(0,1);
+	return astr;
+	
+	// non-mutation based solution with substr
+	// return astr.substr(1);		 
+}
+
+TEST(rest,all){
+  using namespace std;
+  using namespace ln9;
+  
+  string a{"this"};
+  string b{"his"};
+
+  EXPECT_EQ(b,rest(a));
+  EXPECT_EQ(string("is"),rest(b));
+  EXPECT_EQ(string("dog"),rest(string(" dog")));	  
+  
+}
+
+\end{verbatim}
+
+
 \section{String Streams}
 
 
