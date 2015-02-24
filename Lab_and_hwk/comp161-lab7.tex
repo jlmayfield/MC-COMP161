@@ -2,51 +2,64 @@
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{hyperref}
 \usepackage{framed}
+\usepackage[pdftex]{graphicx}
+\hypersetup{colorlinks}
 
-\title{COMP161 - Lab 87 \& Homework 5}
+\title{COMP161 - Lab 7 \& Homework 5}
 \author{}
-\date{Spring 2014}
+\date{Spring 2015}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-In this lab you continue your work on the \textit{FTo} program from lab 6 by completing the interactive UI for the program.  This involves writing a \textit{main} procedure with several UI loops.
+For this lab you'll work on writing a mutator procedure. For homework you'll work on an output procedure. Both topics are covered in lecture notes 9. 
 \end{abstract}
 
-\section{Implementation by Iterative Refinement}
+\section{Lab 7}
 
-For this lab you'll develop the \textit{main} procedure using \textsc{iterative refinement}. In this process you identify a sequence of  iterations\sidenote{version} of the procedure such that each iteration adds a new feature or functionality to the previous iteration.  You then complete one iteration at a time, in order, testing each iteration for correctness before proceeding to the next iteration. For lab, you need to work on \textit{main} using the following sequence of iterations:
-\begin{enumerate}
-\item Main program flow without any looping
-\item Add main program loop to repeat until quit
-\item Add validation/reentry loop for user's menu choice input
-\item Add validation/reentry loop for user's Fahrenheit temperature input
-\end{enumerate}
-Iterative refinement lets us get the benefit of unit testing\sidenote{the testing in small chunks part} in a situation where we can't use our unit testing framework\sidenote{to test \textit{main}}.
-
-You have not written a procedure of this size yet, so the temptation to wait to compile until you complete an iteration will likely be great. Look for opportunities within each iteration to get the code to a compilable state and compile. This lets you clear out any syntax errors and warning in small chunks rather than in one big mass when you're ``done''\sidenote{Compile early and compile often or risk being overwhelmed by errors}.
-
-\subsection{Lab 7 }
-
-Work on iteratively completing the main procedure as described above. \textit{Stick to the order in which iterations are given above.}  Code for an iteration should not even appear in your program unless the iteration proceeding it is complete and tested. Towards that end, \textit{in a file called lab7-report.txt, keep a log of how you tested each iteration.} Your log must describe the testing of the iteration in terms of expected behavior on concrete situations\sidenote{just like all other testing we do}. One test for our first iteration might be described as follows:
+\begin{framed}
 \begin{quote}
-Run the program. First I'll see the menu. Then I'll enter 1 as my choice. Next I'll see the prompt for entering a Fahrenheit temperature. I'll enter 32.0.  Then the program will close with no further output. 
+An $n$-gram letter frequency analysis counts the frequency of $n$ letter sequences in a string. These statistics can then be used for several purposes in natural language processing and cryptography. A common technique to handle the begging and end of a document is to pad both with $(n-1)$ special characters such that the first $n$ gram is the first letter of the text preceded by $(n-1)	$ special characters and the last $n$ gram is the last character followed by $(n-1)$ special characters. It is usually important that the padding character is unique and doesn't occur elsewhere in the text as it signifies the beginning and end of the document. 
+
+Your task is to design and develop a general purpose \textsc{string mutator} called \textit{add\_padding} that can be used for this purpose. The procedure should take a string $str$, a positive integer $pad\_size$, and a character $pad\_char$. If the character $pad\_char$ doesn't occur in \textit{str}, then it should then modify $str$ by adding  $pad\_size$ occurrences of $pad\_char$ to both the beginning and end of the string. If $pad\_char$ does occur in $str$, then it should leave $str$ unchanged.
 \end{quote}
-The key is that you are very explicit and specific. You don't need to give exact details for I/O prompts\sidenote{you covered that in the UI tests :)}, but you do need to state when they'll happen\sidenote{i.e. the flow of control}. Be certain that your test(s) ensure that every line of code you wrote for the iteration gets executed and tested.
+\end{framed}
 
-If you need or want my version of lab 6 and homework 4\sidenote{the UI and model libraries} they are zipped up and available for copying at in \textit{/home/comp161/sp14/}.  Use the command \textit{unzip} to extract the C++ files from the zip files.  At the end of lab submit the \textit{cpp} file containing your main procedure and your lab report document\sidenote{only two files!} as \textit{lab7} using \textit{handin}. 
+In order to complete this procedure, you'll need to make use of the \textit{fill constructor}\sidenote{\url{http://www.cplusplus.com/reference/string/string/string/}} for the std::string class as well as the std::string method \textit{find}\sidenote{\url{http://www.cplusplus.com/reference/string/string/find/}}.  So, a secondary objective of this lab is to give you practice reading a language reference.  As always, your procedure should be fully documented\sidenote{now that we're writing procedures for effect, don't forget post conditions} and have a sufficient set of tests in addition to be fully defined. At the end of lab, submit a compilable set of code as \textit{lab7} using the \textit{handin} command.  
 
+\newpage
 
-\subsection{Homework 5}
+\section{Homework 5}
+
 \begin{center}
-\textbf{Due by class time, Friday 2/28}
+\textbf{Due By 8 am, Monday March 2nd}
 \end{center}
 
-For homework you must do two things:
-\begin{enumerate}
-\item complete the lab\sidenote{If you finished in lab, you do not have to resubmit your work}
-\item In a file named hwk5-report.txt, brainstorm other iteration sequences that might have been used in the development of this program. These should include, but are not limited to, re-ordering of the iterations used in lab, finer grained iterations\sidenote{think splitting up an iteration into smaller iterations}, and different iterations. In particular, try to imagine iteration sequences that begin with an iteration that is different from the one we used in lab. A lot of things depend on that initial iteration goal and it's useful to have options. Finally, comment on which of the possible iterative development sequences that you came up with is best and why.
-\end{enumerate}
+Printing data in an organized, tabular form is a common output task.  Tabular output presents data aligned into columns and rows and typically prints each value in a specific way.  For this problem you are to write an output procedure called \textit{styleRowOut} that produces \textit{one row} of a table of beer style statistics like those see here:
+
+\vspace{.1in}
+\begin{center}
+\includegraphics[scale=.5]{tabExample.png}
+\end{center}
+\vspace{.1in}
+
+The first row you see is the header; your procedure does not print that row. The remaining rows are the data rows and are examples\sidenote{free test cases!} of the kind of output your procedure should produce. Each row contains a string, the name, and five doubles.
+\begin{itemize}
+\item  The \textit{OG} and \textit{FG}\sidenote{Original and Final Gravity} are measurements of beer taken before and after fermentation. They're always reported to three decimal places and between 1.0 and 2.0. 
+\item The \textit{ABV}\sidenote{Alcohol by Volume} measures the strength of the beer. It is always reported to one decimal place. The ABV tends to be between 3 and 15.
+\item The \textit{IBU}\sidenote{International Bittering Units} measures the hop character and is reported with zero decimal places. The IBUs of a beer tend to be between 10 and 120.
+\item The \textit{SRM}\sidenote{Standard Reference Measure} is a measure of beer color and is reported with zero decimal places. The SRM of a beer is typically between 5 and 50. 
+\end{itemize}
+To control the precision of doubles printed in a stream we can use \textit{std::setprecision}\sidenote{\url{http://www.cplusplus.com/reference/iomanip/setprecision/}} from the library \textit{iomanip}\sidenote{be sure to include this library!}. This I/O manipulator works in a similar fashion to \textit{std::boolalpha}, which you've seen before; it controls the output of tokens after it in the stream. 
+
+To provide the illusion of a column of data we control the width of each token printed. If you print the number $14$ with a width of $10$ then the output will contain $8$ extra spaces so that the total width is 10, 2 for the digits and 8 spaces. You can set the width using \textit{std::setw}\sidenote{\url{http://www.cplusplus.com/reference/iomanip/setw/}} from the \textit{iomanip} library.  The trick is to print the values for each column the same width. 
+\begin{itemize}
+\item Names should be printed 20 wide.
+\item All the numerical values should be printed 8 wide.
+\end{itemize}
+It should be noted that the example table shown above is not necessarily printed with these width values. It was generated by Mathematica and not a C++ program.  
+
 
 \end{document}
+
