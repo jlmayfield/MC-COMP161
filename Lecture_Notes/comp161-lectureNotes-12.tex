@@ -2,410 +2,222 @@
 \usepackage{amsmath,amssymb,amsthm,color}
 \usepackage{multirow}
 \usepackage{booktabs}
-\usepackage{framed}
 \usepackage[pdftex]{graphicx}
 
   
-\title{COMP 161 - Lecture Notes - 12 - Iterative and Recursive Procedures for Strings}
+\title{COMP 161 - Lecture Notes -  - Loops and Common Loop Patterns}
 \date{Spring 2014}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at developing iterative and recursive procedures for Strings.  These principles generalize for array structures and recursively structured data. 
+In these notes we begin exploring C++ \textsc{loop} control structures.
 \end{abstract}
 
-\section{Note: From \textit{char} to std::string}
+\section{Predicates}
 
-In what follows, we'll regularly need to turn a \textit{char} value into a \textit{string} value.  To do this we'll use a special string constructor designed to fill a string with a single character. Here's a few tests to illustrate how it works\sidenote{see the ``fill'' constructor here \url{http://www.cplusplus.com/reference/string/string/string/}}.
+Functions\sidenote{procedures sans side-effects} that return a \textit{bool} value are called \textsc{predicate} or boolean-valued functions. Boolean expressions can always be replaced by predicate functions, and since boolean expressions are an integral part of loop structures, we'll stop and talk about a clean, concise style of writing predicates.
+
+In many cases, predicates can, and should, be written without the use of conditional statements.  Let's say we need a predicate \textit{isEven} which takes an \textit{int} type and returns true if it is even and false otherwise.  We could do this:
 \begin{verbatim}
-TEST(charToString,all){
-
-  EXPECT_EQ("a",string(1,'a'));
-  EXPECT_EQ("aa",string(2,'a'));
-  EXPECT_EQ("aaaaa",string(5,'a'));
-
-  std::string word("dog");
-  EXPECT_EQ("---",string(word.length(),'-')); 
-
-}
-\end{verbatim}
-
-\section{The problem: strToUpper}
-
-The C char type library\sidenote{called \textbf{cctype}} contains a procedure for converting a lowercase alphabetic \textit{char} to its uppercase counter part. What if we wanted to convert a string?  First let's state this problem as a C++ procedure declaration.
-\begin{verbatim}
-/** 
- * strToUpper converts all the letters of 
- *  a string to uppercase
- * @param str the string
- * @return str in all uppercase
- * @pre str is composed of alphabetic characters only
- * @post none
- */
- std::string strToUpper(std::string str);
-\end{verbatim}
-Now some gUnit tests.
-\begin{verbatim}
-
-TEST(strToUpper,all){
-
-  // empty case
-  EXPECT_EQ(string(""),strToUpper(string("")));
-
-  // other cases
-  EXPECT_EQ(string("A"),strToUpper(string("a")));
-
-  EXPECT_EQ(string("DOG"),
-            strToUpper(string("dog")));
-          
-  EXPECT_EQ(string("CAT"),
-            strToUpper(string("Cat")));
-}
-\end{verbatim}
-The problem should now be clear.  Let's consider two classic strategies for solving it: recursion and iteration.
-
-
-\subsection{Recursive Functions on Strings} 
-
-Strings can be viewed as recursive structures.  They are either empty, or if they're not, they are a single \textit{char} value followed by another string value.  We can select the first char value using \textit{operator[]} or the class method \textit{at}.  The rest of the string can be retrieved using the \textit{substr} method.  We saw the basic recursion recipe in COMP160, but let's review it here.  
-
-Recursive structures invoke most of the basic structures found in data: atomic, compound, itemization, and self-reference.  To work on a recursive structure we begin with the \textit{itemization}. A string has a non-recursive case, the empty string, and a recursive case, non-empty strings.  This means we need to use a conditional to identify the type \textsc{variant}\sidenote{template rule: use conditionals to identify variants of itemization data}.  Let's stub out \textit{strToUpper} to account for this part of the template. We'll use the empty string as a stub return value.
-
-\begin{verbatim}
-std::string strToUpper(std::string str){
-  if( str.isEmpty() ){
-    // empty case
-    return string("");
-  } 
-  else{ //no empty
-    // non-empty case;
-    return string("");
+bool isEven(int n){
+  if( n % 2 == 0 ){
+    return true;
+  }
+  else{
+    return false;
   }
 }
 \end{verbatim}
 
-Now we proceed with the templates by case. When a string is empty it is effectively \textit{atomic data}, so we just need to figure out what computation should occur here\sidenote{template rule: compute with atomic data}.  We'll leave this case  stubbed out for now and look at the non-empty case. The non-empty string is \textit{compound data}; it has the first char and the rest of the string. So, we must select each part\sidenote{template rule: deconstruct compound data by field}.  Because the rest of the string is the recursive part of the structure, we should recurse there\sidenote{template rule: recurse on recursive data}. Let's add some notes to the stub.  
+However, notice that the \textit{boolean expression} \textit{n \% 2 == 0} takes on exactly the value we want to return. So, a better implementation is to return the value of that expression.
 \begin{verbatim}
-std::string strToUpper(std::string str){
-  if( str.isEmpty() ){
-    // empty case
-    return string("");
-  } 
-  else{ //not empty
-    // non-empty case;
-    // str[0]
-    // strToUpper(str.substr(1) )
+bool isEven(int n){
   
-    return string("");
-  }
+  return n % 2 == 0 ;
+
 }
 \end{verbatim}
 
-Now, it's time to be clever. First, let's look at the empty case.  What string should result from turning all the characters in the empty string to upper case letters?  Why the empty string of course.  So, it turns out the stub value was the correct answer.  Now on to the non-empty string case.  If I give you first character and the rest of the string in all upper case letters, what do you need to do?  First things first we should \textit{toupper} the first character.  Once that's done, we need to append the uppercase version of the rest to the uppercase first.  Thankfully, the \textit{append} string class method can take care of this for us. We can now finish our procedure.
+Maybe you tested to see if it was odd?  That's OK, you can always use ! to negate a boolean value. This implementation,
 \begin{verbatim}
-std::string strToUpper(std::string str){
-  if( str.isEmpty() ){
-    // empty string case
-    return string("");
-  } 
-  else{ 
-    // non-empty string case;
-    return string(1,toupper(str[0])).append( strToUpper(str.substr(1)) );
-    }
-}
-\end{verbatim}
-Alternatively, we can use some local variables to clear up the return statement a bit.
-\begin{verbatim}
-std::string strToUpper(std::string str){
-  if( str.isEmpty() ){
-    // empty string case
-    return string("");
-  } 
-  else{ 
-    // non-empty string case;
-    std::string fstUp(1,toupper(str[0]));
-    std::string rstUp( strToUpper( str.substr(1) );
-    
-    return fstUp.append( rstUp );
+bool isEven(int n){
+  if( n % 2 == 1 ){
+    return false;
+  }
+  else{
+    return true;
   }
 }
 \end{verbatim}
-
-Recursion doesn't have to happen in first to rest order.  If you're able to select the last and all but the last, then you
-can often work the structure the other direction.  Consider this version of \textit{strToUpper} that proceeds last to butLast.  
+becomes,
 \begin{verbatim}
-std::string strToUpper(std::string str){
-  if( str.isEmpty() ){
-    // empty string case
-    return string("");
-  } 
-  else{ 
-    // non-empty string case;
+bool isEven(int n){
+  
+  return !(n % 2 == 1) ;
+
+}
+\end{verbatim}
+
+\section{Basic Loop Types}
+
+C++ offers three flavors of loops.  We'll begin with the two most basic forms and then introduce the third when it fits a lopp pattern. 
+
+\subsection{do while loops}
+
+The first loop we'll look put to use is for when you need to repeat some code \textit{at least one time}.  It has the following form:
+\begin{verbatim}
+
+do{
+ 
+// loop body
+
+}while( /* continuation test */    );
+
+\end{verbatim}
+The \textit{/* continuation test */} expression must be a boolean expression, function, or value.  The do while loop will repeat the code between its curly braces\sidenote{the \textit{loop body}} as long as the continuation test is \textit{true}. The test is carried out after each execution of the loop body.  Thus, the do while loop will execute the loop body at least once. 
+
+\subsection{while loops}
+
+By moving the continuation test to before the execution of the loop body, it is possible to write loops that will never actually execute the loop body because the continuation test fails\sidenote{evaluates to false} the first time it is evaluated.  This kind of ``\textit{zero or more} repetitions'' loops can be carried out by the C++ \textit{while} loop.
+\begin{verbatim}
+
+while( /* continuation test */ ){
+
+// loop body
+
+}
+
+\end{verbatim}
+
+\section{Some Loop Patterns}
+
+The two loop constructs we've seen are powerful enough to express most of the patterns of repetition you'll encounter in the course of designing a program. Let's explore a few common patterns.
+
+\subsection{Input Validation Loop}
+
+Our ``guess a number'' game from previous notes requires that the user enter a number between 1 and 10.  If the user were to enter something like 15, then the game shouldn't proceed.  This is a case where we need to validate the user input and then repeat the input sequence until the input is valid.  For this we can use a do while loop as we need to carry out the input sequence at least once. 
+
+\begin{verbatim}
+do{
+  // prompt the user for input
+  // get user input
+  if( /* input is invalid test */ ){
+     // tell the user it's invalid and why if possible
+  }
+ 
+}while( /* input is invalid test*/ );
+\end{verbatim} 
+
+Realistically, it's possible the user entered some kind of gibberish that not only produced invalid input but caused the read operation to fail. Thankfully, checking for failed input is relatively easy.  The input stream for the standard input, \textit{std::cin}, is in fact an input stream object\sidenote{\url{http://www.cplusplus.com/reference/ios/ios/}}. The input stream class provides several useful  methods for detecting and dealing with failed read operators. 
+
+\begin{verbatim}
+do{
+  // prompt the user for input
+  // get user input
+
+  // check for failure and validity
+  if( std::cin.fail() ){
+  	// tell the user the input failed and if possible why
+  	// set input to invalid value to force looping
+  	
+	std::cin.clear(); //reset the stream for 
+    std::cin.ignore(INT_MAX);	//ignore anything left in the stream 
+  }
+  else if( /* input is invalid test */ ){
+     // tell the user it's invalid and if possible why
+  }
+ 
+}while( /* input is invalid test */ );
+\end{verbatim} 
+Three \textit{ios} methods are used on \textit{std::cin} in this loop: \textit{fail}, \textit{clear}, and \textit{ignore}.  They're listed under state flag functions in the \textit{ios} class documentation.
+
+\subsection{Polling Loop}
+
+Polling loops continue as until a particular state is reached.  Just about any loop can be called a polling loop.  For example, validation loops poll the system to see if valid input was was or was not read. A generalized polling loop\sidenote{lacking a more descriptive name} might use a specific variable, called a \textsc{flag} to track the state that drives the loop. Here we show a while loop version.
+
+\begin{verbatim}
+bool continue = true;
+while ( continue ){
+
+  // looped code
+
 	
-    std::string lastUp(1, toupper(str[str.length()-1]) );
-    std::string butLastUp(strToUpper(str.substr(0,str.length()-2));
-
-   return  butLastUp.append(lastUp);
-  } 
-}
-\end{verbatim}
-
-Let's stop and make sure we understand how to think about these kinds of recursive processes.  Recursive processes like our recursive \textit{strToUpper} work based on the principle of \textsc{induction}\sidenote{\url{http://en.wikipedia.org/wiki/Structural_induction}}.  When approaching the procedure, we assumed that the recursive call would present us with all but one of the letters in uppercase and then specified the other computation that needed to be done given that data.  We did not initially worry about how the recursion work, we simply proceed as if it would.  In addition to dealing with the recursive, non-empty case, we specified a non-recursive base case for the empty string.  It's the combination of these two things that allows the recursion to work. Let's see how. Our procedure clearly works for empty strings as we hard-coded the solution.  It doesn't take too much to see that it works for strings of length one.  We know it works for empty strings and we assume the C++ library code we're using works. The correctness of our procedure on strings of length one is only dependent on that code.  So, as long as we glued all of that together correctly, \textit{strToUpper} will work for strings of length one.  This same argument works for strings of length 2, then 3, then 4, and so on.  We see that if \textit{strToUpper} works on strings of length $n$, then it must work on strings of length $n+1$ for any $n\geq0$.  The standard metaphor used to explain induction is climbing a ladder.  The base case is how to get up to the first rung of the ladder.  The recursive case tells you how to get to the next rung.  So, if you can get on the first rung and you can climb from one rung to the next, then you can climb as high as you'd like.
-
-
-\subsection{Iterative Functions on Strings}
-
-Iterative processes work by accumulating a solution as you go.  This is subtly different than the recursive processes we just worked with.  In recursion we work with the complete picture: the first character and the complete solution of the rest of the string. No part of the string data is unaccounted for.  With iteration we have to consider a new picture of the problem.  Let's look at our \textit{strToUpper} procedure and generalize from there.  The iterative picture of this procedure has three elements: the part of the upper case string we've accumulated so far, the current character we need to compute the uppercase version of and add to our accumulated answer, and the remainder of the string that needs converting.  So, we've gone from a two part view of the problem to a three part view of the problem.  Not a huge change really. The trick now is how to express the process by which we go character by character, accumulated the uppercase string as we go.
-
-Loops are the standard method for achieving iteration\sidenote{recursive procedures can also carry out iterative processes}. For \textit{strToUpper}, we'll use a loop to \textit{iterate over the characters in our string}, i.e. to convert them to uppercase and accumulate them in a variable one at a time. Let's look at stub that covers just the general iterative process.
-
-\begin{verbatim}
-std::string strToUpper(std::string str){
-  
-  // initialize accumulator variable 
-  std::string accum("");
-
-  // iterate over each character in str	  
-  for(int i=0; i < str.length(); i++){
-      //str[i] 
-      //accum  
+  if( /* poll test */){
+    continue = false;
   }
-  
-  // return accumulated solution 
-  return accum;
 }
 \end{verbatim}
-This stub has the basic iterative stuff but not the \textit{strToUpper} problem specific stuff.  First, we see the variable \textit{accum} with which we'll accumulate the solution. It starts as the empty string because that's the logical choice for, ``no part of the string has been accumulated''. The loop will count over the index values for \textit{str} and accessing \textit{str[i]} inside the loop will guarantee we get each character.  The plan is to add a new uppercase letter to \textit{accum} on each step of the iterative process, so we should have that variable in the loop body as well.  If we get the accumulating setup right, then when this loop completes, we should have a complete solution.  Thus, we return the value stored in \textit{accum} as our result.  
+Here we see the loop polling the system at the end of every loop. If the desired state is detected, then the $continue$ flag is flipped and the loop will terminate.
 
-To finish \textit{strToUpper} we simply need to get the uppercase value of \textit{str[i]} and accumulate it.  In this case, we'll want to \textit{append}\sidenote{the string class provides other ways of adding to our partial solution, see if you can find them}.
+\subsection{Counted Loops}
+
+Sometimes repetition isn't driven by some larger system state, but simply needs to occur a specific number of times.  For this we use \textsc{counted loops}.  These loops effectively count off the number of repetitions.  To accomplish this we need a counter variable. Let's start with a simple loop for ten repetitions by counting though 0 to 9\sidenote{the reason for starting at 0 will be clear as we move forward};
+
 \begin{verbatim}
-std::string strToUpper(std::string str){
+int counter(0);
+while( counter < 10 ){
+  // looped code;
+
+  counter++;	
+}
+\end{verbatim}
+
+This loop carries out a classic, general loop pattern:
+\begin{verbatim}
+// initialize state s
+while( /* test s for continuation condition */ ){
  
-  std::string accum("");
+  // loop code
   
-  for(int i=0; i < str.length(); i++){
-     //use append as mutator
-     accum.append(string(1,toupper(str[i])));
-  }
-  
-  return accum;
+  //update s
 }
 \end{verbatim}
-
-We don't have to iterate through our string in first to last order.  Just like with recursion, you usually have options and in this case we could solve the problem working from last to first instead. This time, we'll need to use \textit{append} like a function, not a mutator. Do you see why?
+This pattern is based off three parts: pre-loop initialization of state, looping based on state condition, state update at the end of the loop.  This pattern is exactly what the third C++ loop statement is meant to do.  This loop is called the \textit{for} loop.  Here's the general pattern and the count to 10 loop as a for loop.
 \begin{verbatim}
-std::string strToUpper(std::string str){
- 
-  std::string accum("");
-  
-  for(int i=str.length()-1; i >= 0; i--){
-	accum = string(1,toupper(str[i])).append(accum);
-  }
-  
-  return accum;
-}
-\end{verbatim}
+for(/*initialize s*/ ; /* test s */ ; /*update s*/ ){
 
-
-
-\section{Iteration and Recursion for Effect}
-
-So far we've only considered functional procedures.  Let's rethink our problem not as a function but as a mutator.
-\begin{verbatim}
-/** 
- * setStrToUpper modifies a string so that all the contained letters 
- *  are now uppercase
- * @param strRef reference to the string
- * @return none
- * @pre strRef is composed of alphabetic characters only
- * @post string variable referenced by strRef has been modified
- */
- void setStrToUpper(std::string &strRef);
-\end{verbatim}
-Now our gUnit tests.
-\begin{verbatim}
-
-TEST(setStrToUpper,all){
-   string S("");
-
-  // empty case
-  S = "";
-  EXPECT_EQ(string(""),S);
-  setStrToUpper(S);
-  EXPECT_EQ(string(""),S);
-
-  // other cases
-  S = "a";
-  EXPECT_EQ(string("a"),S);
-  setStrToUpper(S);
-  EXPECT_EQ(string("A"),S);
-
-  S = "dog";
-  EXPECT_EQ(string("dog"),S);
-  setStrToUpper(S);
-  EXPECT_EQ(string("DOG"),S);
-
-  S = "cAt";
-  EXPECT_EQ(string("cAt"),S);
-  setStrToUpper(S);
-  EXPECT_EQ(string("CAT"),S);          
+ // looped code
 
 }
-\end{verbatim}
 
-Now, let's see how we can use recursive and iterative strategies to create the desired effect.
-
-\subsection{Iteration for effect}
-
-Loop based iteration goes well with effect-based procedures.  Let's start with the basic stub.
-\begin{verbatim}
-void setStrToUpper(std::string &strRef){
- 
-  //iterate over each character
-  for(int i=0; i < str.length(); i++){
-	//str[i]
-  }
-  return;
-}
-\end{verbatim}
-This time there's no accumulator variable because \textit{strRef} itself is acting as the accumulator.  We're effectively planning to accumulate the answer in-place\sidenote{in the memory we already have allocated}.  So, the only thing we need to be prepared to do is iterate over the characters in the string; this is what we see in our stub. Now all that's left is mutate the character inside the loop.  Notice this version doesn't require converting chars to strings because our mutation occurs with respect to char values and doesn't require string class methods.
-
-\begin{verbatim}
-void setStrToUpper(std::string &strRef){
- 
-  //iterate over each character
-  for(int i=0; i < str.length(); i++){
-	// change current char to uppercase version
-	str[i] = toupper(str[i]);
-  }
-  return;
-}
-\end{verbatim}
-
-Once again, we could do this going from index \textit{str.length()-1} down to $0$ if we wanted to. 
-
-\subsection{Recursion for Effect}
-
-Recursing for effect can be tricky when we don't have reference based accessors. When we select the rest of the string \textit{str} we use \textit{str.substr(1)}.  This method returns a copy of the rest.  If we then mutate that copy, we still haven't mutated the original.  We'll have to pay close attention to details in order to work around this. Let's start with the stub. In this stub we'll go ahead and save our copy of the rest to a local variable and make the mutation based recursive call on that variable.
-
-\begin{verbatim}
-void setStrToUpper(std::string &strRef){
- 	
- 	if( strRef.isEmpty() ){
- 	  return;
- 	}
- 	else{
- 	  // strRef[0]
-	  std::string rst( strRef.substr(1) );  	  
- 	  setStrToUpper(rst);
- 	  // rst
- 	  return;
- 	}
+for( int counter(0); counter < 10 ; counter++){
+  //looped code
 }
 \end{verbatim} 
+Notice the for loops lets you move all the administrative stuff\sidenote{code that drives the loop} to one line and frees up the loop body for the code logic you're trying to repeat. 
 
-It's clear that the empty string case is, once again, complete. If the string is empty, there's nothing to change, so we're free to return. Now, let's stop and think about what's going on with the local variable \textit{rst} and the recursive call \textit{setStrToUpper(rst)}. Why did we non just pass \textit{strRef.substr(1)} to the recursive procedure call?  Well, \textit{setStrToUpper} requires a string by reference, and that means we must use a string variable. So, we must first create that variable, give it the appropriate initial value, the ``rest'', and then use it to make the recursive call. None of this is commented out in the stub because there's nothing left to add to these statements. What is left in the procedure is figuring out what to do with the mutated \textit{rst}. Thus, we leave a comment about \textit{rst} to remind us to do something with it \textit{after} we mutate it with recursion. 
+Another use of counted loops is for working with indexed collections\sidenote{like strings,vectors, and arrays} or counting through a specific sequence of numbers\sidenote{as opposed to a specific number of numbers}.  We call these for-each loops because the counting is just a vehicle by which we can get at each element of the collection or sequence.  So, if you need to access every character in a string of 10,000 characters, then you can count through the interval of indexes $[0, 10000)$.  The difference here is intension; we want each character and use each integer index to get it.  Pure counted loops only differ in that the goal is to count of numbers\sidenote{The distinction is a a minor one, but worth thinking about}. 
 
-To finish \textit{setStrToUpper} we need to change \textit{strRef[0]} to upper case and then \textit{replace} the rest of \textit{strRef} with \textit{rst}.  Lucky for us, there's a \textit{replace} method in the string class. If there weren't we'd need to write a helper.
-
+Let's say $s$ is a string. The following counts through all of its index values and accesses every entry in $s$.
 \begin{verbatim}
-void setStrToUpper(std::string &strRef){
- 	
- 	if( strRef.isEmpty() ){
- 	  return;
- 	}
- 	else{
-      // change the first to uppercase
- 	  strRef[0] = toupper(strRef[0]);
- 	  // get a copy of the rest
-	  std::string rst( strRef.substr(1) );  	  
-      // change the copy of the rest to all upper case
- 	  setStrToUpper(rst);
- 	  
- 	  // replace strRef with modified copy
- 	  strRef.replace(1,strRef.length()-1,rst);
- 	  return; 
- 	}
+for( int i(0) ; i < s.length() ; i++){
+  ... s[i] ... //or s.at(i)
 }
-\end{verbatim} 
-
-We can clean this code up a bit. The if case really does nothing.  This revision gets rid of that case but keeps the same logic.
+\end{verbatim}
+The variable name \textit{i} is short for ``index'' and is the traditional name for this situation. Maybe you wanted to go from end to beginning, not beginning to end?
 \begin{verbatim}
-void setStrToUpper(std::string &strRef){
- 	
- 	if( !strRef.isEmpty() ){
- 	  // change the first to uppercase
- 	  strRef[0] = toupper(strRef[0]);
- 	  // get a copy of the rest
-	  std::string rst( strRef.substr(1) );  	  
-      // change the copy of the rest to all upper case
- 	  setStrToUpper(rst);
- 	  
- 	  // replace strRef with modified copy
- 	  strRef.replace(1,strRef.length()-1,rst); 	  
- 	}
- 	
- 	return;
+for( int i(s.length()-1) ; i >= 0 ; i--){
+  ... s[i] ... //or s.at(i)
 }
 \end{verbatim}
 
-If the string is empty, then it skips the whole conditional and goes right to the return. If it's not empty, then we'll carry out the mutation and then jump down to the return. 
-
-\section{Process vs. Procedure}
-
-A procedure that calls itself is recursive.  This does not mean that the process carried out by the procedure is inherently recursive.  It is possible to write a recursive procedure that carries out an iterative process, or a process that accumulates as we go.  Consider this two procedure version of \textit{setStrToUpper}.
-
+What if we only wanted the odd numbers between some odd number $a$ and some odd number $b$?
 \begin{verbatim}
-void setStrToUpper(std::string &strRef){
- 	iterative_helper(strRef,0);
- 	return;
-}
-
-void iterative_helper(std::string &strRef, int fst){
-
- 	if( fst >= strRef.length() ){
- 	  return;
- 	}
- 	else{
-      // change the first to uppercase
- 	  strRef[fst] = toupper(strRef[fst]);
-	  iterative_helper(strRef,fst+1);
- 	  return; 
- 	}
-}
-\end{verbatim} 
-
-The procedure \textit{iterative\_helper} effectively iterates over the indexes of \textit{strRef} in the same manner as our counting loops. The call to \textit{setStrToUpper} acts to initialize the counter, \textit{fst}. The empty case now acts as the \textit{stop-when} check, similar to a loop's continuation check.  The non-empty case carries out the same mutation as the iterative loop version we wrote, increments \textit{fst}, and repeats the process via recursion. 
-
-How about an iterative function using a recursive procedure?
-\begin{verbatim}
-std::string strToUpper(std::string str){
-	return iterative_helper(str,string(""));
-}
-
-std::string iterative_helper(std::string str, std::string accum){
-
-   if(str.isEmpty()){
-      return accum;
-   }
-   else{
-	 // locally modify accum     
-     accum.append(string(1,toupper(str[0])));
-	 
-	 // pass new local value to recursion
-	 return iterative_helper(str.substr(1),accum)   
-   
-   }
+for( int i(a); i <= b; i+=2) {
+  //...i...
 }
 \end{verbatim}
-In this case we used a little local mutation to make the code a little more clear.  Because \textit{accum} is pass by value, the mutation caused by \textit{append} only changes the \textit{accum} for the procedure in which it is called. When we recursively call \textit{iterative\_helper} the new value of accum is selected and passed to the recursive call. We could have accomplished this in one overly long expression.
-\begin{verbatim}
-iterative_helper(str.substr(1), accum.append(string(1,toupper(str[0]))))   
-\end{verbatim} 
+How about the first 10 powers of 2?
 
-What we're seeing is that recursive procedures seem to be more expressive than loops in that you can write iterative code with recursive procedures, but you can't write recursive code with loops.  Sure, loops seem to re-call their own bodies, but that's overtly recursive.  What that being said, recursion and iteration are simply tools we use as programmer to express the logic of repetition.  We use the tool the suits the job. Recursive procedures might be more fundamental to the process of computation, but that's a distinction thats important to our understanding of computation and not necessarily to our desire to write correct, simple and efficient programs. So, choose the right too for the job and we'll save the recursion/iteration comparison for when we're more well equipped to qualify and quantify ``better''.
+\begin{verbatim}
+for( int i(1); i<=1024 l i*=2 ){
+  //...i...
+}
+\end{verbatim}
+
+The key to these last examples is that counting doesn't always happen in increments of 1, sometimes we count in twos, sometimes threes, sometimes we multiply instead of add.  In all cases, the \textit{for} loop makes for concise statements of counting in code.
 
 
 \end{document}
