@@ -622,6 +622,66 @@ void setStrToUpper(std::string& str){
 
 The final version of \textit{setStrToUpper} is strikingly similar to our iterative version:  it works on a single string object rather than produce any copies and its logic is oriented around counting through indexes.  
 
+\section{Recap}
+
+Let's wrap-up this discussion by looking at the preferred implementations. Let's first look at the recursive vs. iterative functional strToUpper.
+\begin{verbatim}
+std::string strToUpper(std::string str){
+
+  if( str.empty() ){
+    return std::string("");
+  }
+  else{ //not empty
+    return std::string(1,toupper(str[0])) +
+           strToUpper(str.substr(1));
+  }  
+}
+
+std::string strToUpper(std::string str){
+   
+   for(unsigned int i{0}; i < str.length(); ++i ){
+	  // set str[i] to the uppercase version of its current contents
+      str[i] = toupper(str[i]);
+   }
+   
+   return str;
+}
+\end{verbatim}
+It turns out that the iterative version is more efficient than the recursive version, but comparing these two implementations is a bit unfair. The iterative version is fairly optimized: it leverages the implicit copy done by pass-by-value functions to accumulate the answer in the same memory space as the function input. The recursive version actually suffers a performance hit by using \textit{substr} which creates a copy of the rest rather than select the rest directly.  This is more or less an unavoidable cost of the C++ std::string class.  So, the difference is not really a function of recursion vs iteration in general but recursion vs. iteration for std::strings.  Given a way to select the rest without making a copy, these two implementations would be equally efficient.  
+
+Now let's look at the mutator setStrToUpper.
+\begin{verbatim}
+void setStrToUpper(std::string& str){
+   
+   for(unsigned int i{0}; i < str.length(); ++i ){
+	  // set str[i] to the uppercase version of its current contents
+      str[i] = toupper(str[i]);
+   }
+   
+   return;
+}
+
+void setStrToUpper(std::string& str){
+
+   setStrToUpper(str,0);
+   return;
+}
+
+void setStrToUpper(std::string& str, unsigned int i){
+   
+   if( i == str.length() ){ // empty!
+      return;
+   }
+   
+   str[i] = toupper(str[i]); // set the "first"
+   setStrToUpper(str,i+1); // set the "rest"
+   return;
+}
+\end{verbatim}
+It turns out that these two implementations are, in terms of efficiency, more or less equivalent. This isn't too surprising given that the recursive version more or less mirrors the logic of the iterative version and avoids the use of \textit{substr}. 
+
+What should we take away from this? You should probably favor iterative logic for std::string procedures because it plays well with how the string class is implemented. With that being said, our recursive setStrToUpper implementation shows us that we can effectively implement iterative logic using recursive procedures. So in the end, the ability work recursively and iteratively are tools we must have in our problem solving tool box.  The other important thing we've started looking at is efficiency.  We'll soon equip ourselves with a way to study and understand program efficiency.  Until then, always remember that job number one is to make the code function correctly then optimize it. As you gain experience you'll learn different optimization techniques and know to design your code with those in mind. Until then, don't start to worry about slow code until you have concrete evidence that your code is slow. 
+
 \end{document}
 
 
