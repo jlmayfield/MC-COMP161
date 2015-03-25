@@ -50,21 +50,46 @@ For your project, you'll be writing a CLI-based program that allows users to do 
 \item Encode a plaintext message given a key. Both the plaintext and key are read from files. The resultant ciphertext is written either to a file or the standard output. Prior to encoding, the plaintext message should be preprocessed as described above.
 \item Decode a ciphertext message given a key. Both the ciphertext and key are read from files. The resultant plaintext is written either to a file or to the standard output.
 \item Generate a random key and write it either to a file or the standard output.  
+<<<<<<< HEAD
+=======
+\item Generate a keyword-based key and write it either to a file or the standard output.
+>>>>>>> week10
 \end{enumerate}
 
 Your program will have a simple, linux-like interface. For the following examples, assume the program executable is named \textit{monoalpha}. To generate a random key users do the following:
 \begin{verbatim}
+<<<<<<< HEAD
 monoalpha -k [KEYFILE]
 \end{verbatim}  
 When given the optional filename \textit{KEYFILE}, the program writes a random permutation of the standard alphabet to the file. If it is omitted, then the key is written to the standard output. Here's some examples of what this might look like in practice\sidenote{\$$>$ is the prompt}.
 \begin{verbatim}
 $> monoalpha -k
+=======
+monoalpha -kr [KEYFILE]
+\end{verbatim}  
+When given the optional filename \textit{KEYFILE}, the program writes a random permutation of the standard alphabet to the file. If it is omitted, then the key is written to the standard output. Here's some examples of what this might look like in practice\sidenote{\$$>$ is the prompt}.
+\begin{verbatim}
+$> monoalpha -kr
+>>>>>>> week10
 XYZABCDEFGHIJKLMNOPQRSTUVW
 $> monoalpha -k key.txt
 $>
 \end{verbatim}
 In the second example the file \textit{key.txt} would either be created and filled with the key or its contents would be overwritten with a key. The key will be written to a file the same way it is written to the standard output: a single line of all uppercase letters.
 
+<<<<<<< HEAD
+=======
+To generate a keyword based\sidenote{discussed in class} key, the user would do the following.
+\begin{verbatim}
+monoalpha -kk keyword [KEYFILE]
+\end{verbatim}
+The optional KEYFILE argument works the same as random keys. The required \textit{keyword} argument is the keyword. Keywords should be case insensitive, as shown here:
+\begin{verbatim}
+$> monoalpha -kk hello
+HELOABCDFGIJKMNPQRSTUVWXYZ
+\end{verbatim}
+
+>>>>>>> week10
 To encode a plaintext document we'll require the key and the plaintext to be in files.  The ciphertext will optionally be written to a file or the standard out in a fashion similar to that of the key generation command.
 \begin{verbatim}
 monoalpha -e keyfile plaintext [CIPHERTEXT]
