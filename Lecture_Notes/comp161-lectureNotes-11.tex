@@ -6,7 +6,7 @@
 
   
 \title{COMP 161 - Lecture Notes - 11 - Streaming File I/O}
-\date{Spring 2014}
+\date{}
 
 \begin{document} 
 \maketitle
@@ -17,41 +17,37 @@ In these notes we see how to use the streaming file I/O classes.
 
 \section{File Streams}
 
-So far we've encountered three streams: \textit{std::cout}, \textit{std::cerr}, and \textit{std::cin}.  These provide a pretty straight forward mechanism for doing \textit{I/O} operations to the standard I/O devices.  The \textit{fstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/}} library provides a set of classes for doing the same style of streaming I/O with files.  In short, let lets you create objects to stream out and input to and from a file on the computer.  
+The \textit{fstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/}} library provides a set of classes for doing streaming I/O with files in the same general way that we've done with standard in/out and with stringstreams. The input file stream, or \textit{ifstream},\sidenote{\url{http://www.cplusplus.com/reference/fstream/ifstream/}} class lets you establish a file as a streaming input object and thereby lets you read data from a file.  The usage of the \textit{ifstream} is exactly the same as \textit{std::cin}, but, like istringstream, setting up the stream takes a little work. Similarly, the output file stream, or \textit{ofstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/}}, class lets you use a file in the same fashion as \textit{std::cout} or an ostringstream.
 
-The \textit{ifstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ifstream/}} lets you establish a file as a streaming input object and thereby lets you read data from a file.  The usage of the \textit{ifstream} is exactly the same as \textit{std::cin}, but setting up the stream takes a little more work. Similarly, the \textit{ofstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/}} lets you use a file in the same fashion as \textit{std::cout}.
+\section{Creating File Streams}
 
-\section{Creating Streams}
-
-We don't have to setup \textit{std::cout} and \textit{std::cin} because they have already been setup to write and read from the standard output and standard input respectively. File streams need to be told the path to the file they'll be streaming from.  To do this, we initialize them with the path as a string. Path strings can be relative or absolute.
+To connect a file to a stream we simply need to initialize the stream with the file's path. Path strings can be relative or absolute.
 \begin{verbatim}
-ofstream outFile("newlog.log");
+std::ofstream outFile{"newlog.log"};
 
-ifstream inFile("old/yesterdaylog.log");
+std::ifstream inFile{"old/yesterdaylog.log"};
 \end{verbatim}
-The \textit{ofstream} named \textit{outFile} can be used to write the file named \textit{newlog.log}.  That file must be in the current working directory\sidenote{do you see why?}. The \textit{ifstream} named \textit{inFile} can be used to read data from a file named \textit{yesterdaylog.log} which should be found in the \textit{old} subdirectory of the current working directory. We can also declare uninitialized streams and open a file with them after the fact with the \textit{open } method.
+The \textit{ofstream} object named \textit{outFile} can be used to write data to the file named \textit{newlog.log}.  That file must be in the current working directory\sidenote{do you see why?}. The \textit{ifstream} object named \textit{inFile} can be used to read data from a file named \textit{yesterdaylog.log} which should be found in the \textit{old} subdirectory of the current working directory. We can also declare uninitialized streams and open a file with them after the fact by using the \textit{open } method.
 \begin{verbatim}
 ofstream outFile;
 ifstream inFile;
 
 outFile.open("newlog.log");
-ifstream.infile("old/yesterdaylog.log");
+infile.open("old/yesterdaylog.log");
 \end{verbatim}
 
-There are several quirks with initializing file streams that you need to keep in mind.  Let's start with ofstreams.  If the file you're attempting to stream to does not currently exist, then \textit{the act of writing to it will create that file}.  This let's you create new files in your code. If the file does exist, then the default behavior is to \textit{overwrite} the current file's contents.  If you want to append to the file, you need to open it differently. If we wanted to append to \textit{newlog.log}, then we'd open it like this:
+There are several quirks with initializing file streams that you need to keep in mind.  Let's start with ofstreams.  If the file you're attempting to stream to does not currently exist, then \textit{the act of writing to it will create that file}.  This is the same behavior we saw on the CLI and it let's you create new files in your C++ programs by simply opening a file and writing to it. 
+
+If the file does exist, then the default behavior is to \textit{overwrite} the current file's contents.  If you want to append to the file, you need to open it differently. If we wanted to append to \textit{newlog.log}, then we'd open it like this:
 \begin{verbatim}
-ofstream outFile("newlog.log",std::ofstream::app); 
+ofstream outFile{"newlog.log",std::ofstream::app}; 
 
 // alternative 
 ofstream outFile;
 outFile.open("newlog.log",std::ofstream::app);
 \end{verbatim}
-Perhaps the biggest gotcha with file output is that all the data you write won't show up in the file on the hard drive until you close the file stream. \textit{The act of closing the file stream causes the changes to the file to be saved to disc}.  To close a our \textit{outFile} stream we simply use the \textit{close} method.
-\begin{verbatim}
-outFile.close();
-\end{verbatim}
 
-The biggest problem you can face with opening an ifstream is attempting to open a file that does not exist.  In this case, your write operations will fail. To get around this, we can check that the open succeeding before attempting to read the file. The \textit{is\_open}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/is_open/}} class method is a predicate for exactly this state.  The simple strategy we see here is to end the procedure if input file open fails.
+The biggest problem you can face when opening an ifstream is attempting to open a file that does not exist.  In this case, your write operations will fail. To get around this, we can check that the open succeeded before attempting to read the file. The \textit{is\_open}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/is_open/}} class method is a predicate for exactly this state.  The simple strategy we see here is to end the procedure if input file open fails.
 \begin{verbatim}
 
 ifstream inFile("mydata.dat");
@@ -59,29 +55,43 @@ ifstream inFile("mydata.dat");
 if( !inFile.is_open() ){
   return ; 
 }
+
+// we only reach here if the file opened
 \end{verbatim}
+
 
 \section{Read and Writing}
 
 Once your stream is open, basic reading and writing proceed in the same fashion as they do with \textit{cout} and \textit{cin}.  The $<<$ operator can be used with output streams to write to files and the $>>$ operator can be used with input streams to read from files. The only difference is the I/O stream object being used.
 \begin{verbatim}
-ofstream outFile("writeToMe.txt");
-ifstream inFile("readFromMe.txt");
+ofstream outFile{"writeToMe.txt"};
+ifstream inFile{"readFromMe.txt"};
 
 outFile << "This text appears in the file\n";
 
 // get one int
-int x(0);
+int x{0};
 inFile >> x;
 
 // get 3 a string token (everything to next whitespace char)
-string t(""), r(""), u("");
+string t{""}, r{""}, u{""};
 inFile >> t >> r >> u;
 
 // get a whole line of text as a string
-string s("");
+string s{""};
 getline(inFile,s);
 \end{verbatim}
 
+Perhaps the biggest gotcha with file output is that all the data you write won't show up in the file on the hard drive until you close the file stream. \textit{The act of closing the file stream causes the changes to the file to be saved to disc}.  To close a our \textit{outFile} stream we simply use the \textit{close} method.
+\begin{verbatim}
+outFile.close();
+\end{verbatim}
+
+
 One thing to keep in mind with file input is a sense of where the read pointer\sidenote{like a cursor} is currently located.  Be default, it starts at the beginning of the file.  Every time you read from the stream, you advance that pointer.  It is possible to use \textit{seekg}\sidenote{\url{http://www.cplusplus.com/reference/istream/istream/seekg/}} to move the read pointer around. The trick is that as far as seekg is concerned, positions are specified in bytes not in logical tokens.  So if you need to read the 10th word in a file where words are separated by whitespace, it's probably easier to read and ignore the first 9 words, then read and keep the 10th.
+
+\section{File I/O and Procedures}
+
+There's not a ton to say about writing file I/O procedures because the way we do I/O procedures in general works for all types of streams.  If you write an output procedure that takes an ostream by reference, then you can pass it an ofstream to write to a file. If you write an input procedure that takes an istream by reference, then you can pass it an ifstream and read from a file.  The catch is that \textit{we cannot open or close the stream within our procedure because those methods are specific to file streams}.  We write our file I/O procedures with just the act of reading or writing in mind. We must then take steps to declare our stream in the procedure's calling space\sidenote{or prior to that and pass it along by reference} and for file output we must do the same with closing the file.
+
 \end{document} 
