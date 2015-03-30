@@ -89,4 +89,9 @@ outFile.close();
 
 
 One thing to keep in mind with file input is a sense of where the read pointer\sidenote{like a cursor} is currently located.  Be default, it starts at the beginning of the file.  Every time you read from the stream, you advance that pointer.  It is possible to use \textit{seekg}\sidenote{\url{http://www.cplusplus.com/reference/istream/istream/seekg/}} to move the read pointer around. The trick is that as far as seekg is concerned, positions are specified in bytes not in logical tokens.  So if you need to read the 10th word in a file where words are separated by whitespace, it's probably easier to read and ignore the first 9 words, then read and keep the 10th.
+
+\section{File I/O and Procedures}
+
+There's not a ton to say about writing file I/O procedures because the way we do I/O procedures in general works for all types of streams.  If you write an output procedure that takes an ostream by reference, then you can pass it an ofstream to write to a file. If you write an input procedure that takes an istream by reference, then you can pass it an ifstream and read from a file.  The catch is that \textit{we cannot open or close the stream within our procedure because those methods are specific to file streams}.  We write our file I/O procedures with just the act of reading or writing in mind. We must then take steps to declare our stream in the procedure's calling space\sidenote{or prior to that and pass it along by reference} and for file output we must do the same with closing the file.
+
 \end{document} 
