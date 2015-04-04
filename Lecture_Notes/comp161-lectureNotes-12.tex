@@ -195,10 +195,102 @@ std::string str{"hello world!"};
 std::shuffle(begin(str)+3,end(str)-3,gen);
 \end{verbatim}
 
-%\section{Randomized Procedure Design}
+\section{Randomized Procedure Design}
 
-%The std::shuffle procedure and the use of the application operator with distribution objects gives us a good design cue for designing our own randomized procedures. They both use an external source of randomness passed as an argument to the procedure. The highly stateful nature of PRNGs is also a good indicator that our random number generating argument is passed by reference. This makes the design of randomized procedures similar to that of I/O procedures. Both utilize another resource in the system that is initialized outside of the procedure and pass by reference to the procedure. 
+The std::shuffle procedure and the use of the application operator\sidenote{operator()} with distribution objects\sidenote{dist(gen)} gives us a good design cue for how to design a randomized procedure in C++. Both procedures use an external source of randomness passed as an argument to the procedure. The highly stateful nature of PRNGs is also a good indicator that our random number generating argument is passed by reference. This makes the design of randomized procedures similar to that of I/O procedures. Both designs utilize another resource in the system that is initialized outside of the procedure and then passed by reference to the procedure. 
 
+There is another important advantage to passing the PRNG as an argument to the procedure: testing. If the PRNG is local to our randomized procedure, then we're most likely going to want to use something like the system time to seed it. This is fine for the actual application when we want the outward appearance of randomness.  It also means the the randomness of the PRNG and the logic of what we're doing with random values are inseparable. If, instead, we initialize and seed the PRNG externally, then we can use a seed value for which we know the behavior. We can save the first $n$ values produced by the PRNG and evaluate the expected behavior of the procedure with respect to those values.  Put another way, we can remove randomness from the equation and test the expected results in a completely deterministic way.
+
+Let's look at the following procedure.
+\begin{verbatim}
+  /*
+    Simulate rolling n m-sided dice and get the 
+    total of all n dice.
+    @param n number of dice
+    @param m number of sides per dice
+    @param prng instance of the system's uniform random number generator
+    @return total from rolling n m-sided dice
+    @pre prng has been seeded. m > 0. 
+    @post prng produced n new random numbers
+   */
+  unsigned int ndm(unsigned int n, unsigned int,
+		   std::default_random_engine& prng);
+\end{verbatim}
+
+To test this we'll pick a seed value, in this case 1, and generate some tables relative to this seed\sidenote{The program RandTabMaker.cpp was used for this purpose and the data is in randData.txt}.
+\begin{verbatim}
+First 20 numbers from seed 1:
+16807       282475249   1622650073  984943658   1144108930  
+470211272   101027544   1457850878  1458777923  2007237709  
+823564440   1115438165  1784484492  74243042    114807987   
+1137522503  1441282327  16531729    823378840   143542612   
+
+First 20 numbers from [1,4] with seed 1:
+1  1  4  2  3  1  1  3  3  4  2  3  4  1  1  3  3  1  2  1  
+
+First 20 numbers from [1,6] with seed 1:
+1  1  5  3  4  2  1  5  5  6  3  4  5  1  1  4  5  1  3  1  
+
+First 20 numbers from [1,8] with seed 1:
+1  2  7  4  5  2  1  6  6  8  4  5  7  1  1  5  6  1  4  1  
+
+First 20 numbers from [1,10] with seed 1:
+1  2  8  5  6  3  1  7  7  10 4  6  9  1  1  6  7  1  4  1  
+
+First 20 numbers from [1,12] with seed 1:
+1   2   10  6   7   3   1   9   9   12  5   7   10  1   1   7   9   
+1   5   1   
+
+First 20 numbers from [1,20] with seed 1:
+1   3   16  10  11  5   1   14  14  19  8   11  17  1   2   11  14  
+1   8   2   
+\end{verbatim}
+
+Now that we know what numbers the PRNG will spit out we can predict exactly what would happen with our procedure with a freshly seeded PRNG.  
+\begin{verbatim}
+std::default_random_engine prng;
+
+prng.seed(1);
+EXPECT_EQ(0,ln12::ndm(0,6,prng));
+
+prng.seed(1);
+EXPECT_EQ(1,ln12::ndm(1,1,prng));
+
+prng.seed(1);
+EXPECT_EQ(5,ln12::ndm(5,1,prng));
+
+prng.seed(1);    
+EXPECT_EQ(1,ln12::ndm(1,4,prng));
+
+prng.seed(1);
+EXPECT_EQ(2,ln12::ndm(2,4,prng));
+
+prng.seed(1);
+EXPECT_EQ(11,ln12::ndm(5,4,prng));
+
+prng.seed(1);
+EXPECT_EQ(1,ln12::ndm(1,12,prng));
+
+prng.seed(1);
+EXPECT_EQ(60,ln12::ndm(10,12,prng));
+\end{verbatim}
+
+
+We can no work out the design for the procedure itself.  We'll go with iteration and accumulate the total as we ``roll'' the dice.
+\begin{verbatim}
+unsigned int ndm(unsigned int n, unsigned int m,
+	std::default_random_engine& prng){
+  
+    std::uniform_int_distribution<unsigned int> d{1,m};
+
+    unsigned int total{0};
+    for( unsigned int i{0}; i < n ; ++i){
+      total += d(prng);
+    }
+
+    return total;
+}
+\end{verbatim}
 
 
 \end{document}
