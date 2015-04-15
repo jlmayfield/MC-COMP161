@@ -2,35 +2,34 @@
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{hyperref}
 
-\title{COMP161 - Project 2 - Exploring Theory and Practice}
+\title{COMP161 - Project 2 - Complexity in the Real World}
 \author{}
-\date{Spring 2014}
+\date{Spring 2015}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For your final project you will generate and present a data set that aims to shed light on the performance of C++ implementations of key algorithms in searching and sorting. To generate the data you'll write a series of programs that can be used to measure execution time and again to get instruction execution counts with Valgrind's callgrind.  All this data will be presented in a series of well crafted tables.
+For your final project you'll carry out empirical studies of key searching and sorting algorithms in order to better appreciate the interplay between complexity and real world performance.
 \end{abstract}
 
 \section{The Data Set}
 
-The primary goal of this project is to generate a data set that allows one to think about the relationship between algorithm complexity and actual procedure performance. Towards that and you'll be writing a series of programs to gather data about the \textit{execution time} and \textit{number of instructions executed} for the following procedures\sidenote{procedures are written by you unless otherwise specified}:
+The primary goal of this project is to generate data sets that allow you to visualize and explore the running times of classic searching sorting algorithms\sidenote{see LN14}. We'll look at the following set of procedures: 
 \begin{itemize}
 \item binary search 
 \item  \textit{binary\_search} from the C++ \textit{algorithm} library 
 \item linear search 
 \item  \textit{find} from the C++ \textit{algorithm} library
-\item  bubbleSort 
-\item selectionSort 
-\item insertionSort 
 \item mergesort 
 \item quicksort 
 \item \textit{sort} the C++ \textit{algorithm} library 
+\item selectionSort 
+\item insertionSort 
 \end{itemize}
+This list includes procedures we'll develop and analyze in class as well as the C++ standard library implementations for some of those procedures. This lets us look at the efficiency of DIY implementations versus well engineered libraries. Additionally, the complete set of algorithms represents an important series of complexity classes and should allow us to look at order of magnitude differences. 
 
 
-All of the algorithms listed above are discussed at length in the textbook where the complexity of each procedure is clearly listed and complete array-based implementations are common. The algorithms for which implementations aren't given  are at least discussed and presented using pseudo-code.  These textbook implementations clearly highlight the core logic of the algorithm but are not optimized for maximum efficiency. To explore optimized implementations, you'll look turn to \textit{find}, \textit{binary\_search}, and \textit{sort} from the C++ STL \textit{algorithm} library\sidenote{\url{http://www.cplusplus.com/reference/algorithm/}}. 
 
 \subsection{Execution Times}
 

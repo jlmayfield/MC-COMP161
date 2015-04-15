@@ -1,19 +1,26 @@
 \documentclass[]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm}
 
-\title{COMP 161 - Lecture Notes - 22 - A high-level View of Complexity}
-\date{Spring 2014}
+\title{COMP 161 - Lecture Notes - 14 - Complexity and Efficiency}
+\date{}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these lecture notes we look at algorithm complexity and the use of Big-O notation in computing. The issues covered in these notes are also discussed at length in chapter 10 of the text.
+In these lecture notes we look at algorithm complexity and the use of Big-O notation in computing. 
 \end{abstract}
 
-\section{Putting Measurements in Perspective}
+\section{Efficiency and Computation}
 
-So you've written some code and used a tool like callgrind to measure the number of instructions executed. What can you do with that number? You can compare it to numbers gathered by different procedures solving the same problem and assess the efficiency differences between the sources of those numbers. In the same manner, you can use it to direct program optimization where you attempt to lower that number though changes to the original code. But, what we haven't really talked about is comparing that number against your efficiency expectations for your code. Put another way, what was your efficiency goal and did you reach it? 
+
+\section{Complexity}
+
+Go look at the documentation for any procedure or class method on \url{cplusplus.com} and towards the bottom of the page you'll see a section titled \textit{Complexity}. This section gives you a sense of the overall sense of the 
+
+
+
+
 
 Another, more detailed way of approaching this issue would be to imagine a plot of instructions executed\sidenote{or some other resource measure} by a procedure on a vector versus the size of the vector. As the vector gets bigger, what should happen to the instructions executed? If computational \textit{work} isn't random, then there should be some function $\mathcal{W}(n)$ which maps vector size $n$ to instructions executed. Let's call $\mathcal{W}$ the work function for a procedure\sidenote{Often time is used interchangeably with work and in that case we talk about $\mathcal{T}(n)$, the time function, instead}.
 
