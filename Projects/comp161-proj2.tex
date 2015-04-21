@@ -2,7 +2,7 @@
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{hyperref}
 
-\title{COMP161 - Project 2 - Complexity in the Real World}
+\title{COMP161 - Project 2 - Complexity and the Real World}
 \author{}
 \date{Spring 2015}
 
@@ -10,12 +10,12 @@
 \maketitle
 
 \begin{abstract}
-For your final project you'll carry out empirical studies of key searching and sorting algorithms in order to better appreciate the interplay between complexity and real world performance.
+For your final project you'll carry out empirical studies of key searching and sorting algorithms in order to better appreciate the interplay between complexity and real world performance. The ultimate goal is the collection of execution time data and the presentation of that data in the form of three mini-posters. 
 \end{abstract}
 
 \section{The Data Set}
 
-The primary goal of this project is to generate data sets that allow you to visualize and explore the running times of classic searching sorting algorithms\sidenote{see LN14}. We'll look at the following set of procedures: 
+One of the primary goals of this project is to generate data sets that allow you to visualize and explore the running times of classic searching and sorting algorithms. We'll look at the following set of procedures: 
 \begin{itemize}
 \item binary search 
 \item  \textit{binary\_search} from the C++ \textit{algorithm} library 
@@ -27,162 +27,99 @@ The primary goal of this project is to generate data sets that allow you to visu
 \item selectionSort 
 \item insertionSort 
 \end{itemize}
-This list includes procedures we'll develop and analyze in class as well as the C++ standard library implementations for some of those procedures. This lets us look at the efficiency of DIY implementations versus well engineered libraries. Additionally, the complete set of algorithms represents an important series of complexity classes and should allow us to look at order of magnitude differences. 
-
-
+This list includes procedures we'll develop and analyze in class and lecture notes as well as C++ standard library implementations. This lets us look at the efficiency of DIY implementations versus well engineered libraries. Additionally, the complete set of algorithms represents an important series of complexity classes\sidenote{$O(\log{n}),O(n),O(n\log{n}),O(n^2)$} and should allow us gain some appreciation for the order of magnitude differences these classes represent. 
 
 \subsection{Execution Times}
 
-Your first data set is the \textit{average} of five randomly selected procedure inputs for each of the 10 algorithms listed above and for each of the following input sizes: 10, 50, 100, 500, 1000, 5000, 10000, 25000, 50000, 75000, 100000, and 250000. To be clear thats 12 sizes, 10 algorithms, and 5 executions per size-algorithm combination for a total of \textit{120 average execution time data points} computed from 600 timed executions\sidenote{60 per algorithm}.
+Your first data set is the execution time for the theoretical worst case and five randomly selected procedure inputs for each of the 9 algorithms listed above and for each of the following input sizes: 10, 50, 100, 500, 1000, 5000, 10000, 25000, 50000, 75000, 100000, 150000, 200000, and 250000. When explicit generation of a worst-case generating input is not feasible or possible, then another random input should be used in its place. To be clear that's 14 sizes, 9 algorithms, and 6 executions per size-algorithm combination for a total of 756 timed executions\sidenote{84 per algorithm}. 
 
-As programmers, we learn that execution time is a function of many variables, is best viewed as a rough measure of overall performance, and is not a precise measure of the efficient use of computational resources.  However, time data has the added benefit of being easily digestible for experts and non-experts alike; everyone has a good sense of how to interpret time data and has a feel for the difference between 30 seconds and 5 minutes. This is why time data is still useful and still widely cited; it provides easy to understand context for more technical, nuanced data.
+Gathering data on only 6 cases is, for most of the sizes we're looking at, too little data. We're being hyper conservative about scaling programs up to larger numbers of executions as the input vectors get bigger. Several of the procedures that you'll be dealing with can and will take on the order of minutes to execute. So, a procedure that takes 5 minutes repeated 20 times will take over an hour to run. Given that we're all working off the same server, we'd like to avoid overloading the server with a class sized set of compute jobs each needing hours of compute time. This is also the reason we're not looking at writing one uber-program that gathers all of our data in a single execution
 
-We want to measure average performance and do do so we'll run our procedures on randomly generated inputs, or \textsc{vector$<$int$>$}s in this case, of various sizes. To get a better feel for overall performance for each problem size, we'll collect the execution time for several different executions of the procedure and then compute and report the average. Averaging only five instances is really too few, but we're being hyper conservative about scaling programs up to larger numbers of executions when the input vectors get bigger. Several of the procedures that you'll be dealing with can and will take on the order of minutes to execute. So, a procedure that takes 5 minutes repeated 20 times will take over an hour to run. Given that we're all working off the same server, we'd like to avoid overloading the server with 14 compute jobs each needing hours of compute time.
+\section{Posters}
 
-\subsection{Instructions Executed}
+Posters are common means of presenting information in the sciences. A lot of work can go into making high quality posters. The posters you'll be creating are not meant as a complete poster in the traditional sense. They will simply present the data without the usual introductory material and without drawing conclusions from the data. In short, we're simply presenting the results and the methodology by which they were gathered so that readers can draw their own conclusions. 
 
-Your second data set is the number of instructions executed by a single representative of your averaged groups for each of the following sizes: 10, 50, 100, 500, 1000, 5000, 10000, and 25000. This amounts to 8 sizes for 10 procedures for a total of \textit{80 instructions executed data points}.  You'll need to use callgrind to collect this data and then use callgrind\_annotate to get the inclusive instruction execution counts for each procedure
-
-Programs executed by Valgrind run considerably slower than they would otherwise. This means that you don't want to profile a program that takes a long time to execute unless you really want or need the profiler data for that program because the program in question will take a very, very long time to execute with Valgrind. You're gathering instruction counts in order to give the execution time data some context and not to dig into the details underlying the counts themselves. This means you're going to be a little less rigorous in gathering data with Valgrind than you were gathering execution time data.
-
-You'll continue to run the procedures on random inputs, but this time you'll only do a single execution per size and restrict yourself to smaller sizes. It's important that we reuse data used in gathering timing data so that it is correlated with the execution time data we're gathering. In short, you'll pick one of the 5 executions you timed, and get counts on the number of instructions needed for that execution.  
-
-\section{The Program}
-
-The code you're writing for this project has four components:
+To tell the complete story of our data we need to combine both images and text. Posters are a simple and effective way to do this. You'll need to develop three 11x17 posters:
 \begin{enumerate}
-\item A library of the 7 algorithm implementations discussed in the text, i.e. the 7 non-C++ standard library procedures listed in the beginning.
-\item A library for generating random \textit{vector$<$int$>$} data and reading and writing that data from and to files.
-\item A program for generating the random test data used to gather your performance data
-\item A series of 10 programs, one per procedure, used to gather performance data.
+\item A poster that presents a table of worst case execution times for all algorithms and all sizes
+\item A poster that presents point plots of all collected execution times for the four search algorithms 
+\item A poster that presents point plots of all collected execution times for the five sorting algorithms
 \end{enumerate}
 
+Each poster should stand on its own. Towards this end, you must include the following items in each poster. 
+\begin{itemize}
+\item A Title
+\item Your name and affiliation\sidenote{Monmouth College, Department of Mathematics and Computer Science.}
+\item Some text that briefly describes the data, the visualizations, and the overall design of the visualizations so that the reader knows how to read and interpret the graphics\sidenote{Note we're describing what should be read from them, just how to read them. We leave conclusions to the reader}.
+\item The visualizations, each with a caption that includes a figure number, title, and brief description. 
+\end{itemize}
+
+\subsection{The Visualizations}
+
+Our posters require the following visualizations, which we'll generate with Mathematica. 
+\begin{itemize}
+\item A single table in which each row contains the maximum times for each procedure on a given size. The first row of data should be the times for the smallest size and the last row should be the times for the largest size. This table lets us easily compare the worst case execution times for the nine different procedures.\sidenote{A similarly structured table for average times would also be really interesting, but we'll focus our energies on worst case execution for now}.
+\item Nine point plots, one for each of the nine algorithms. These show all the times gathered for each procedure as a point in 2D space where the x-coordinate is vector size and the y-coordinate is execution time.    
+\end{itemize}
+
+
+\section{The Profiling Programs}
+
+The code you're writing for this project is used to gather execution times for our set of nine procedures. The complete program has four components:
+\begin{enumerate}
+\item A library of the 7 algorithm implementations discussed in the lecture notes, i.e. the 7 non-C++ standard library procedures listed in the beginning. Much of this work will be done as a class and in lecture notes. 
+\item A library for generating random \textit{vector$<$int$>$} data, algorithm specific worst-case data, and reading some vector data to files .  Much of this was carried out in\textit{labp2}.
+\item A series of 9 programs, one per procedure, used to gather performance data.
+\item A Mathematica notebook used to process data and generate visualizations.
+\end{enumerate}
+
+
 \subsection{Algorithm Library}
-The first library should contain seven procedures. One for each of following algorithms on a \textit{vector$<$int$>$} variable.
+The first library should contain six procedures\sidenote{and any helpers needed to implement those procedures}-- one for each of following algorithms on a \textit{vector$<$int$>$} variable.
 \begin{itemize}
 \item binary search 
 \item linear search
-\item bubbleSort
 \item selectionSort
 \item insertionSort
 \item mergesort
 \item quicksort
 \end{itemize}
-Each of the algorithms listed above is well documented in our textbook\sidenote{See chapter 11 for sorts and chapter 2 for binary search. We've already seen \textit{linear search} under the name \textit{find}}. Your goal is to modify the textbook presentations, which are written for arrays, so that they work on  
-\textit{vector$<$int$>$}s. You'll then need to write a set of gTest unit tests to demonstrate the correctness of your implementations. They are a few typos in the textbook, so be sure to check the author's errata page here: \url{http://homepage.cs.uri.edu/~carrano/WMcpp6e/}
-
-All recursive algorithms\sidenote{binary search, mergesort, quicksort} should be written using our two procedure style. The first procedure emphasizes the problem and doesn't require extra inputs to manage the index range for the recursion. The second procedure is recursive\sidenote{calls itself} and uses one or two extra inputs to specify the bounds of the index range.  The procedures in the textbook are the second, recursive procedure, so you'll have to add the ``top-level'' procedure that calls these.
-
-The partition algorithm in the text uses the middle index in $[first,last]$ as the pivot. You should write it to pick a random index in $[first,last]$ as the pivot and use that as the pivot index. We'll discuss this in class some.
+These will be discussed in class and in lecture notes. Some code will be provided for you. You just need to be certain you have access to these procedures, that they work as specified, that you know how to use them, and that you understand their complexity analysis.
 
 \subsection{Random Vectors and Files Library}
-The second library is used too generate our random inputs, write them to files for easy reuse, and then read them in from files for actual testing.  It should be comprised of the following procedures:
+
+The second library is used to generate data for testing and writing test results to files for processing with Mathematica. It should be comprised of the following procedures:
 \begin{enumerate}
-\item \textit{fillWithRand} \\
-A vector mutator that fills a vector$<$int$>$ with randomly generated integer values
-\item \textit{writeToFile} \\ 
-An output procedure which takes a vector$<$int$>$ and an output file stream and then writes the contents of the vector to the file. Each integer should be separated by whitespace in the file.
-\item \textit{readFromFile} \\
-A vector mutator and input procedure which takes a vector$<$int$>$ and an input file stream and fills the vector$<$int$>$ with the integers found in the file stream. Integers in the file are assumed to be separated by whitespace.
+\item \textit{rand\_ints} \\
+A procedure for computing a random permutation as a vector of integers. 
+\item \textit{sorted\_ints} \\
+A procedure for computing a vector of integers in greatest to least order.
+\item \textit{write\_ints} \\ 
+An output procedure which takes a vector of integers and an output file stream and then writes the contents of the vector to the file as comma separated values.
+\item \textit{write\_times} \\
+An output procedure which takes a vector of durations and an output file stream and then writes the durations, as seconds in double format, as comma separated values to the stream.
 \end{enumerate}
-These three procedures can be used to generate all the test data we need. Testing \textit{fillWithRand} is tricky as it makes heavy use of random integers. You should simply test that the mutator changes the contents of a vector and leaves the size unchanged.  The file based procedures do not rely on random ints, but they are I/O procedures and I/O procedures require special testing. Check the lecture notes on I/O procedures for a recap on issues related to testing I/O based procedures\sidenote{It is possible to automate the testing of file based I/O procedures by cycling between by cycling between reading and writing.}
+These three procedures can be used to generate and report on all the test data we need. 
 
-\subsection{Test Data Generation Program}
+\subsection{Profile Data Gathering Programs}
 
-The program that generates our test data for us is a fairly straightforward use of the second library. Let's just be clear about exactly how many random inputs we need and the parameters of those inputs.
-\begin{itemize}
-\item 5 random and unsorted sets of integers for each of these sizes (60 data sets) \\
-10, 50, 100, 500, 1000, 5000, 10000, 25000, 50000, 75000, 100000, and 250000
-\end{itemize} 
-This amounts to 60 data sets.  Each data set should be stored in its own file so that we do not accidentally mix data.
+Your need to write 9 programs, one per procedure. This lets you incrementally work through the algorithms and gather data as you go. Your goal is to get data and visualize that data. Work one procedure at a time, get the program written, gather and visualize the data, then move on to another procedure. Do not wait to get and work with timing data until you have a complete set. There is going to be a lot of code shared between these programs, so you'll likely save some time by copying and modifying as needed. 
 
-One of your goals in writing this program should be to minimize the number or recompilations and re-executions of the program needed to get your data. In an ideal world you would run this program once and it would produce 60 files. A step down from this would be to run it 12 times, once for each size. You should not have to run it 60 times, once per file. If you do need to run the program multiple times, then you should not have to recompile it.  Instead you should pass in parameters from the CLI. For example, you could pass in the size on the CLI such that for a program called \textit{genDataSet}, calling \textit{genDataSet 10000} would generate your 5 files worth of randomly generated sets of 10000 integers.  
+The goal of a profiling program is to produce a csv\sidenote{comma separated values} file with 15 lines of values on it. The first line is the sizes to profile the procedure. The remaining 14 lines are the execution times for each size. You should profile the procedure in smallest to largest size order. This means the second line of your file contains the times for the smallest size profiled and the last line of your file contains the times for the largest size profiled.
 
-The main impediment to this kind of automation is probably \textit{programmatically generating file names}.  You'd like to be able to write a loop such that each loop produces a different file and therefore generates a new filename. To do this you'll need to construct \textit{strings} on the fly. This is easy enough to do with the C++ \textit{string} library and even easier to do with some new C++11 features that allow the conversion of integers to strings. We'll discuss this further in class, but the main idea is to  append or insert the string form of a numbers to a common prefix. For example, you could generate the names \textit{set-1000-1.txt} and \textit{set-1000-2.txt} with inside a loop that counts from 1 to 2 by converting the integers 1 and 2 to strings and then combining them with the strings ``set-1000-'' and ``.txt''.  
+\subsection{Mathematica Notebook}
 
-Remember, your goal is to easily generate data for testing.  The more time you spend modifying things like sizes and file names in the code, recompiling the code, and then rerunning the newly changed code, the less easy data generation will be and the longer it takes you to achieve your goal. 
-
-\subsection{Final Data Gathering Programs}
-
-By pre-generating random inputs and writing them to files, we've really added some flexibility to the design space for our main data gathering program. At one end of the spectrum you could write one uber-program that could be run once to get time data and again with valgrind to get instruction counts. The problem with this approach is that these programs can and will take a very long time to execute and get pretty complex for the amount of data we'd like to collect. Imagine your program crashing after one hour and you losing all the data you gathered in that time.  You wouldn't be happy.  It's probably better that we break up our data gathering tasks in to more manageable chunks. This allows us to break up the computing time into manageable chunks, which reduces the load on the server and hopefully the risk of accidental data loss.
-
-\textit{Your goal will be to write 10 programs, one per procedure}, instead of one.  Once again, the goal is to avoid recompiling code to generate new data. This program will once again require us to programmatically generate file names. To ensure that Valgrind doesn't combine instruction counts from different input sizes, we'll have to run it multiple times on different sizes to get the instruction counts. This means passing size as a CLI parameter. Furthermore, when we run it under Valgrind, we only want to execute the program once. This implies another CLI parameter. It could be as simple as a 0 for getting time and repeating the execution five time, and 1 for profiling, executing just once. You could also get more creative, it's up to you. Either way, the goal is to make it easy to get your data. Rewriting code and recompiling is a recipe for spending extra time and running into potential problems like forgetting to recompile with \textit{-g} for profiling.
-
-The last point about this program concerns the averages. You program should compute your averages for you. It's a computer, it's really good at doing calculations. Furthermore, you might as well write the averages to a file in place of, or in addition to, printing them to the CLI. By recording your data to a file you can more easily manage it when you move on to making tables. With a little cleverness, you could get all 10 programs to write their data to a single file\sidenote{don't forget the default writing mode is to overwrite, not append!} and you can then move that file off the server to do you table production.
-
-Putting all of this together, you should be able to run something like:
-\begin{verbatim}
-myBSearch 100 0
-\end{verbatim}
-to get the computer to run your binary search on 5 different vectors of 100 integers and report the average either to the command line, a file, or both. Alternatively, 
-\begin{verbatim}
-valgrind --tool=callgrind myBSearch 100 1
-\end{verbatim}
-Would run your binary search on a single vector of size 100 and profile that execution using callgrind.
-
-\subsection{From random sequences to random inputs}
-
-For sorts, a randomly generated vector$<$int$>$ is a pretty good representative of the average case performance scenario. The best and worst case typically occur when the data is already sorted one way or another and it's extremely unlikely that you'll randomly generate a sorted sequence of numbers. 
-
-For searching, we'll actually want to start with a sorted sequence. Binary search requires that the data is sorted, so in the interest of fairness, we should do our linear searches on sorted data as well. To get random sorted vector$<$int$>$s you can simply take your unsorted data and sort it using the\textit{sort} procedure from the \textit{algorithm} library.  There are better, more efficient ways of generating random sorted sequences, but this will serve our purpose for now. 
-
-The other problem with random inputs to search is that search requires two inputs: the vector$<$int$>$ and the key value.  If the key value is not in the vector, then we're actually seeing the worst case in terms of computational work. So, we need to pick a value that's in the vector and that is the same for all the searches. To do this, \textit{you should select the first value in the pre-sorted vector$<$int$>$ as the random key}. This way we avoid any kind of bias in terms of selecting the min or max and we choose a value that can be repeatedly chosen by each of our four searches. 
-
-\subsection{Miscellaneous Notes}
-
-Remember to incrementally and iteratively develop your programs. Write it to time one execution. Then profile that execution. Now add a loop to run multiple executions. Somewhere in there consider adding CLI input handling and test that you can control the execution via command line programs. Be certain that you run the programs on the small cases to be sure they're working properly before you venture off to the tens or hundreds of thousands. These should be pretty simple little programs, but that doesn't mean you should though good programming habits out the window. 
-
-Another way of planning your programming time is to think about the end goal: 120 average times and 80 instruction counts. You can work on your program so that you can fill in your table one column at a time, one size, all algorithms, or one row at a time, one algorithm, all sizes.  If you must turn in a partially complete project, it's better to have a partial data set and partial tables then all code and no tables. So, don't be afraid to write some code, use it to get data, use the data to fill in some of the tables, then repeat for more data.
-
-The uber-tester program is a nice goal and if you want to go for it, but you should setup the program so that you can select the algorithm with by CLI input. Do not attempt to gather all your data with a single execution of the program. This project is a good chance to dogfood\sidenote{\url{http://en.wikipedia.org/wiki/Eating\_your\_own\_dog\_food}} you program. You're writing a program and also using it. If you find it difficult or annoying to gather the data, then perhaps you can make a change to allow for easier data collection.
-
-
-\section{The Data Presentation}
-
-You'll be presenting a series of nine well developed tables for your 200 numbers:
-\begin{itemize}
-\item A single table of average execution times by algorithm and input size \\
-In this table you'll list each procedure in a row and in that row you report the procedure name, algorithm complexity, and execution times for each of the 12 sizes.  Including a header row for column labels, this table is 11 rows by 14 columns.
-\item A set of eight tables showing instruction counts. One size per table. \\
-Each table shows the data for a single vector size. In each table, a row once again presents data for a single procedure. In a row we'll show complexity, average execution time, and instruction count.  Including a header row, each table is 11 rows by 4 columns.
-\end{itemize}
-Properly presented tables include some other, key information, typically presented in good old fashioned written words. So, also you'll need to write a few paragraphs of text to support the tables\sidenote{not a few paragraphs per table, just a few paragraphs}. The exact content of these tables is discussed below, but it should be noted that this text plays a supporting role to the tables and the data in the tables.   
-
-
-\subsection{Making Good Tables}
-
-Tables allow you to present a large set of numbers in such a way that the reader can easily browse through that data and easily think about what they're seeing.  Notice, the point is helping the reading to think, not telling them what to think. You don't design a table to present an interpretation of data, you design it to present data. Period.  The interpretation should be self-evident from the data.
-
-Your reader needs to know at least three things \textit{before} digging in to the table data:
-\begin{enumerate}
-\item What's in the table
-\item Where did it come from and how was it obtained
-\item How should one read the table
-\end{enumerate}
-These items will be addressed in the paragraphs that accompany the tables. First, provide a brief summary description of what's in the tables. Next, make it clear to the reader the exact tools and techniques you used to get the data. The goal here is to give them everything they need to know to evaluate the credibility of your methodology and to recreate the experiment if need be.  You do not need to give them the exact inputs and code. Focus instead on the source of the algorithms, the libraries used, the computer used, the tools used, and any other information that describes the provenance\sidenote{look it up} of the data. 
-
-Having a reader take your data seriously is a privilege that you must earn\sidenote{this is also why you cite credible sources in non-scientific papers and use good grammar and style in your writing}. Think of this issue in another context, college. You take college classes from people with advanced degrees because their degrees are meant to demonstrate their credibility and the validity of the information they're giving you. You don't take college classes from random people off the street that you don't know because you can't tell if what they're saying is credible or crazy\sidenote{those of us with advanced degrees are also prone to craziness, we have to re-establish credibility regularly}. The same logic applies to reading data tables. Engaged readers are not going to sort through the data unless they have some assurances that it's worth their time. 
-
-Once you've convinced the reader that you have interesting data gathered in a methodologically correct fashion, then you need to tell them how, exactly you've laid it out for them to read. Tell them how to read the tables, but do not tell them how to interpret what they're reading. If the conclusion you came to from reading the table is valid, then a smart reader will come to the same conclusion.  \textit{Always assume your reader is smart and let them come to their own conclusions based on the data you've given them}. It should also go without saying that you should \textit{never}\sidenote{never ever ever} withhold data for the purposes of steering the reader towards a questionable conclusion. Trickery and deception have no place in science. 
-
-Finally, it's time to turn our eye to the table itself. What's makes a table a good table, a well designed table?\sidenote{If you're serious about this topic seek out the works of Edward Tufte} The following points are a good starting place:
-\begin{itemize}
-\item Always provide a \textit{title and caption} that meaningfully describes the data. This can be the complete accompanying text described above or a summary of that text. Either way, the reader should be able to get a high level sense of what's in the table without having to search through paragraphs of text. 
-\item Always make units and measures clear. This can be done in column/row headers, in the caption text, or by labeling each number. The reader should not have to guess or search for units and measures associated with the numbers in the table. 
-\item Don't use horizontal and vertical lines to separate every row and column. All the user sees is the grid; tables are not grids their structured presentations of data. Do use lines, but use them purposefully. Use a horizontal line to separate the header row from the data rows. Use different styles of lines to break rows in to logical groups\sidenote{by search and sort, complexity, etc.}. The point here is to make lines meaningful, not a distraction. If you must use a grid, then make the lines very light and grey so that they fade in to the background.
-\item Don't use shading and different colors unless they carry meaningful information. Proper text alignment within columns and rows is enough guidance for the human eye, don't ``help'' the reader out by shading every other row or column. Doing this just goes back to grid-land.
-\end{itemize}
-
-No matter what, always remember that \textit{the purpose of the table is to clearly present data in order to assist the reader in the critical analysis of data}. Every thing you do should be done with that in mind. Underlying this purpose is the assumption that the reader is capable and desirous of analytical thought. Have faith in them and assume they are at least as capable as you. This also means that we, the data presenter, must earn the right to their critical thought, the right to use up some of their brain time, by establishing the credibility of the data and designing a table that attempts to free their brain power for analysis. Don't distract them with silly fonts and overuse of grid lines. Don't tell them how to interpret the data, just tell them how to read the table.  If your table design assists thought, doesn't distract from data analysis, and more importantly of all contains good data, then you're well on your way to good tables.  
+You should us a single Mathematica notebook to process all of your data. 
 
 \section{Logistics and TLDR}
 
-For this project you'll write two libraries and ten small programs, use them to generate data about the performance of important algorithms in C++, and then present that data in table format. The important stuff is the data, so work in such a way that you're incrementally getting more and more data. We'll spend much of the remaining class time discussing issues related to this project.  Two of the three remaining labs are dedicated to this project. The successful completion of the libraries will be counted as a quiz grade. 
+
 \begin{itemize}
-\item \textit{Lab 4/23} - Get general questions answered. Write toy programs to get comfortable with newer functionality (file I/O and CLI parameters). Begin work on libraries.
-\item \textit{Monday 4/28} - Complete libraries with gUnit tests due. Submit as \textit{proj2quiz} via \textit{handin}.
-\item \textit{Lab 4/30} - Free time to work on programs and tables.  	
-\item \textit{\textbf{Monday 5/5}} Program code and tables due. Code submitted as \textit{proj2} via handin. Tables due in hand at the start of class (8am)\sidenote{I'm looking at you late comers}.
+\item \textit{Lab 4/15} - Labp2 starts work on some library procedures 
+\item \textit{Lab 4/22} - Start playing with Mathematica by analyzing and visualizing labp2 data. Walk through moving files to and from server. Modify labp2 to gather different data about std::find. 
+\item \textit{4/29} - Demonstrate progress in lab by having data and visualizations for std::find, std::sort, and std::binary\_search done.
+\item \textit{\textbf{Wednesday 5/6}} Program code, data files, Mathematica Notebook, and digital copies of posters submitted via handin as \textit{proj2}. 
+\item \textit{\textbf{Thursday 5/7}} Drop off printed posters.
 \end{itemize}
 
 \end{document}
