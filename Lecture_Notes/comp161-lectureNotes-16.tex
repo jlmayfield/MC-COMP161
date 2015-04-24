@@ -1,169 +1,142 @@
 \documentclass[]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage[pdftex]{graphicx}
 
-\title{COMP 161 - Lecture Notes - 14 - Complexity and Efficiency}
+\title{COMP 161 - Lecture Notes - 16 - Complexity and Big-O}
 \date{}
+
+\newtheorem{define}{Definition}
+\newtheorem{theorem}{Theorem}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these lecture notes we look at algorithm complexity and the use of Big-O notation in computing. 
+In these lecture notes we look at algorithm complexity and the use of Big-O notation to express complexity classes.
 \end{abstract}
-
-\section{Efficiency and Computation}
-
 
 \section{Complexity}
 
-Go look at the documentation for any procedure or class method on \url{cplusplus.com} and towards the bottom of the page you'll see a section titled \textit{Complexity}. This section gives you a sense of the overall sense of the 
+Let's recall a few key points about the time complexity classification of a procedure:
+\begin{itemize}
+\item It's a measurement of elementary operations needed as a function of the size of the vector\sidenote{or some similar property of the input}. For an input with size $n$ we'll often denote this function as $\mathcal{T}(n)$. 
+\item It's based on the worst case, or maximum number of operations, for the size. It's meant as an upper bound. 
+\end{itemize}
+
+Recall that we use complexity to capture the big picture of efficiency by classifying procedures\sidenote{really the underlying algorithm} into key categories. For example, if we're talking about motor vehicles, then calling something and SUV versus a Hybrid car implies something about the fuel consumption efficiency of the vehicle. We recognize that these two classes of vehicles perform very differently and that within each class there's more variability still. Computational complexity classes essentially do the same thing. They set aside the specific details of the procedure's performance to emphasize overall characteristics. What we want to do is equate the time complexity function for a procedure to a well understood function. By doing so we can reduce the infinite possible actual time  
+
+\subsection{ Big-O }
+
+There is a precise mathematical tool call \textsc{Big-O notation} that we can use to express the relationship we're looking for when expressing procedure complexity. 
+\begin{define}
+Let the functions $f$ and $g$ for positive integers.  Then the function $f$ is \textit{on the order of} $g$ if there exists constants $n_0 \geq 0 $ and $\alpha$ such that for all $n 	\geq n_0$ 
+\[
+f(n) \leq \alpha g(n)
+\]
+We write this as $f(n) = O(g(n))$, or sometimes just $f = O(g)$,\sidenote{O is uppercase letter o, not the number zero} and often say ``$f$ is Big-O of $g$'' as opposed to ``$f$ is on the order of $g$''.
+\label{def:bigO}
+\end{define}
+
+Let's pick this apart so that we understand what saying $f = O(g)$ really means. First notice it's clearly an upperbound relationship. The value $\alpha g(n)$ is at least as big as $f(n)$. The $\alpha$ term is allowing us to focus not on the specific value of $g(n)$ as our bound but nearly any multiple of $g(n)$.  We're more or less saying that ``$f(n)$ is no larger than some multiple of $g(n)$''.  Finally, by throwing in $n_0$ we're emphasizing ``larger'' values of $n$ for whatever large means to us. Putting this all together we see that $f = O(g)$ really means that ``for all $n$ past some point\sidenote{$n_0$}, we can draw some multiple\sidenote{$\alpha$} of $g$ on or above $f$''.  The notion of Big-O gives us the right mixture of specificity and flexibility for capturing complexity and complexity classes.   
+
+In future courses you'll explore this formalism in more depth. Right now we want to learn some basic rules and relationships that follow such that we understand how Big-O communicates complexity classes. There are three basic consequences of definition \ref{def:bigO} that are essential to working with Big-O in both a formal and informal manner. I'll state them formally and then provide some insight as to why they are so essential to complexity analysis.
+
+The order of a sum is the sum of the orders. 
+\begin{theorem}
+Let $f$ and $g$ be functions over the positive integers. Then,
+\[
+O(f + g) = O(f) + O(g)
+\]
+\label{th:sum}
+\end{theorem}
+All procedures can be broken down into a series of steps. This theorem (\ref{th:sum}) tells us that it is enough to know the order of each step. This let's us greatly simplify complexity analysis by doing it piecewise rather than on the whole. 
+
+We have two properties that deal with produces and Big-O. The order of a product is the product of the orders.
+\begin{theorem}
+Let $f$ and $g$ be functions over the positive integers. Then,
+\[
+O(fg) = O(f)O(g)
+\]
+\label{th:mult}
+\end{theorem}
+The order of a function is invariant under multiplication by a constant.
+\begin{theorem}
+Let $f$ and $g$ be functions over the positive integers. Then for all real-values $\alpha$,
+\[
+O(\alpha g) = O(g)
+\]
+\label{th:constmult}
+\end{theorem}
+A great number of procedures involve repetition and repetition induces a product.\sidenote{Repeating $k$ operators $t$ times takes $tk$ operations in total}. When the repetition is done a fixed number of times, then theorem (\ref{th:constmult}) tells us that the order of the repetition is the same as the the order of the thing being repeated. Similarly, if we repeat some fixed, constant amount of work, some function of our input size number of times, then theorem (\ref{th:constmult}) tells us that the order of the repetition is the order of them number of function that determines the number of repetitions. If, however, the repetition and the work are both functions of our input size, then theorem (\ref{th:mult}) tells us that we can at least analyze the order of the repetition and the order of the repeated work in parts but cannot really simplify to one order or the other. 
 
 
+Using Big-O we can establish a strict ordering of some functions. This will be true of the functions on which we'll base our complexity classes. It turns out that larger orders dominate smaller orders. 
+\begin{theorem}
+For functions $f$ and $g$. If $O(f) < O(g)$, then
+\[
+O(f) + O(g) = O(g)
+\]
+\label{th:order}
+\end{theorem}
+Once again, sums arise from the discrete steps of a computation. When one step requires an order of magnitude more computation than another step, then that step dominates the total running time of the computation to the point that the whole computation behaves as if it were only of that larger complexity class. What theorem \ref{th:order} lets us do is focus solely on thethe critical step(s) that account for most of the work.\sidenote{I tend to think of this rule in terms of spending money. If you're paying thousands of dollars for something, then adding on tens of dollars doesn't really change the big picture-- you're paying thousands of dollars for something.If you're paying \$5000, then you'll probably also pay $5050$}. 
 
+Hopefully you're picking up on the fact that these rules have close ties to the constructs of programs. The step-wise nature of induces sums in our time complexity functions and those sums can be more easily managed using theorem (\ref{th:sum}). Repetition induces products in our time complexity functions and those produces can be managed with theorem (\ref{th:mult}) and (\ref{th:constmult}). The analysis of conditionals is simplified by the fact that we're only concerned with the worst case. If we know which branch has the highest order, then we can focus on that branch. 
 
+\section{Some Complexity Classes}
 
-Another, more detailed way of approaching this issue would be to imagine a plot of instructions executed\sidenote{or some other resource measure} by a procedure on a vector versus the size of the vector. As the vector gets bigger, what should happen to the instructions executed? If computational \textit{work} isn't random, then there should be some function $\mathcal{W}(n)$ which maps vector size $n$ to instructions executed. Let's call $\mathcal{W}$ the work function for a procedure\sidenote{Often time is used interchangeably with work and in that case we talk about $\mathcal{T}(n)$, the time function, instead}.
+Remember our intended use for Big-O notation is the classification of the time complexity of procedures in order to address the questions like whether or not one procedure is more or less complex than another or if a given procedure is too complex to be usable in practice. A large majority of the procedures we encounter have a time function which is on the order of one of the following functions. These functions, in turn, establish a clear ordering of classes.
 
-Knowing the exact specification for the work function $\mathcal{W}$ is probably overkill, it would reflect too many implementation specific details. For example, programs typically involve conditionals, which means their work function is also conditional. This means it's not smooth and is really a whole set of functions, one for each condition. How should we handle this? What's most useful to a programmer? Knowledge of the best case performance, worst case performance, or average case performance?  
-
-In general, you'd like to know the \textit{worst case} for the work function $\mathcal{W}$ because it provides the upper bound, or the maximum amount of work. Sure, we expect to see the average case the most and hope to see the best case a lot, but given the choice between a procedure that will take no more than 5 secs and no less than 1 sec and one that takes no more than 5 minutes but no less than 0.00001 sec, the smart program will hedge his or her bets and go with the $[1,5]$ sec guarantee over the chance at something less than a second. As this example illustrates, if possible, its useful to establish the best case as well because when combined with the worst case, we get both the upper and lower bound on $\mathcal{W}$.  
-
-We've established that having an upper-bound on $\mathcal{W}$ is generally more useful than having the lower bound or some kind of average.  Now the question is how much detail do we really need? Sure, we can do some hard analysis and figure out exactly how many instructions will get executed, but this requires knowledge of the compiler and the computer and we really just want to look at our code. Rather than count instructions, let's count \textit{operations}, i.e. the things C++ does. Each operation in C++ should result in some fixed number of machine instructions. If \textit{operator+} takes 5 instructions, and we do 135 \textit{operator+}s, isn't it instruction count just a fixed linear scaling factor? Plus, we can generalize operator counts to different systems and different computers where \textit{operator+} might take more or less than 5 instructions. What we've decided here is that we'll allow for some kind of constant multiplying factor on the work function $\mathcal{W}$ if for no other reason to allow for different operator to instruction translations by different compilers and for different hardware.
-
-Let's recap. We want to get a ballpark feeling for the work function $\mathcal{W}$ that tells us the amount of computational work carried out as a function of vector size. To simplify matters, we'll focus our energy on the worst case scenario and thereby establish an upper-bound for $\mathcal{W}$. We also don't care so much about actual instructions and will instead focus on C++ operations\sidenote{or some abstract notion of operations if need be} with an understanding that actual work, as in number of machine instructions, is approximately some constant multiple of $\mathcal{W}$. The last step is to realize that we really don't care about $\mathcal{W}$ at all. What's more useful is to find the \textit{slowest growing, basic function that can be drawn above $\mathcal{W}$}. Take a minute to think about that.
-
-If I told you I could draw a line such that beyond some vector size $n_0$ that line was always above the worst case of $\mathcal{W}$, then you'd know that $\mathcal{W}$ must be at worst a line. If it were some other faster growing function like $n^2$, then it would eventually cross our imaginary bounding line. If we can draw a line above $\mathcal{W}$, then it really doesn't matter what kind of line it is, the thing that matters is that it's a line. Remember, we allow for constant multiples of $\mathcal{W}$ so we can allow for the same thing with our line.  This is subtle but significant shift in thought. Our goal is not really to establish the exact details of $\mathcal{W}$ but to find a simple function that acts as an upper-bound on the upper-bound for $\mathcal{W}$.  This language is captured in the mathematical notation of Big-O and is the lingua franca\sidenote{go look up lingua franca if you don't know the term} for expressing the \textsc{complexity}, of program performance.  
-
-A procedure's, or algorithm's, \textsc{complexity} is characterized by this smallest basic function that bounds $\mathcal{W}$ above. We can categorize procedure's by complexity such that all procedures that can be bounded by a line are considered equally complex. Essentially, we can reduce the infinite complexity of all possible $\mathcal{W}$ functions to a few basic categories that relate work to easy to understand, common, basic mathematical functions. Mathematical Big-O notation captures this perfectly.
-
-\section{Complexity Classes}
-
-We classify the complexity of a procedure by saying something like, ``The work of the procedure as a function of the vector size is on the order of $f$'', or $W(n) = O(f(n))$\sidenote{so you can read $O(f)$ as ``the order of f''}. The function $f$ is the upper bound on the work and it's growth rate therefore characterizes the growth rate of of $W$. It is also common to say that the complexity of the procedure is $f$ or that the procedure is a ``$f$ time''\sidenote{here time is equated to work} procedure.
-
-A large majority of the procedures we encounter have a work function bounded above by one of the following functions:
 \begin{enumerate}
-\item The \textsc{constant} complexity procedures where $f(n) = c$ for some fixed value $c$. We express this as $\mathcal{W}(n) = O(1)$ or just $O(1)$. We use $1$ as the representative constant because we're not concerned about constant multipliers. 
+\item \textsc{Constant} \\
+ If the complexity function $f$ is constant, i.e. $f(n) = c$ for some fixed value $c$,  then we say $f = O(1)$.
 
-\item The \textsc{logarithmic} complexity procedures where $f(n) = \log_b n$. The base of the logarithm actually doesn't matter in Big-O notation so we typically use 2. We express this as $\mathcal{W}(n) = O(\log n)$ or just $O(\log n)$.
+\item \textsc{Logarithmic} \\
+ If the complexity function $f$ is  logarithmic, i.e. $f(n) = \log_b n$, then we say $f = O(\log n)$. Notice that we leave off the base of the logarithm. It can be shown that the base of the logarithm actually doesn't matter in Big-O notation\sidenote{$O(\log_a n) = O(\log_b n)$ for all $a$ and $b$} so we typically use 2. You'll often see $\log_2$ written as $lg$ 
 
-\item The \textsc{linear} complexity procedures where $f(n) = n$. We express this as $\mathcal{W}(n) = O(n)$ or $O(n)$.
+\item \textsc{Linear} \\
+ If the complexity function $f$ is linear, i.e. $f(n) = n$, then we say $f = O(n)$. 
 
-\item The \textsc{linearithmic}\sidenote{a blend of linear and logarithmic} complexity procedures where $f(n) = n\log n$. We express this as $\mathcal{W}(n) = O(n \log n)$. 
+\item \textsc{Linearithmic}\sidenote{a blend of linear and logarithmic} \\
+ If the complexity function $f$ is the product of linear and logarithmic function, i.e. $f(n) = n\log n$, then we say $f = O(n\log n)$.
 
-\item The \textsc{quadratic} complexity procedures where $f(n) = n^2$. We express this as $\mathcal{W}(n) = O(n^2)$
+\item \textsc{Quadratic} \\
+ If the complexity function $f$ is a quadratic function, i.e. $f(n) = n^2$, then we say $f = O(n^2)$.
 
-\item The \textsc{cubic} complexity procedures where $f(n) = n^3$. We express this as  $\mathcal{W}(n) = O(n^3)$
+\item \textsc{Cubic} \\ 
+If the complexity function $f$ is a cubic function, i.e. $f(n) = n^3$, then we say $f = O(n^3)$.	
 
-\item The \textsc{Exponential} complexity procedures where $f(n) = 2^n$. We express this as  $\mathcal{W}(n) = O(2^n)$
+\item \textsc{Exponential} \\
+If the complexity function $f$ is a exponential for some constant $c>1$, i.e. $f(n) = c^n$. We express this as  $f = O(c^n)$.
 
-\item The \textsc{Factorial} complexity procedures where $f(n) = n!$. We express this as $mathcal{W}(n) = O(n!)$.
+\item \textsc{Factorial} \\
+If the complexity function $f$ is the factorial, i.e. $f(n) = n!$, then we say $f = O(n!)$.
 \end{enumerate}
 
-Within each class there is an awful lot of nuance. For example, pick any work function where $\mathcal{W}(n)= an + b$, then $W(n) = O(n)$. As you may remember from math class, the larger the value of $a$ the greater the slope of the line and the faster it grows. Big-O notation completely ignores this reality and instead groups all lines together. That's ok, the point of Big-O and complexity classes are not specific, nuanced details, but big picture, order of magnitude details.
+Within each class there is an awful lot of nuance. For example, pick any time function where $\mathcal{f}(n)= an + b$, then $f = O(n)$. As you may remember from math class, the larger the value of $a$ the greater the slope of the line and the faster it grows. Big-O notation completely ignores this reality and instead groups all lines together. That's ok, the point of Big-O and complexity classes are not specific, nuanced details, but big picture, order of magnitude details.
 
 The complexity classes we use are represented by basic, well understood functions for which there is a strict least to greatest growth rate order.
 \[
-O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^3) < O(2^n) < O(n!)
+O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^3) < O(c^n) < O(n!)
 \]
 If you have two different procedures that solve the same problem and one has work $O(n)$ and the other has work $O(n \log n)$, then you know the first, the linear work option, is \textit{a whole order of magnitude better} than the later. This is what we get from Big-O and complexity classes. We get the ability to partition the infinite world of procedures into simple efficiency complexity classes that allow us to quickly and easily identify order of magnitude differences.  
 
-On the practical side of things, we can also quickly identify when a procedure will be impractical. Computer science has decided that \textsc{Polynomial} complexity is the benchmark for efficiency. So any complexity class that is a polynomial or better is theoretically efficient. This class includes everything we've seen but $O(2^n)$. However, cubic and quadratic functions do grow pretty quickly and can easily be impractical for even modest $n$.  Superlinear or better is almost always practical, even for very large $n$.  To convince yourself of this, go run some representative algorithms on larger and larger $n$ and see what happens\sidenote{See project 2!}.
+On the practical side of things, we can also quickly identify when a procedure will be impractical. Computer science has drawn a line in the sand at \textsc{Polynomial complexity} such that any complexity class that is a polynomial or better is theoretically efficient. This includes everything on our list but $O(2^n)$ and $O(n!)$. It turns out that this somewhat arbitrary choice works pretty well in practice. However, cubic and quadratic functions do grow pretty quickly and can easily be impractical for even modest $n$.  Superlinear or better is almost always practical, even for very large $n$.  You'll get a very real sense of this in your final project, but let's look at some numbers to get you thinking. 
 
-\section{Big-O}
 
-We've been using Big-O is pure notation, as a way of naming complexity classes. It is not pure notation. It has a precise mathematical definition. 
-\begin{quote}
-$W(n) = O(f(n))$ if and only if there exists some constants $n_0$ and $c$ such that for all $n \geq n_0$, $W(n) \leq c*f(n)$. 
-\end{quote}
+First lets look at how each function grows as $n$ grows.
+\begin{figure}
+\includegraphics[scale=0.45]{nvals.png}
+\caption{The value of key complexity class functions for increasing values of $n$}
+\end{figure}
 
-Reading this closely, we see that the mathematical definition matches exactly with how we use it in the context of algorithm complexity. In algorithms research, we really dig into the mathematics of Big-O and other related definitions\sidenote{for lower bound, exact bound, tight upper bound, and tight lower bound}.  For basic understanding of programming complexity we simply need be sure we understand what Big-O brings to the party and what it's supposed to mean in the context of algorithms.
+Now imagine you have a computer that performs 1 operation every nanoseconds\sidenote{also known as a 1 Gigaflop GFLOP computerThis is actually fairly modest by today's standards. Your average laptop can probably do two to five times better than this.} Then, we can attach some time amounts to these complexity classes.
+\begin{figure}
+\includegraphics[scale=0.45]{timevals.png}
+\caption{The time needed to compute key complexity class functions at 1GFLOP}
+\end{figure}
 
-When talking about algorithm complexity, people usually use Big-O when referring to the smallest upper bound.  So, if $W(n)= 5n- 3$, then saying $W(n) = O(n)$ is both accurate and helpful in that a linear upper bound is the tightest upper bound you can draw.  However, it would not be incorrect to say $W(n) = O(n^2)$ because if you can draw a line above $W$ then you can certainly draw a parabola. Even though the definition of Big-O allows for loose upper bounds, we rarely see it used to present loose bounds.  When it is, the author/presenter is usually clear about it and the reason is usually that $W$ is very hard to pin down. For the tasks you're most likely to encounter as a programmer, this is rarely the case. 
 
-Discussion of complexity focus on the worst case.  Don't confuse an upper bound on the worst case with an exact measure of the expected performance. For example, When sorting $n$ items, bubble sort will do $O(n^2)$ work in the worst case. However, the algorithm is able to determine if the data being sorted is already sorted. When it is, the algorithm terminates after $O(n)$ work.  This means that the true work function of bubble sort isn't really quadratic, it's somewhere in the linear to quadratic spectrum.  Don't confuse the upper bound of the worst case\sidenote{i.e. the greatest upper bound} with the exact, tight bound. 
 
-\subsection{Reasoning with Big-O}
 
-When determining the order of the work function of an algorithm, it's easier to determine the order of each piece and then combine the sum total of the pieces.   To do this, we need to know a few basic rules:
-
-\begin{quote}
-We can drop multiplicative constants.
-\[ O(c*f(n)) = O(f(n)) = c*O(f(n)) \]
-\end{quote}
-
-\begin{quote}
-The order of a sum is the sum of the orders.
-\[ O(f(n) + g(n)) = O(f(n)) + O(g(n)) \]
-\end{quote}
-
-\begin{quote}
-In a sum, drop the lower order terms.  Where $O(f(n)) < O(g(n))$,
-\[ O(f(n) + g(n)) = O(g(n)) \]
-\end{quote}
-
-\begin{quote}
-Group products.
-\[
-O(f(n)*g(n)) = f(n)*O(g(n)) 
-\]
-\end{quote}
-
-To better understand these let's look at an example.
-
-\section{Example: Linear Search}
-
-As the name implies, linear search is a $O(n)$ algorithm for finding a specific key value in a vector. Here we see a pretty standard C++ implementation for integer vectors.
-
-\begin{verbatim}
-int find(const vector<int> &v, int key){
-	
-	for(unsigned int i(0); i < v.size(); i++){
-       if( v[i] == key )
-          return i;  	
-	}
-	return -1;
-}
-\end{verbatim}
-
-First we notice that all of the following expressions require constant, $O(1)$ work.
-\begin{verbatim}
-unsigned int i(0)
-i < v.size()
-i++
-v[i] == key
-\end{verbatim}
-The \textit{return}s on cost as much as the computation for the return value, and no computation is needed for the literal $-1$ or accessing the variable $i$. The \textit{if} only costs as much as the conditional check and the work done if and when the condition is true. 
-
-We've established we have several chunks of $O(1)$ work. Now we need to determine when and how often they're executed.  Let's start with the \textit{for} loop header.  
-\begin{enumerate}
-\item The declaration of $i$ happens once and only once.  
-\item The conditional check fir $i < v.size()$ happens every time there is a loop \textit{and} one more time when the loop terminates.  
-\item The $i++$ occurs once per loop. 
-\end{enumerate}
-Now the body of the \textit{for} loop.
-\begin{enumerate}
-\item The conditional check for $v[i] == key$ happens once per loop.
-\end{enumerate}
-
-So, the big question is how many loops does the for loop do?  It stops when $v[i]==key$ \textit{or} if $i == v.size()$. Remember we're interested in the worst case and that happens when $v[i]$ is never equal to $key$. In that case the loop will loop $v.size()$ times;  let's go ahead and say $n = v.size()$.
-
-We can no express the total work of \textit{find} as the sum total of all of that work which is:
-\[
-O(1) + (n+1)*O(1) + n*O(1) + n*O(1)
-\]
-It's time to use those rules:
-\begin{equation*}
-\begin{array}{rcl}
-O(1) + (n+1)*O(1) + n*O(1) + n*O(1) &=& O(1) + O( n+1) + O(n) + O(n) \\
- &=&  O(3n+2) \\
- &=&  O(3n) \\
- &=&  O(n)
-\end{array}
-\end{equation*}
-First we grouped products. Then we restated the sum of orders as the order of a sum. Next we dropped the lower order term. Finally we dropped the multiplicative constant. The end result was the expected one, our linear search is $O(n)$. Had it been anything else we'd need to check our math or seriously reconsider the implementation because linear search should never be anything other than $O(n)$ in the wost case.
-
-\section{Recap}
-
-Worst case complexity is a way of establishing the big picture.  Saying a procedure has \textit{quadratic}, or $O(n^2)$, work\sidenote{or time} complexity, merely states that beyond some value of $n$, the amount of work the procedure will do is bounded above by a quadratic function.  Yet despite leaving out so much information, worst case complexity has proven to be an invaluable tool for evaluating and communicating the expected performance of a procedure or algorithm.
 
 \end{document}

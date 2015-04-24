@@ -1,0 +1,891 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     32684,        882]
+NotebookOptionsPosition[     32019,        856]
+NotebookOutlinePosition[     32356,        871]
+CellTagsIndexPosition[     32313,        868]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"sizes", " ", "=", " ", 
+    RowBox[{"{", 
+     RowBox[{
+     "1", ",", "10", ",", "25", ",", "50", ",", "75", ",", "100", ",", "500", 
+      ",", "1000", ",", "2500", ",", "5000", ",", "7500", ",", "10000", ",", 
+      "25000", ",", "50000", ",", "75000", ",", "100000", ",", "250000", ",", 
+      "500000", ",", "750000", ",", "1000000"}], "}"}]}], ";"}], 
+  "\[IndentingNewLine]"}]], "Input",
+ CellChangeTimes->{{3.638787945934078*^9, 3.638787993085455*^9}, {
+  3.638788197338997*^9, 3.638788197408887*^9}, {3.6387883977478323`*^9, 
+  3.6387884413351307`*^9}, {3.63878896151236*^9, 3.6387890200044203`*^9}, {
+  3.638789184992346*^9, 3.6387892122939672`*^9}, {3.6387892776585617`*^9, 
+  3.638789285973508*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"tabdat", " ", "=", " ", 
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"N", "[", 
+       RowBox[{
+        RowBox[{"Round", "[", 
+         RowBox[{"Map", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"Log", "[", 
+             RowBox[{"2", ",", "#"}], "]"}], "&"}], ",", "sizes"}], "]"}], 
+         "]"}], ",", "3"}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"N", "[", 
+       RowBox[{"sizes", ",", "3"}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"N", "[", 
+       RowBox[{
+        RowBox[{"Round", "[", 
+         RowBox[{"Map", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"#", "*", 
+             RowBox[{"Log", "[", 
+              RowBox[{"2", ",", "#"}], "]"}]}], "&"}], ",", "sizes"}], "]"}], 
+         "]"}], ",", "3"}], "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"N", "[", 
+       RowBox[{
+        RowBox[{"Map", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"#", "^", "2"}], "&"}], ",", "sizes"}], "]"}], ",", "3"}], 
+       "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"N", "[", 
+       RowBox[{
+        RowBox[{"Map", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"#", "^", "3"}], "&"}], ",", "sizes"}], "]"}], ",", "3"}], 
+       "]"}], ",", "\[IndentingNewLine]", 
+      RowBox[{"N", "[", 
+       RowBox[{
+        RowBox[{"Map", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"2", "^", "#"}], "&"}], ",", "sizes"}], "]"}], ",", "3"}], 
+       "]"}]}], "}"}], "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.638788205173527*^9, 3.6387883394381742`*^9}, {
+  3.638788474140937*^9, 3.638788478168592*^9}, {3.638788646564212*^9, 
+  3.638788658925517*^9}, {3.638788694133541*^9, 3.63878869829173*^9}, {
+  3.6387890376239023`*^9, 3.638789040469308*^9}, {3.638789139739917*^9, 
+  3.638789151805633*^9}, {3.638789368000469*^9, 3.6387893841652813`*^9}, {
+  3.6387894431077967`*^9, 3.638789521513019*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"nvals", " ", "=", " ", 
+  RowBox[{"TableForm", "[", 
+   RowBox[{"tabdat", ",", 
+    RowBox[{"TableHeadings", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"sizes", ",", 
+       RowBox[{"{", 
+        RowBox[{
+        "\"\<lg(n)\>\"", ",", "\"\<n\>\"", ",", "\"\<nlg(n)\>\"", ",", 
+         "\"\<n^2\>\"", ",", "\"\<n^3\>\"", ",", "\"\<2^n\>\""}], "}"}]}], 
+      "}"}]}]}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<nvals.png\>\"", ",", "nvals"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.638788341508191*^9, 3.6387883864222097`*^9}, {
+  3.638788509515123*^9, 3.6387885894506073`*^9}, {3.638788662011891*^9, 
+  3.638788666320013*^9}, {3.638811175597272*^9, 3.63881122505236*^9}, {
+  3.638811458360681*^9, 3.638811459462291*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  TagBox[GridBox[{
+     {
+      StyleBox["\[Null]",
+       ShowStringCharacters->False], 
+      TagBox["\<\"lg(n)\"\>",
+       HoldForm], 
+      TagBox["\<\"n\"\>",
+       HoldForm], 
+      TagBox["\<\"nlg(n)\"\>",
+       HoldForm], 
+      TagBox["\<\"n^2\"\>",
+       HoldForm], 
+      TagBox["\<\"n^3\"\>",
+       HoldForm], 
+      TagBox["\<\"2^n\"\>",
+       HoldForm]},
+     {
+      TagBox["1",
+       HoldForm], "0", "1.`3.", "0", "1.`3.", "1.`3.", "2.`3."},
+     {
+      TagBox["10",
+       HoldForm], "3.`3.", "10.`3.", "33.`3.", "100.`3.", "1000.`3.", 
+      "1024.`3."},
+     {
+      TagBox["25",
+       HoldForm], "5.`3.", "25.`3.", "116.`3.", "625.`3.", "15625.`3.", 
+      "3.3554432`3.*^7"},
+     {
+      TagBox["50",
+       HoldForm], "6.`3.", "50.`3.", "282.`3.", "2500.`3.", "125000.`3.", 
+      "1.125899906842624`3.*^15"},
+     {
+      TagBox["75",
+       HoldForm], "6.`3.", "75.`3.", "467.`3.", "5625.`3.", "421875.`3.", 
+      "3.7778931862957161709568`3.*^22"},
+     {
+      TagBox["100",
+       HoldForm], "7.`3.", "100.`3.", "664.`3.", "10000.`3.", "1.`3.*^6", 
+      "1.267650600228229401496703205376`3.*^30"},
+     {
+      TagBox["500",
+       HoldForm], "9.`3.", "500.`3.", "4483.`3.", "250000.`3.", "1.25`3.*^8", 
+      "3.2733906078961418700131896968275992`3.*^150"},
+     {
+      TagBox["1000",
+       HoldForm], "10.`3.", "1000.`3.", "9966.`3.", "1.`3.*^6", "1.`3.*^9", 
+      "1.07150860718626732094842504906`3.*^301"},
+     {
+      TagBox["2500",
+       HoldForm], "11.`3.", "2500.`3.", "28219.`3.", "6.25`3.*^6", 
+      "1.5625`3.*^10", "3.758280234548012036833624189723865048677`3.*^752"},
+     {
+      TagBox["5000",
+       HoldForm], "12.`3.", "5000.`3.", "61439.`3.", "2.5`3.*^7", 
+      "1.25`3.*^11", "1.4124670321394260368352096670161473336689`3.*^1505"},
+     {
+      TagBox["7500",
+       HoldForm], "13.`3.", "7500.`3.", "96545.`3.", "5.625`3.*^7", 
+      "4.21875`3.*^11", "5.3084469288402965415858`3.*^2257"},
+     {
+      TagBox["10000",
+       HoldForm], "13.`3.", "10000.`3.", "132877.`3.", "1.`3.*^8", 
+      "1.`3.*^12", "1.995063116880758384883742`3.*^3010"},
+     {
+      TagBox["25000",
+       HoldForm], "15.`3.", "25000.`3.", "365241.`3.", "6.25`3.*^8", 
+      "1.5625`3.*^13", "5.622009815765459774973135468668`3.*^7525"},
+     {
+      TagBox["50000",
+       HoldForm], "16.`3.", "50000.`3.", "780482.`3.", "2.5`3.*^9", 
+      "1.25`3.*^14", "3.16069943685631789613592`3.*^15051"},
+     {
+      TagBox["75000",
+       HoldForm], "16.`3.", "75000.`3.", "1.214595`3.*^6", "5.625`3.*^9", 
+      "4.21875`3.*^14", "1.776948325869058023653007210736820736`3.*^22577"},
+     {
+      TagBox["100000",
+       HoldForm], "17.`3.", "100000.`3.", "1.660964`3.*^6", "1.`3.*^10", 
+      "1.`3.*^15", "9.9900209301438450794403276433`3.*^30102"},
+     {
+      TagBox["250000",
+       HoldForm], "18.`3.", "250000.`3.", "4.482892`3.*^6", "6.25`3.*^10", 
+      "1.5625`3.*^16", "3.15439441624388234177667`3.*^75257"},
+     {
+      TagBox["500000",
+       HoldForm], "19.`3.", "500000.`3.", "9.465784`3.*^6", "2.5`3.*^11", 
+      "1.25`3.*^17", "9.950204133230583250182153199`3.*^150514"},
+     {
+      TagBox["750000",
+       HoldForm], "20.`3.", "750000.`3.", "1.4637398`3.*^7", "5.625`3.*^11", 
+      "4.21875`3.*^17", "3.138686835834935092996590933247734`3.*^225772"},
+     {
+      TagBox["1000000",
+       HoldForm], "20.`3.", "1.`3.*^6", "1.9931569`3.*^7", "1.`3.*^12", 
+      "1.`3.*^18", "9.9006562292958982506979236163019032507`3.*^301029"}
+    },
+    GridBoxAlignment->{
+     "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+      "RowsIndexed" -> {}},
+    GridBoxDividers->{
+     "Columns" -> {False, True, {False}, False}, "ColumnsIndexed" -> {}, 
+      "Rows" -> {False, True, {False}, False}, "RowsIndexed" -> {}},
+    GridBoxSpacings->{"Columns" -> {
+        Offset[0.27999999999999997`], {
+         Offset[2.0999999999999996`]}, 
+        Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+        Offset[0.2], {
+         Offset[0.4]}, 
+        Offset[0.2]}, "RowsIndexed" -> {}}],
+   {OutputFormsDump`HeadedRows, OutputFormsDump`HeadedColumns}],
+  Function[BoxForm`e$, 
+   TableForm[
+   BoxForm`e$, 
+    TableHeadings -> {{1, 10, 25, 50, 75, 100, 500, 1000, 2500, 5000, 7500, 
+      10000, 25000, 50000, 75000, 100000, 250000, 500000, 750000, 1000000}, {
+      "lg(n)", "n", "nlg(n)", "n^2", "n^3", "2^n"}}]]]], "Output",
+ CellChangeTimes->{{3.638788346436247*^9, 3.638788401804509*^9}, 
+   3.638788446565868*^9, 3.638788494452227*^9, 3.638788590362277*^9, {
+   3.638788668494445*^9, 3.6387886740831633`*^9}, 3.638789044327055*^9, {
+   3.638789238094973*^9, 3.638789253987606*^9}, 3.638789333285159*^9, 
+   3.638789400698534*^9, {3.6387894627093678`*^9, 3.638789523248312*^9}, {
+   3.638811170442602*^9, 3.638811228389263*^9}, 3.6388114649702806`*^9}],
+
+Cell[BoxData["\<\"nvals.png\"\>"], "Output",
+ CellChangeTimes->{{3.638788346436247*^9, 3.638788401804509*^9}, 
+   3.638788446565868*^9, 3.638788494452227*^9, 3.638788590362277*^9, {
+   3.638788668494445*^9, 3.6387886740831633`*^9}, 3.638789044327055*^9, {
+   3.638789238094973*^9, 3.638789253987606*^9}, 3.638789333285159*^9, 
+   3.638789400698534*^9, {3.6387894627093678`*^9, 3.638789523248312*^9}, {
+   3.638811170442602*^9, 3.638811228389263*^9}, 3.6388114651064177`*^9}]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"1", " ", "GFLOP"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"tabdatTime", " ", "=", " ", 
+     RowBox[{"Map", "[", 
+      RowBox[{
+       RowBox[{"Map", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Quantity", "[", 
+           RowBox[{"#", ",", "\"\<nanoseconds\>\""}], "]"}], "&"}], ",", 
+         RowBox[{"#", "&"}]}], "]"}], ",", "tabdat"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]"}]}]], "Input",
+ CellChangeTimes->{{3.638789586175065*^9, 3.638789613509532*^9}, {
+  3.6387906221006393`*^9, 3.638790648697011*^9}, {3.638790941808509*^9, 
+  3.638791014609016*^9}, {3.638791045537779*^9, 3.638791143271184*^9}, {
+  3.638801951322632*^9, 3.638801983467746*^9}, {3.638802165824704*^9, 
+  3.638802169759097*^9}, {3.638802296287726*^9, 3.6388023005319233`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"TimeUp", "[", "ns_", "]"}], " ", ":=", "\[IndentingNewLine]", 
+   RowBox[{"With", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"v", " ", "=", " ", 
+       RowBox[{"QuantityMagnitude", "[", "ns", "]"}]}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Which", "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"v", "<", " ", 
+        RowBox[{"10", "^", "3"}]}], ",", "ns", ",", "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"10", "^", "6"}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<microseconds\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"10", "^", "9"}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<milliseconds\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"60", "*", 
+         RowBox[{"10", "^", "9"}]}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<seconds\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{
+         RowBox[{"60", "^", "2"}], "*", 
+         RowBox[{"10", "^", "9"}]}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<minutes\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"24", "*", 
+         RowBox[{"60", "^", "2"}], "*", 
+         RowBox[{"10", "^", "9"}]}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<hours\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"7", "*", "24", "*", 
+         RowBox[{"60", "^", "2"}], "*", 
+         RowBox[{"10", "^", "9"}]}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<days\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"4", "*", "7", "*", "24", "*", 
+         RowBox[{"60", "^", "2"}], "*", 
+         RowBox[{"10", "^", "9"}]}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<weeks\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"v", " ", "<", " ", 
+        RowBox[{"12", "*", "4", "*", "7", "*", "24", "*", 
+         RowBox[{"60", "^", "2"}], "*", 
+         RowBox[{"10", "^", "9"}]}]}], ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<months\>\""}], "]"}], ",", 
+       "\[IndentingNewLine]", "True", ",", 
+       RowBox[{"UnitConvert", "[", 
+        RowBox[{"ns", ",", "\"\<years\>\""}], "]"}]}], "]"}]}], "]"}]}], 
+  "\[IndentingNewLine]", "\t ", "\[IndentingNewLine]"}]], "Input",
+ CellChangeTimes->{{3.638791148077173*^9, 3.638791171772429*^9}, {
+   3.638791201864184*^9, 3.6387912714862347`*^9}, {3.638791365267683*^9, 
+   3.638791370932991*^9}, {3.638791420806958*^9, 3.6387915066519136`*^9}, {
+   3.638791539548064*^9, 3.638791667429028*^9}, {3.638791734316552*^9, 
+   3.6387918006111107`*^9}, 3.63879183484407*^9, {3.6387920337043247`*^9, 
+   3.6387920341874123`*^9}, {3.638792074385518*^9, 3.638792089956094*^9}, {
+   3.638801987676755*^9, 3.6388021153050947`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"tabdatTimeUp", " ", "=", " ", 
+   RowBox[{"Map", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Map", "[", 
+       RowBox[{"TimeUp", ",", "#"}], "]"}], "&"}], ",", "tabdatTime"}], 
+    "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"timevals", " ", "=", 
+  RowBox[{"TableForm", "[", 
+   RowBox[{"tabdatTimeUp", ",", 
+    RowBox[{"TableHeadings", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"sizes", ",", 
+       RowBox[{"{", 
+        RowBox[{
+        "\"\<lg(n)\>\"", ",", "\"\<n\>\"", ",", "\"\<nlg(n)\>\"", ",", 
+         "\"\<n^2\>\"", ",", "\"\<n^3\>\"", ",", "\"\<2^n\>\""}], "}"}]}], 
+      "}"}]}]}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{"Export", "[", 
+  RowBox[{"\"\<timevals.png\>\"", ",", "timevals"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.638791841821619*^9, 3.638791876492886*^9}, {
+  3.6387919191116457`*^9, 3.638791919265904*^9}, {3.638811239147305*^9, 
+  3.638811254926056*^9}, {3.638811453522538*^9, 3.638811453767659*^9}}],
+
+Cell[BoxData[
+ TagBox[
+  TagBox[GridBox[{
+     {
+      StyleBox["\[Null]",
+       ShowStringCharacters->False], 
+      TagBox["\<\"lg(n)\"\>",
+       HoldForm], 
+      TagBox["\<\"n\"\>",
+       HoldForm], 
+      TagBox["\<\"nlg(n)\"\>",
+       HoldForm], 
+      TagBox["\<\"n^2\"\>",
+       HoldForm], 
+      TagBox["\<\"n^3\"\>",
+       HoldForm], 
+      TagBox["\<\"2^n\"\>",
+       HoldForm]},
+     {
+      TagBox["1",
+       HoldForm], 
+      TemplateBox[{"0","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"1.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"0","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"1.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"1.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"2.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"]},
+     {
+      TagBox["10",
+       HoldForm], 
+      TemplateBox[{"3.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"10.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"33.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"100.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "0.99999999999999999999999999999999937859`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.02400000000000000000000000000000103287`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"]},
+     {
+      TagBox["25",
+       HoldForm], 
+      TemplateBox[{"5.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"25.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"116.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"625.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "15.62499999999999999999999999999999910662`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "33.55443199999999999999999999999999999982`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"]},
+     {
+      TagBox["50",
+       HoldForm], 
+      TemplateBox[{"6.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"50.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"282.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "2.5000000000000000000000000000000013852`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "124.99999999999999999999999999999999873047`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.86160698882708994708994706154411369454`3.","\"wk\"","weeks",
+        "\"Weeks\""},
+       "Quantity"]},
+     {
+      TagBox["75",
+       HoldForm], 
+      TemplateBox[{"6.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"75.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"467.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "5.62499999999999999999999999999999944329`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "421.87499999999999999999999999999999938874`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.1979620707431875225002537`3.*^6","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["100",
+       HoldForm], 
+      TemplateBox[{"7.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"100.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"664.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "9.99999999999999999999999999999999966334`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "0.99999999999999999999999999999999999866`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.01969368413314751869832320324708`3.*^13","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["500",
+       HoldForm], 
+      TemplateBox[{"9.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{"500.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.48300000000000000000000000000000031751`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "250.00000000000000000000000000000000039967`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{"125.`3.","\"ms\"","milliseconds","\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.0379853525799536624851565468945693598`3.*^134","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["1000",
+       HoldForm], 
+      TemplateBox[{"10.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "0.99999999999999999999999999999999937859`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "9.9660000000000000000000000000000000136`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "0.99999999999999999999999999999999999866`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{"1.`3.","\"s\"","seconds","\"Seconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "3.397731504268985670181417344486306`3.*^284","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["2500",
+       HoldForm], 
+      TemplateBox[{"11.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "2.5000000000000000000000000000000013852`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "28.21899999999999999999999999999999953252`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "6.25000000000000000000000000000000000118`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{"15.625`3.","\"s\"","seconds","\"Seconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.19174284454211442060934`3.*^736","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["5000",
+       HoldForm], 
+      TemplateBox[{"12.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.99999999999999999999999999999999983167`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "61.43899999999999999999999999999999957786`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "24.99999999999999999999999999999999999882`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "2.08333333333333333333333333333333333333`3.","\"min\"","minutes",
+        "\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.478903577306652831161877`3.*^1488","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["7500",
+       HoldForm], 
+      TemplateBox[{"13.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "7.50000000000000000000000000000000121687`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "96.54500000000000000000000000000000007341`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "56.24999999999999999999999999999999999882`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{"7.03125`3.","\"min\"","minutes","\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.6832974787037977364237048`3.*^2241","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["10000",
+       HoldForm], 
+      TemplateBox[{"13.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "9.99999999999999999999999999999999966334`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "132.87700000000000000000000000000000107664`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "100.00000000000000000000000000000000000118`3.","\"ms\"",
+        "milliseconds","\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "16.66666666666666666666666666666666666667`3.","\"min\"","minutes",
+        "\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "6.32630364307698625343652386`3.*^2993","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["25000",
+       HoldForm], 
+      TemplateBox[{"15.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "24.99999999999999999999999999999999915835`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "365.24099999999999999999999999999999905843`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{"625.`3.","\"ms\"","milliseconds","\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.34027777777777777777777777777777777778`3.","\"h\"","hours",
+        "\"Hours\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.7827276178860539621299675975332506`3.*^7509","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["50000",
+       HoldForm], 
+      TemplateBox[{"16.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "50.00000000000000000000000000000000125543`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "780.482`3.","\"\[Micro]s\"","microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{"2.5`3.","\"s\"","seconds","\"Seconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.44675925925925925925925925925925925926`3.","\"days\"","days",
+        "\"Days\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.002251216659157120793989302`3.*^15035","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["75000",
+       HoldForm], 
+      TemplateBox[{"16.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "75.00000000000000000000000000000000041377`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.21459500000000000000000000000000000061`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{"5.625`3.","\"s\"","seconds","\"Seconds\""},
+       "Quantity"], 
+      TemplateBox[{"4.8828125`3.","\"days\"","days","\"Days\""},
+       "Quantity"], 
+      TemplateBox[{
+       "5.63466617792065583350141809475535401358`3.*^22560","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["100000",
+       HoldForm], 
+      TemplateBox[{"17.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "99.99999999999999999999999999999999957212`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.66096400000000000000000000000000000126`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{"10.`3.","\"s\"","seconds","\"Seconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.65343915343915343915343915343915343915`3.","\"wk\"","weeks",
+        "\"Weeks\""},
+       "Quantity"], 
+      TemplateBox[{
+       "3.1678148560831573691781860867898`3.*^30086","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["250000",
+       HoldForm], 
+      TemplateBox[{"18.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "250.00000000000000000000000000000000039967`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.48289200000000000000000000000000000003`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.04166666666666666666666666666666666667`3.","\"min\"","minutes",
+        "\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "5.94558599695585996955859969558599695586`3.","\"mo\"","months",
+        "\"Months\""},
+       "Quantity"], 
+      TemplateBox[{
+       "1.000251907738420326540040551`3.*^75241","\"yr\"","years","\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["500000",
+       HoldForm], 
+      TemplateBox[{"19.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "500.00000000000000000000000000000000079934`3.","\"\[Micro]s\"",
+        "microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "9.46578400000000000000000000000000000086`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "4.16666666666666666666666666666666666667`3.","\"min\"","minutes",
+        "\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "3.96372399797057331303906646372399797057`3.","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"], 
+      TemplateBox[{
+       "3.1551890326073640443246300098411`3.*^150498","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["750000",
+       HoldForm], 
+      TemplateBox[{"20.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "750.`3.","\"\[Micro]s\"","microseconds","\"Microseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "14.6373980000000000000000000000000000005`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{"9.375`3.","\"min\"","minutes","\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "13.37756849315068493150684931506849315068`3.","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"], 
+      TemplateBox[{
+       "9.95271066665060595191714464179913696`3.*^225755","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"]},
+     {
+      TagBox["1000000",
+       HoldForm], 
+      TemplateBox[{"20.`3.","\"ns\"","nanoseconds","\"Nanoseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "0.99999999999999999999999999999999999866`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "19.93156900000000000000000000000000000105`3.","\"ms\"","milliseconds",
+        "\"Milliseconds\""},
+       "Quantity"], 
+      TemplateBox[{
+       "16.66666666666666666666666666666666666667`3.","\"min\"","minutes",
+        "\"Minutes\""},
+       "Quantity"], 
+      TemplateBox[{
+       "31.70979198376458650431253170979198376459`3.","\"yr\"","years",
+        "\"Years\""},
+       "Quantity"], 
+      TemplateBox[{
+       "3.139477495337359922215`3.*^301013","\"yr\"","years","\"Years\""},
+       "Quantity"]}
+    },
+    GridBoxAlignment->{
+     "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+      "RowsIndexed" -> {}},
+    GridBoxDividers->{
+     "Columns" -> {False, True, {False}, False}, "ColumnsIndexed" -> {}, 
+      "Rows" -> {False, True, {False}, False}, "RowsIndexed" -> {}},
+    GridBoxSpacings->{"Columns" -> {
+        Offset[0.27999999999999997`], {
+         Offset[2.0999999999999996`]}, 
+        Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+        Offset[0.2], {
+         Offset[0.4]}, 
+        Offset[0.2]}, "RowsIndexed" -> {}}],
+   {OutputFormsDump`HeadedRows, OutputFormsDump`HeadedColumns}],
+  Function[BoxForm`e$, 
+   TableForm[
+   BoxForm`e$, 
+    TableHeadings -> {{1, 10, 25, 50, 75, 100, 500, 1000, 2500, 5000, 7500, 
+      10000, 25000, 50000, 75000, 100000, 250000, 500000, 750000, 1000000}, {
+      "lg(n)", "n", "nlg(n)", "n^2", "n^3", "2^n"}}]]]], "Output",
+ CellChangeTimes->{3.638791878732521*^9, 3.638791920669022*^9, 
+  3.6387920373719673`*^9, 3.638792092899482*^9, 3.6388023177208*^9, 
+  3.638811242369318*^9, 3.638811276527795*^9, 3.638811469873996*^9}],
+
+Cell[BoxData["\<\"timevals.png\"\>"], "Output",
+ CellChangeTimes->{3.638791878732521*^9, 3.638791920669022*^9, 
+  3.6387920373719673`*^9, 3.638792092899482*^9, 3.6388023177208*^9, 
+  3.638811242369318*^9, 3.638811276527795*^9, 3.638811470007556*^9}]
+}, Open  ]]
+},
+WindowSize->{1163, 911},
+WindowMargins->{{Automatic, 171}, {Automatic, -8}},
+FrontEndVersion->"10.1 for Linux x86 (64-bit) (March 23, 2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 758, 15, 77, "Input"],
+Cell[1319, 37, 2007, 53, 165, "Input"],
+Cell[CellGroupData[{
+Cell[3351, 94, 781, 17, 55, "Input"],
+Cell[4135, 113, 4868, 123, 442, "Output"],
+Cell[9006, 238, 474, 6, 32, "Output"]
+}, Open  ]],
+Cell[9495, 247, 863, 20, 77, "Input"],
+Cell[10361, 269, 3244, 74, 341, "Input"],
+Cell[CellGroupData[{
+Cell[13630, 347, 988, 24, 77, "Input"],
+Cell[14621, 373, 17130, 475, 592, "Output"],
+Cell[31754, 850, 249, 3, 32, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
