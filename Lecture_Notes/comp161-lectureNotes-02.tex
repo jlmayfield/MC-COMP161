@@ -3,7 +3,7 @@
 \usepackage[pdftex]{graphicx}
 
  
-\title{COMP 161 - Lecture Notes - 02 - Shells, part 1}
+\title{COMP 161 - Lecture Notes - 02 - Shells and Remote Access}
 
 \begin{document}
 \maketitle
@@ -15,6 +15,8 @@ Shotts' tutorial introduces the shell\sidenote{\url{http://linuxcommand.org/lc3_
 \section{The Shell}
 
 As Shotts explains quite well, the \textit{shell} is your command line interface with the operating system\sidenote{which is the software interface to the hardware}.  We're using \textit{bash}\sidenote{run the command \textit{echo \$SHELL} to see which shell you're running}, but there are many other shells you could check out\sidenote{ksh,tcsh, and zsh}.  These shells are all available for any Linux or Mac OS-X based system. If you want to explore a similar shell system for Windows, then you can check out Microsoft's PowerShell\sidenote{\url{http://msdn.microsoft.com/en-us/library/dd835506(v=vs.85).aspx}}.    
+
+The shell functions in much the same way as Dr. Racket's interaction window does. You're presented with a prompt at which you type some code or a command. The system then \textit{reads} that code, \textit{evaluates} that code, and typically \textit{prints} the result or some related message. This process then repeats as long as your session continues. This interaction pattern is called the \textit{Read, Evaluate and Print Loop} or \textit{REPL}. You'll write some basic REPLs in C++ very soon. 
 
 The real power of shells comes from the fact that they are \textit{programming languages}\sidenote{or scripting languages}.  More specifically, they are languages designed to let you write programs involving the activities carried out with the shell\sidenote{typically called \textit{scripts}}.  This means that using your shell language, you can likely automate most of the repetitive tasks you carry out on a regular basis.  For example, I used a bash script I wrote in order to create all of your accounts, generate random initial passwords for them, and be sure other account related settings were where they needed to be.  Without this script I would have needed to type something like five commands per account. For a class of $n$ students that $5n$ commands.  So, even for modest sized classes, that script saves me from a lot of repetitive typing. Perhaps more importantly, it prevents me from making typos and inadvertently messing something up\sidenote{The value of this is huge. We all make mistakes.}. 
 
@@ -111,17 +113,9 @@ You'll now be prompted for your username and password.
 When you're all done with the shell, the command \textit{exit} will log you out of the server.  
 
 
-\section{Submitting assignments with \textit{handin}}
-
-A script written for us by a former CS professor\sidenote{Thanks, Don Blaheta!} here at Monmouth allows you to submit most of your assignments via the server. The name of the script\sidenote{and the command} is \textit{handin}.  You'll work out its usage in the first lab.  If you need a refresher, the following command will give you the help text for the command.
-
-\begin{verbatim}
-handin -h
-\end{verbatim}
-
 \section{Moving files}
 
-Because of \textit{handin}, you'll never really need to move files to and from the server.  However, students regularly want to do this so I'll discuss a options.  The traditional method is to piggy back on the SSH connection using \textit{secure file transfer protocol}\sidenote{sftp}. I personally use the cloud storage service Dropbox\sidenote{\url{http://dropbox.com}} which has a command-line client. 
+You'll never really need to move files to and from the server for this course.  However, students regularly want to do this so I'll discuss a few options.  The traditional method is to piggy back on the SSH connection using \textit{secure file transfer protocol}\sidenote{sftp}. I personally use the cloud storage service Dropbox\sidenote{\url{http://dropbox.com}} which has a command-line client. 
 
 \subsection{sftp and psftp}
 
@@ -143,7 +137,7 @@ In Windows, you can use the PuTTy SFTP\sidenote{psftp} client, which can be down
 \end{center}
 \vspace{.1in}
 
-Once you're logged in, it runs the same as the Linux client. Once again, use the \textit{help} command to see the list of sftp commands. 
+Once you're logged in, it runs the same as the Linux client. Once again, use the \textit{help} command to see the list of sftp commands. In a nutshell, you direct the local and remote shell to a local and remote directory respectively. You can then \textit{get}\sidenote{download from server} or \textit{put}\sidenote{upload to server} files between those two directories. 
 
 \subsection{Dropbox}
 
