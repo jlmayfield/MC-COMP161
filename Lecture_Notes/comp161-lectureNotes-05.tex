@@ -69,13 +69,18 @@ g++ factorial.cpp -S
 \end{verbatim}
 To view the assembly code, just open the newly created \textit{factorial.s} with emacs or less. The assembly code is the most accurate representation of what the computer really does when our program is running.  When you're doing supper fine-tuned optimizations or tracking down really nasty bugs, you might have to look at the assembly.  Thankfully, we'll never be in this situation in this class. So, you'll never really have cause to use the -S option.  
 
+At this stage we want to introduce some important options. The first is \textit{-Wall}, which directs the compiler to provide a robust set of warnings in addition to errors. These warnings can help you avoid subtle bugs and help you write code that conforms to good C++ practices. The second options is \textit{-std=c++11}. This option tells the compiler we're using the C++11 standard\sidenote{\textit{std} is the standard abbreviation for standard}. By default, it compiles to an older standard that does not support several features of C++11 that we'll make use of.  Adding these changes our command to:
+\begin{verbatim}
+g++ factorial.cpp -S -Wall -std=c++11
+\end{verbatim}
+
 \subsection{Assembler}
 
 The assembler takes human readable assembly\sidenote{assuming you know the language} and produces a machine readable \textsc{object file}.   The \textbf{-c} option will produce an object file with the same name as your source file\sidenote{cpp file} but with the \textit{o} extension instead of cpp.  This stage is as far as you can go without a main procedure and the stage we target to run a complete check of the syntax. \textit{We'll compile to object files often.}  
 
-You would use the following command to build an object file for the factorial library.
+You would use the following command to build an object file for the factorial library.\sidenote{Notice the compiler options are still present}
 \begin{verbatim}
-g++ factorial.cpp -c
+g++ factorial.cpp -c -Wall -std=c++11
 \end{verbatim}
 
 You can open the resultant \textit{factorial.o} with emacs and clearly see that, to the human eye, it's gibberish.  
@@ -88,7 +93,7 @@ g++ factorial.o lab2_main.o
 \end{verbatim}
 By default, the compiler names the executable \textit{a.out}. This is a terrible, terrible name. It is not the least bit descriptive and provides now cues as to the effect and purpose of the program. It also means you can only have a single executable in your current directory.  We want two executable, a main executable and the executable to run our tests. We could use CLI commands to rename files, but the compiler provides an option for naming compilation output files: \textit{-o $<$output-name$>$}.
 
-This command produces an executable named \textit{factorial}.
+This command produces an executable named \textit{factorial}. The compiler options aren't necessary here because the object files have already been run through the compiler.
 \begin{verbatim}
 g++ factorial.o lab2_main.o -o factorial
 \end{verbatim}
@@ -116,7 +121,7 @@ The numbers underlined are the line and column number, respectively, where the c
 
 We already know enough to get our main program compiling. To get our unit tests compiled and executed, we'll need to utilize some linker options and direct the compiler to link in pre-compiled libraries already installed on the server. First we want the object file for our tests.
 \begin{verbatim}
-g++ fact_tests.cpp -Wall -c
+g++ fact_tests.cpp -Wall -std=c++11 -c
 \end{verbatim}
 
 Assuming our test code assembles without problems, we're ready to link to a main program that will run our tests.  Thankfully, the Goggle C++ unit testing framework provides a ready to go main program that is setup for running tests in a variety of ways. In order to compile with it, we must explicitly link in a few libraries. 
@@ -137,9 +142,9 @@ This command links our object files with three other libraries to produce the ex
 
 Let's build our factorial program form step one. First we assemble all our source files and get objects files for them.  
 \begin{verbatim}
-g++ factorial.cpp -Wall -c
-g++ lab2_main.cpp -Wall -c
-g++ fact_tests.cpp 
+g++ factorial.cpp -Wall -std=c++11 -c
+g++ lab2_main.cpp -Wall -std=c++11 -c
+g++ fact_tests.cpp -Wall -std=c++11 -c
 \end{verbatim}
 In practice, you'll probably won't do all these steps at once as you'll be working on different files at different times.  You'll also probably end up re-running one or more of these after you correct syntax errors and warnings. For now, we have a clean, ready to go program, and can go ahead and get all of the source code assembled. 
 
@@ -152,7 +157,7 @@ Presumably, we'd do the test executable first because if your tests don't pass i
 
 A common occurrence is that running tests finds a bug in your code. You'll go fix that and re-run your test. The change to your source file means that your object is out of date which in turn means your test executable is out of date.  To sync things back up with your source code you will need to re-compile the object then relink the executable. If the changes were to the factorial library. 
 \begin{verbatim}
-g++ factorial.cpp -Wall -c
+g++ factorial.cpp -Wall -std=c++11 -c
 g++ factorial.o fact_tests.o -lgtest -lgtest_main -lpthread -o fact_tests
 \end{verbatim}
 Note that your main executable is now out of sync as well and you'll need to relink that if necessary.
@@ -221,7 +226,7 @@ make factorial.o
 \end{verbatim}
 We know the first command. It builds the object from from the source file. The equivalent make command works in reverse and determines that the most likely source file for the intended object is factorial.cpp. 
 
-While this is a nice demonstration of the power of make, it's not that useful. We want compiler flags like \textit{-Wall} and need to be able to do more complex compilations that include linking.  So what we need is to tell \textit{make} to behave in some way other than its default behavior. To do this we create a file named \textit{Makefile}. In that file, we'll layout some rules and define some basic commands for make relative to directory containing Makefile.
+While this is a nice demonstration of the power of make, it's not that useful. We want compiler flags like \textit{-Wall} and \textit{-std=c++11}. We also need to be able to do more complex compilations that include linking.  So what we need is to tell \textit{make} to behave in some way other than its default behavior. To do this we create a file named \textit{Makefile}. In that file, we'll layout some rules and define some basic commands for make relative to directory containing Makefile.
 
 
 \subsection{Basic Makefiles}
@@ -240,13 +245,13 @@ The \textit{target} is the file to be made. The \textit{dependencies} are the fi
 Let's start with rules for our object files.
 \begin{verbatim}
 factorial.o : factorial.cpp
-     g++ factorial.cpp -c -Wall
+     g++ factorial.cpp -Wall -std=c++11 -c
      
 fact_tests.o : fact_tests.cpp
-     g++ fact_tests.cpp -c -Wall
+     g++ fact_tests.cpp -Wall -std=c++11 -c
 
 lab2_main.o : lab2_main.cpp
-     g++ lab2_main.cpp -c -Wall
+     g++ lab2_main.cpp -Wall -std=c++11 -c
 \end{verbatim}
 Now, when you type \textit{make factorial.o}, then make will find the rule for making \textit{factorial.o} and execute that rule. 
 
@@ -328,8 +333,8 @@ Our compiler is a very powerful tool. Two key sets of options that we'll explore
 
 So, your tests pass and your program is, as far as you can tell, working as intended.  At this point we can unleash the compiler and let it attempt to make our code faster\sidenote{\url{http://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html}}. Modern compilers are able to carry out common optimizations that can sometimes really boost the performance of our program. The g++ compiler carries out three levels of standard optimizations.  The higher the level number the more optimizations done by the compiler. The options \textbf{-O1}, \textbf{-O2}, and \textbf{-O3} turn on the different optimizations. They should be used to compile objects or executables from source code\sidenote{They're done by the compiler and so cannot be carried out at the link stage of the process}. The following demonstrate the use of compiler optimizations.
 \begin{verbatim}
-g++ factorial.cpp -c -Wall -O2 
-g++ lab3_main.cpp -c -Wall -O2 
+g++ factorial.cpp -c -Wall -std=c++11 -O2 
+g++ lab3_main.cpp -c -Wall -std=c++11 -O2 
 g++ factorial.o lab3_main.o -o factorial
 \end{verbatim}
 Notice that separate compilation gives the the chance to do different optimizations on different sets of code.  
@@ -341,8 +346,8 @@ Compiler optimizations effectively rewrite our code such that the assembly produ
 
 When we encounter tricky logic errors and runtime bugs in our code we often turn to debuggers like the program GDB or memory system checkers like Valgrinds memcheck.  When compiler optimizations don't seem to cut the mustard and we have to optimize our programs by hand, then we turn to profiling tools like the Valgrind suite.  Both programs require some special annotations be added to our code so that they can better communicate their results to us. The compiler can take care of this for us with the \textbf{-g} option\sidenote{\url{http://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html}}. This option should be used when object files are compiled and when they are linked. The following sequence of commands produces an executable named \textit{factorial} that is suitable for debuggers and profilers.   
 \begin{verbatim}
-g++ factorial.cpp -c -Wall -g 
-g++ lab3_main.cpp -c -Wall -g
+g++ factorial.cpp -c -Wall -std=c++11 -g 
+g++ lab3_main.cpp -c -Wall -std=c++11 -g
 g++ factorial.o lab3_main.o -g -o factorial
 \end{verbatim}
 We can also use the debugger option with our tests. When we're optimizing our code with the help of profilers, we might throw in compiler optimizations as well. It's generally safer and easier to leave them out and then toss them back in after we've finished our own optimization process.
