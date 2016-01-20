@@ -56,7 +56,7 @@ g++ factorial.cpp -E > pp_factorial.cpp
 
 For a really drastic transformation, look at what happens to our unit test macros:
 \begin{verbatim}
-g++ fact_tests.cpp > pp_fact_tests.cpp
+g++ fact_tests.cpp -E > pp_fact_tests.cpp
 \end{verbatim}
 
 We'll almost never have cause to stop after pre-processing, but you should still be aware of this stage and the role it plays in building your program. 
