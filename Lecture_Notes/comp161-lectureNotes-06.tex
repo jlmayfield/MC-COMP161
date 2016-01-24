@@ -5,18 +5,18 @@
 \usepackage[pdftex]{graphicx}
 
   
-\title{COMP 161 - Lecture Notes - 06 - How To Design Procedures for Atomic and Itemized Types}
+\title{COMP 161 - Lecture Notes - 06 - Functional Procedures}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In COMP160, ``How to Design Programs'' was all about designing functions.  Now that we're programming procedurally, we need to revisit our design process for statement based, functional procedures as well as effect oriented procedures. You'll see that for functions, many things won't change beyond the obvious syntax shift from BSL Racket to C++.  The core logic is the same, but how we express that logic is different. We begin this process by basic forms of data and how they appear in C++.
+In COMP160, ``How to Design Programs'' was all about designing functions.  Now that we're programming procedurally, we need to revisit our design process for statement based, functional procedures as well as effect oriented procedures.  In these notes we recapture the functional design process with C++ procedural programming. You'll see that for functions, many things won't change beyond the obvious syntax shift from BSL Racket to C++.  The core logic is the same, but how we express that logic is different. 
 \end{abstract}
 
 \section{Design and Development Process}
 
-Procedures are always designed with a particular project in mind. Before we get too deep into writing procedure code we should decide on the overall layout of our project in terms of libraries.  Once we decided on the number and nature of our libraries we can get all the files setup and ready to go.  Key in this process is getting a \textit{Makefile} written. By doing this we'll be ready to easily compile and run code as it gets written. Don't start writing the real code of your project until you're ready to compile it.  One important observation to make here is that we can compile and run all the boiler-plate code we need to write around our procedures. Any programs we build will obviously do nothing, but thats OK, we can build on top of this and it always give us a place to start.\sidenote{Program from the place of adding on functionality to an existing, functioning set of code.}
+It's always tempting to jump right in and start writing code. When we do this we're programming and planning at the same time. This often works out just fine\sidenote{The act of programming really helps understand a problem}, but as the complexity of the problem you're addressing with code increases, it's likely that you're vision for what needs to happen will get muddier and muddier. To address this we talk very purposefully about a design process. Your program and procedure designs help you establish a concrete plan and specification. A procedure's documentation and declaration clearly establish what your procedure is meant to accomplish and how it's expressed in code. The tests let you state several key cases of expected behavior. Sometimes you can implement the procedure without these in place, but if you cannot clearly and correctly state these things, then you shouldn't expect to be able to implement the procedure. If you can't write the documentation, a formal declaration, and some tests, they you probably don't have clear enough picture of what you're trying to accomplish in code. 
 
 When designing and developing C++ procedures, we can stick to the same design process advocated by HtDP2e. Here's my updated take on that process with respect to our new set of programming tools.
 \begin{enumerate}
@@ -25,60 +25,32 @@ When designing and developing C++ procedures, we can stick to the same design pr
 \item (\textsc{Design})Compile the library to an object to check for syntax errors and warnings. 
 \item (\textsc{Design})In your library's unit test file, write tests for the new procedure.
 \item (\textsc{Design})Compile the tests to an object to check for syntax errors and warnings.  
-\item (\textsc{Design})Link library object and test object to make test executable. Run tests to ensure you're tests and stubs are all setup and ready to go.\sidenote{The test will fail. You're just checking to see that they run!}
+\item (\textsc{Design})Link the library object and the test object to make a test executable. Run tests to ensure you're tests and stubs are all setup and ready to go.\sidenote{The test will fail. You're just checking to see that they run!}
 \item (\textsc{Implementation})Finish the implementation of the procedure. 
 \item (\textsc{Implementation})Recompile the library object to check for syntax errors and warnings.
 \item (\textsc{Testing})Link the library object with tests object and run the tests. Debug as needed.
 \end{enumerate}
-What you'll notice here is that I advocate for a lot of compiling check-points along the way. This can be tedious, but our pre-setup Makefile makes this super easy. If we're especially lazy, we can have the default behavior of our Makefile build all our code to executable and just build everything each time we need to compile any one piece.\sidenote{This practice does not scale, but should ease you along for now}. 
+What you'll notice here is that I advocate for a lot of compiling check-points along the way. This can be tedious, but a Makefile and \textit{make} will fix this by simplifying the build process. If we're especially lazy, we can have the default behavior of our Makefile build all our code to executable and just build everything each time we need to compile any one piece.\sidenote{This practice does not scale, but should ease you along for now}. The real goal here is to \textit{never stray farm from code that compiles}. If it compiles without error, then you've passed the low bar of correctness: the computer recognizes your program as syntactically correct C++. If code doesn't compile, then it does nothing and is for all intents and purposes useless.  As you build up a working program, you should always be adding new code to code you're certain compiles. If you don't know whether or not the code in front of you can compile or not, then you should stop what you're doing and ensure that it at least passes the compiler.
 
-As you get more comfortable with C++ you can try compiling less often. Just remember that waiting to compile can mean a long, scary looking list of errors.  Its been my experience that people prefer fix just a few bugs at a time to many tens of bugs at a time.  Additionally, errors beget errors so staying as close to a syntax error free program as possible is a good idea.
+We want to have tests ready to go before we implement our procedures so that as soon as you complete an implementation you can verify that not only does it compile but it passes our basic benchmark for behavioral correctness: the tests. This means we need to ensure that tests are ready to compile \textit{and} run them as soon as we finish the implementation. To get to this place we use a \textsc{stub definition}. A stub is an implementation of a procedure that meets the signature but not the purpose. If your procedure is supposed to return a number, then you just return some random number. If it returns a boolean return then return true or false. The important thing to understand now is that there are simple ways to provide skeleton definitions that let us not only check the syntactic correctness of our declarations and tests, but let us ensure that everything will run when we're ready for it to run. 
 
-Another aspect of this process that may be new to you is the use of \textit{stubs}. A stub is an implementation of a procedure that meets the signature but not the purpose. If your procedure is supposed to return a number, then you just return some random number. We can expand on stubs to include a procedure template based on our analysis of the inputs and outputs. Just don't over-think the stub and start writing the real implementation. The goal of the stub is to have a functioning,  complete, but incorrect definition that we can fix rather than nothing at all or something broken.\sidenote{Once again. We're building onto a working program, not working from a blank slate}. 
+ 
+\section{Static Typing in C++}
 
-\section{Kinds of Data, Data Models, and Basic Types in C++}
-	
-The first thing a programmer must do is decide how best to \textsc{model} real-world \textsc{information} with \textsc{computational data}. You need to decide what \textsc{data types} best capture the different parts of your problem and if those types aren't built in you either mimic their behavior or use things like structs and classes to define them. The big design lesson from COMP160 is that data tends to exhibit a few different structural patterns, and if we recognize the structure in our data, then we can base the structure of our program on those patterns. We wrote \textit{data definitions} in COMP160 to explicitly state the type and structure of our problem data, then wrote templates as a reminder of the structural patterns inherent in our data. Those pattens then guide us towards an implementation for our function.\sidenote{It's logical boilerplate!}. 
+BSL Racket didn't require you to explicitly identify what type of data your function took as input and returned as output.  We of course would document in our function signatures this because passing the wrong type of data almost always leads to a \textsc{run-time error}\sidenote{typically the program crashes}. For example, a function that is meant t manipulate a string shouldn't be passed a number. Languages like BSL Racket are called \textsc{dynamically typed} because the type of data associated with a particular name\sidenote{or identifier} isn't determined until run-time\sidenote{dynamic$\rightarrow$run-time}.  This type of language is fairly flexible but allows you to write something that looks syntactically correct but that contains obvious type errors. 
+  
 
-Let's review the two most basic patterns you should have encountered in COMP160.
-\begin{enumerate}
+The other side of the coin is languages that are \textsc{statically typed}, like C++.  Static typing means that the type of value associated with an identifier\sidenote{or variable} is determined at compile time\sidenote{static$\rightarrow$compile time}.  This means that \textit{you must annotate  your program with data types so that the compiler knows exactly what type of data is allowed for your procedures}. The reason for static typing is a stronger guarantee of correctness for programs that successful compile.  With static types a compiler can catch obviously bad usage of data. If your code invokes a function that's meant to operate on numbers but you've passed it a string value, then the compiler can catch that because you've given it an explicit declaration of expected types for all your functions. All those run-time errors from BSL Racket because compile-time syntax errors in C++.  This is good! The downside is you spend a lot of time annotating code and dealing with type errors at the compiler. So static types lead to better run-time correctness as the cost of the programmer's time. Dynamic types let the programmer make bad function calls, but often let you get code written quicker. It's all about trade-offs.   
 
-\item Primitive, Atomic Structures \\
-These are the ``low-level'' data types that are built in to the system.  The atoms. The smallest possible unit. They're things like numbers, booleans, letters, and from time to time, we'll treat non-atomic structures as if they were atomic.
-
-\item Itemization Structures \\
-aka Either-Or data or Unions.  We encounter this most often when we combine different kinds of data to form a new type of data or when you need to consider specific subsets or specific instances of atomic types. Numerical intervals and enumerations of values are classic examples of itemization. 
-
-\end{enumerate}
-
-One key thing to note is that itemizations are built from atomics and maybe other itemizations. In short, all roads lead to atomics and this means that our logical templates for non-atomic data tend to revolve around how we get at the underlying atomics. So without further adieu, let's see some templates. 
-
-\begin{quote}
-\textsc{Atomic}: Compute. \sidenote{Here is where we often need \textsc{domain knowledge}, facts and relations from the domain of our problem} 
-\end{quote}
-
-\begin{quote}
-\textsc{Itemization}: Use conditionals to determine which variant of the itemization you're dealing with and then call \sidenote{which often means design and write} a helper procedure to process that variant.\sidenote{apply recursively as needed}
-\end{quote}
-
-Now that we've done some really high-level review, let's see what shape this takes in the concrete world of C++ data types.
-
-
-\section{Static Types in C++}
-
-BSL Racket didn't require you to explicitly identify what type of data your function took as input and returned as output.  We of course would document in our function signatures this because passing the wrong type of data almost always leads to a \textsc{run-time error}\sidenote{typically the program crashes}. Languages like BSL Racket are called \textsc{dynamically typed} because the type of data associated with a particular name\sidenote{or identifier} isn't determined until run-time\sidenote{dynamic$\rightarrow$run-time}.  
-
-The other side of the coin is languages that are \textsc{statically typed}, like C++.  Static typing means that the type of value associated with an identifier\sidenote{or variable} is determined at compile time\sidenote{static$\rightarrow$compile time}.  This means that \textit{you must annotate  your program with data types so that the compiler knows exactly what type of data is allowed for your procedures}. Thus, the reason for static typing is a stronger guarantee of correctness for programs that successful compile.  With static types a compiler can catch obviously bad usage of data. So all those run-time errors from BSL Racket because compile-time syntax errors in C++.  This is good! The downside is you spend a lot of time annotating code and dealing with type errors at the compiler. So static types lead to better run-time correctness as the cost of the programmer's time. Dynamic types let the programmer make bad function calls, but often let you get code written quicker. It's all about trade-offs.   
-
-The last thing we need to be clear on before we move forward is what, exactly, is a data type.  
+The last thing we need to be clear on before we move forward is what, exactly, do we mean when we say \textit{data type}.  
 \begin{quote}
 A \textsc{type} is a set of values \textit{and operations on those values.}  
 \end{quote}
-It's easy to lose track of the operations and forget that procedures and operators are all defined for specific data types.  The only way a procedure or operator works on multiple types if it is defined for each of those types. 
+It's easy to lose track of the operations and forget that procedures and operators are all defined for specific data types.  The only way a procedure or operator works on multiple types if it is defined for each of those types. This will quickly become painfully clear in C++. 
 
-\section{Common C++ atomic types}
+\section{Basic types in C++}
 
-We'll begin our journey in to C++ types with four primitive types.  Let's name them and look at some literal values.
+We'll begin our journey in to C++ types with four primitive types.  Primitive types are built into the language and require no external libraries in order to use them. Let's name them and look at some literal values\sidenote{values expressed directly and readable by the compiler as such}.
 \begin{itemize}
 \item \textit{int} Whole valued numbers
 \begin{verbatim}
@@ -92,17 +64,20 @@ We'll begin our journey in to C++ types with four primitive types.  Let's name t
 \begin{verbatim}
 'a' 'A' 'c' '5' '+' '\0' '\n' '\t'
 \end{verbatim}
-\item \textit{bool}
+\item \textit{bool} boolean values
 \begin{verbatim}
 0 1 false true
 \end{verbatim}
 \end{itemize}
 
+There are many other primitive types available, but these will almost always get the job. If and when we need a primitive type other than these four, then it will typically be because we're dealing with a subset or variation of one of these types we'll address that type then. 
+
 \subsection{Number Types}
 
-The two most common number types in C++ are \textit{int}\sidenote{integers} and \textit{double}\sidenote{Double-Precision, Floating Point Numerals}. The \textit{int} type is used for whole valued numbers and the \textit{double} type for real-valued number, or numbers with a decimal point. There are many other numerical types and we'll check them out as needed. 
+The two most common number types in C++ are \textit{int}\sidenote{integers} and \textit{double}\sidenote{Double-Precision, Floating Point Numerals}. The \textit{int} type is used for whole valued numbers and the \textit{double} type for real-valued number, or numbers with a decimal point. In BSL Racket numbers were numbers and there wasn't an obvious distinction between whole-valued or real-valued numbers. You even had the ability to express fractions, rational numbers, as such. In C++ we must choose one type of number or the other because \textit{they use different circuits in the CPU}. 
 
-What number types clearly demonstrate is the typed nature of operators. The integer arithmetic works on integer values and produces an integer value \textit{only} where double arithmetic works with and produces doubles. \textit{There are no mixed operations.} A common gotcha that results from this is  integer division.  In math class $1/2$ is $0.5$. Notice that the operands are both integers but the result is a double. So, in C++ $1/2$ ends up as $0$\sidenote{Remainders are always dropped which effectively rounds down the result}. If you want a double result at least one, and ideally both, of the operands must be doubles, $1.0/2.0$.  When you mix numerical types, the compiler will automatically convert them so that they're type is homogeneous. This can lead to problems if we're not careful. 
+
+What these two number types clearly demonstrate is the typed nature of operators. The integer arithmetic works on integer values and produces an integer value \textit{only} where double arithmetic works with and produces doubles. \textit{There are no mixed operations.} A common gotcha that results from this is  integer division.  In math class $1/2$ is $0.5$. Notice that the operands are both integers but the result is a double. So, in C++ $1/2$ ends up as $0$\sidenote{Remainders are always dropped which effectively rounds down the result}. If you want a double result at least one, and ideally both, of the operands must be doubles, $1.0/2.0$.  When you mix numerical types, the compiler will automatically convert them so that they're type is homogeneous. This can lead to problems if we're not careful. 
 
 The other big thing we need to be aware of with computational number types is that they have limited precision. The root of the problem is that we're working with a limited number of bits. Imagine using only three digits for numbers.  You could only deal with numbers in the hundreds or less.  Thus, C++ numerical types have certain limits\sidenote{\url{http://www.cplusplus.com/reference/climits/}}.  With doubles we also have to deal with values that are impossible to express in base 2 (binary).  This is the same thing that we run into with base 10. You can't represent 1/3 as a decimal number without an infinite number of places.  In binary, 1/10 or 0.1 is one of these numbers. You can't represent it in binary without an infinite number of bits, which we do not have. 
 
@@ -159,7 +134,7 @@ It's occasionally useful to recognize that ASCII characters have numerical value
 #include <cctype>
 \end{verbatim} 
 
-These ``operators'' are really just procedures, so using them requires a procedure call.
+These ``operators'' are really just procedures, so using them requires a procedure call. Notice that procedure/function invocation in C++ is done like in mathematics\sidenote{\textit{name}(\textit{arguments})}.
 \begin{verbatim}
 tolower('a')
 toupper('a')
@@ -206,8 +181,11 @@ Similarly, the numerical comparison operators are strictly binary. Here we see a
 5 < b && b < 10
 \end{verbatim}
 
+\section{Expressions vs Statements}
 
-\section{Functional Procedures for Atomics}
+Before 
+
+\section{Simple Functional Procedures}
 
 We'll first look at functional procedures. These are procedures which take and return values and have no side effects\sidenote{just like Racket Functions}.  Let's look at two really basic numerical functions as examples. For these examples we've already decided on our types. 
 \begin{enumerate}
@@ -277,7 +255,7 @@ or more generally.
 NAMESPACENAME::FUNCTIONNAME(ARG,...)
 \end{verbatim}
 
-We typically use a \textit{using namespace} declaration within a function to direct the compiler towards namespaces being used. For example,
+You can\sidenote{you'll rarely see me do it though} use a \textit{using namespace} declaration within a function to direct the compiler towards namespaces being used. For example,
 \begin{verbatim}
 using namespace practice;
 \end{verbatim}
@@ -311,7 +289,7 @@ double practice::y_coordinate(double m, double b, double x){
   return 0.0;
 }
 \end{verbatim}
-The advantage of the first is less typing. The advantage of the second is keeping the indentation of our code down.  You can decide which you prefer; just know how to read and interpret both when you see them. The important thing is that you connect the definition with the namespace!
+The advantage of the first is less typing. The advantage of the second is keeping the indentation of our code down.  You can decide which you prefer\sidenote{I'll almost always use option 2}; just know how to read and interpret both when you see them. The important thing is that you connect the definition with the namespace!
 
 Procedure stubs are complete procedure definitions. They connect the header with a sequence of statements that execute when the procedure is called. The sequence of statements is called the procedure  \textsc{body of the procedure} and is found within a set of curly braces\sidenote{not parenthesis} that follow the header line. The opening curly brace can also be written on the next line, but we'll prefer the style shown above in this class.  Stubs typically have a single statement in the body. The \textit{return statement}. In Racket, the return value was implicit. In C++ we must explicitly instruct the computer to return a value. The numbers following the return are the values to be returned. As is typical, a semi-colon ends the statement. 
 
@@ -332,11 +310,11 @@ TEST(caseName,testName){
 This looks like vaguely like a procedure definition. It is not. This is a Macro. The C++ preprocessor will re-write this as C++\sidenote{try just running some tests through the pre-processor and you'll see what I mean}.
 
 
-With atomics, it's likely we'll need just a single case and test.  Let's setup tests for \textit{cube} and \textit{y\_coordinate}.
+There's no such thing as too many tests, but it is possible to write too few. For these simple functions we can probably get away with a single test. In general, you need to analyze the structure of the problem and determine what cases exist within the problem and test each case. 
 \begin{verbatim}
 
 TEST(cube,allTests){
-  using namespace practice;
+
 
 }
 
@@ -345,10 +323,10 @@ TEST(yCoordinate,allTests){
 
 }
 \end{verbatim}
-I've avoided underscores and went ahead and put a using namespace statement in the test body. This keeps us from having to explicitly state our procedure namespace when writing tests. 
+I've avoided underscores and went ahead and put a using namespace statement in one test but not the other so you can see the difference.
 
 
-The basic test we'll write is an equality check\sidenote{more here \url{https://code.google.com/p/googletest/wiki/Primer}}. For non-double values, we can check exact equality. For doubles we'll need to check that the value is close enough to our expected value. Thankfully, Google wrote a test taht does this for some fixed definition of ``near''\sidenote{\url{https://code.google.com/p/googletest/wiki/AdvancedGuide\#Floating-Point_Comparison}}. Equality for doubles is fraught with problems because of the inexactness of the representation. Racket saved you from worrying about this. C++ does not. 
+The basic test we'll write is an equality check\sidenote{more here \url{https://code.google.com/p/googletest/wiki/Primer}}. For non-double values, we can check exact equality. For doubles we'll need to check that the value is close enough to our expected value. Thankfully, Google wrote a test that does this for some fixed definition of ``near''\sidenote{\url{https://code.google.com/p/googletest/wiki/AdvancedGuide\#Floating-Point_Comparison}}. You also have the option to specify you're own nearness by giving a delta value below which the absolute difference between the expected and actual double values must fall\sidenote{$|e-a| < DELTA$}. Equality for doubles is fraught with problems because of the inexactness of the representation. Racket saved you from worrying about this. C++ does not. 
 
 Your first goal with tests is to come up with one or more tests that correctly capture the procedure's purpose and force every line of code in the procedure to execute.  We call this \textsc{code coverage}. Given that we haven't written a procedure, we'll have to think through the problem and imagine what tests will probably cover our code and add more later if needed. More generally, we should come up with a series of tests that cover a variety of situations ranging from simple to complex. A good check on simplicity is if you can do it yourself by hand or in your head.  For our examples this means small numbers or numbers that make the arithmetic really easy. 
 
@@ -356,44 +334,47 @@ Your first goal with tests is to come up with one or more tests that correctly c
 \begin{verbatim}
 
 TEST(cube,allTests){
-  using namespace practice;
-  EXPECT_EQ(0,cube(0));
-  EXPECT_EQ(1,cube(1));
-  EXPECT_EQ(8,cube(2));
-  EXPECT_EQ(1000,cube(10));
-  EXPECT_EQ(-1,cube(-1));
-  EXPECT_EQ(-8,cube(-2));
+
+  EXPECT_EQ(0,practice::cube(0));
+  EXPECT_EQ(1,practice::cube(1));
+  EXPECT_EQ(8,practice::cube(2));
+  EXPECT_EQ(1000,practice::cube(10));
+  EXPECT_EQ(-1,practice::cube(-1));
+  EXPECT_EQ(-8,practice::cube(-2));
 }
 
 TEST(yCoordinate,allTests){
   using namespace practice;
 
-  // constant functions
-  EXPECT_FLOAT_EQ(0.0,y_coordinate(0.0,0.0,0.0) );
-  EXPECT_FLOAT_EQ(0.0,y_coordinate(0.0,0.0,3.5) );
-  EXPECT_FLOAT_EQ(2.2,y_coordinate(0.0,2.2,3.5) );
+  // constant functions 
+  // Using DOUBLE_EQ
+  EXPECT_DOUBLE_EQ(0.0,y_coordinate(0.0,0.0,0.0) );
+  EXPECT_DOUBLE_EQ(0.0,y_coordinate(0.0,0.0,3.5) );
+  EXPECT_DOUBLE_EQ(2.2,y_coordinate(0.0,2.2,3.5) );
   // slope 1 that hits the origin
-  EXPECT_FLOAT_EQ(4.0,y_coordinate(1.0,0.0,4.0) );
-  EXPECT_FLOAT_EQ(-3.1,y_coordinate(1.0,0.0,-3.1) );
-  EXPECT_FLOAT_EQ(-0.014,y_coordinate(1.0,0.0,-0.014) );
+  // Using NEAR (the third argument is the delta
+  EXPECT_NEAR(4.0,y_coordinate(1.0,0.0,4.0) , 0.00000001 );
+  EXPECT_NEAR(-3.1,y_coordinate(1.0,0.0,-3.1) , 0.00000001 );
+  EXPECT_NEAR(-0.014,y_coordinate(1.0,0.0,-0.014) , 0.00000001 );
   //slope 1 that doesn't hit the origin
-  EXPECT_FLOAT_EQ(7.0,y_coordinate(1.0,3.0,4.0) );
-  EXPECT_FLOAT_EQ(-1.75,y_coordinate(1.0,2.25.0,-4.0) );
-  EXPECT_FLOAT_EQ(4.0,y_coordinate(1.0,0.0,4.0) );
+  EXPECT_DOUBLE_EQ(7.0,y_coordinate(1.0,3.0,4.0) );
+  EXPECT_DOUBLE_EQ(-1.75,y_coordinate(1.0,2.25.0,-4.0) );
+  EXPECT_DOUBLE_EQ(4.0,y_coordinate(1.0,0.0,4.0) );
   
   // a general case
-  EXPECT_FLOAT_EQ(7.5,y_coordinate(2.5,5.0,1.0) );
+  EXPECT_DOUBLE_EQ(7.5,y_coordinate(2.5,5.0,1.0) );
 
 }
 \end{verbatim}
 
+When testing doubles, you can start with DOUBLE\_EQ and see if your tests work within the implied correctness of that test.  It's also often possible to choose test vales that are less likely to round off funny and fall short of the EQ tests. In the end, there will always be cases where you need to loosen things up a bit and use EXPECT\_NEAR.
 
 The overall pattern is to write expected values prior to actual values. 
 \begin{verbatim}
-EXPECT_*EQ(expected,actual);
+EXPECT_*(expected,actual);
 \end{verbatim}
 
-Once you tests are written you can compile and run the tests.  Odds are good they will all fail, but occasionally the stub gets it right. Our goal isn't for them to fail. It's to start the process of finishing the procedure from a place that quickly and easily allows us to check out work. So assuming our tests are correct\sidenote{Tests that don't represent correct behavior are always possible, so check and double check your thinking!}, we can easily run the tests to see if your implementation is on the right check. After all, if you haven't actually run the code with real data, then you can't really claim that it works. The fact that it compiles without error means very little. We can make all kinds of garbage compile.
+Once you tests are written you can compile and run the tests.  Odds are good they will all fail, but occasionally the stub gets it right. Our goal isn't for them to pass or fail it's to start the process of finishing the procedure from a place that quickly and easily allows us to check out work. So assuming our tests are correct\sidenote{Tests that don't represent correct behavior are always possible, so check and double check your thinking!}, we can easily run the tests to see if your implementation is on the right check. After all, if you haven't actually run the code with real data, then you can't really claim that it works. The fact that it compiles without error means very little. We can make all kinds of garbage compile.
 
 \subsection{Completing the Definition}
 
@@ -401,7 +382,7 @@ We've declared the procedures in our library header, stubbed them out in the lib
 
 Knowing what code to write for functions on atomic data is largely a matter of understanding the problem domain. So be ready to research the problem. Use tests to explore the problem and strengthen your understanding with concrete examples because the procedure represents the solution for all possible inputs. Concrete examples help shed light on this abstraction by showing one specific case from many. After a few examples, you might see the pattern that results in the general solution. 
 
-Procedures on atomic data can often be written with a single return statement. That is the case with our example procedures.
+Very simple procedures can often be written with a single return statement. That is the case with our example procedures.  One definition is placed in a namespace block, the other declares its namespace in the header. You should pick one style and stick to it. I did them both only for demonstration purposes.
 
 \begin{verbatim}
 namespace practice{
@@ -409,16 +390,16 @@ namespace practice{
   int cube(int x){
     return x*x*x;  
   }
-
-  double y_coordinate(double m, double b, double x){
-    return m*x + b;
-  }
-
 }
+
+double practice::y_coordinate(double m, double b, double x){
+    return m*x + b;
+}
+
 \end{verbatim}
 
 
-\section{Functional Procedures for Itemized Data}
+\section{Functional Procedures With Conditionals}
 
 Let's say we needed to solve some kind of classic tax problem where for an income in 0 to 500 we pay 10\% tax, for 501 to 1000 we pay 15\%, and for an income above 1000 we pay 25\%. Well what we have is an itemization. In this case we're dealing with a series of numeric intervals\sidenote{notation reminder: $[$ or $]$ means the number is included and $($ or $)$ means its excluded from the interval.}
 \begin{enumerate}
@@ -427,33 +408,11 @@ Let's say we needed to solve some kind of classic tax problem where for an incom
 \item $(1000,\infty)$
 \end{enumerate}
 
-What we're looking at is a procedure that takes as input a double which is a number from one of these intervals. Each of these cases is called a \textsc{variant} of the itemization. So, this double is not atomic, it's an itemization. The recipe for managing itemization is all about narrowing down possibilities.
-\begin{quote}
-If the procedure has an input which is an itemization with $n$ variants, then use an $n$ branch conditional statement to determine to which of the $n$ variants your input belongs.
-\end{quote}
-
-In Racket we had the \textit{cond} expression. In C++ we'll mainly work with \textit{if .... else if .. else} statements.
+What we're looking at is a procedure that takes as input a double which is a number from one of these intervals and we'll need conditional logic to manage the problem. In Racket we had the \textit{cond} expression. In C++ we'll mainly work with \textit{if .... else if .. else} statements.  It's important to remember that conditionals in C++ are statements not expressions!
 
 \subsection{Declarations}
 
-Declaring procedures for itemized data is in most respects the same as for atomic data. 
-
-\begin{verbatim}
-
-namespace practice{
-
- /** 
-  * Compute the taxes for a given income.
-  * @param income The individual income which can fall 
-  *    into three tax brackets
-  * @return taxes owed
-  */
-  double my_taxes(double income);
-}
-
-\end{verbatim}
-
-The key difference is that we need at least pay some mention to the fact that we're dealing with an itemization.  The declaration above is minimally acceptable. We can tell there is a conditional coming but know nothing more. We'd do ourselves and our readers a favor if we documented the conditions.
+Really there's nothing new going on in the documentation and declaration. It would, however, be helpful if we documented the different cases. 
 \begin{verbatim}
 
 namespace practice{
@@ -470,7 +429,7 @@ namespace practice{
 
 \end{verbatim}
 
-This declaration tells us more about the problem without crossing the line into describing a solution. The benefit to you is that you're forced to write down the variants and this acts as a check on your thinking. The benefit to the reader is they know more about the problem. In a more immediate sense, when I'm reading the more complete documentation I can tell more about your understanding of the problem than I can with the first. More often than not, programming problems stem from misunderstanding the problem, not the program. I won't force you to use the more detailed documentation style, but you're doing yourself a big favor if you do. However, if you're getting help from me, then I might require you to write it if I'm not convinced you understand the problem you're trying to solve. 
+This declaration tells us more about the problem without crossing the line into describing a solution. The benefit to you is that you're forced to write down the variants of the input and this acts as a check on your thinking. The benefit to the reader is they know more about the problem. In a more immediate sense, when I'm reading the more complete documentation I can tell more about your understanding of the problem than I can with the first. More often than not, programming problems stem from misunderstanding the problem, not the program. I won't force you to use the more detailed documentation style, but you're doing yourself a big favor if you do. However, if you're getting help from me, then I might require you to write it if I'm not convinced you understand the problem you're trying to solve. 
 
 
 \subsection{Stubs}
@@ -486,50 +445,42 @@ We could potential start working out the logical template for the conditional, b
 
 \subsection{Tests}
 
-It helps if we think of procedures for itemized data as something like a set of related by disjoint procedures. Each variant does its own thing.  In terms of testing, this implies that we write a set of tests for each variant. You can probably get away with a single set of tests for the whole thing, but when you run into a problem case, a variant that is trickier than the others, you'll end up having to stare at test results for all of the variants you don't care about. By writing a separate set of tests for each variant you have the chance to run the tests for each variant separately from the others. I won't make a big deal out of this \textit{unless} you're having problems with a procedure for itemized data. I might then ask you to rewrite your tests to break out each case. Doing this can help narrow in on problems and forces you to think more deeply about the problem at hand. 
+It helps if we think of procedures with conditionals as a set of related by disjoint procedures. Each variant does its own thing.  In terms of testing, this implies that we write a set of tests for each variant. You can probably get away with a single set of tests for the whole thing, but when you run into a problem case, a variant that is trickier than the others, you'll end up having to stare at test results for all of the variants you don't care about. By writing a separate set of tests for each variant you have the chance to run the tests for each variant separately from the others. I won't make a big deal out of this \textit{unless} you're having problems with a procedure for itemized data. I might then ask you to rewrite your tests to break out each case. Doing this can help narrow in on problems and forces you to think more deeply about the problem at hand. 
 
 Our tax problem has three variants so we'll write three sets of tests. When working with intervals we should be certain to test the boundary values.
 \begin{verbatim}
 
 TEST(myTaxes,from0to500){
-   using namespace practice;
    
-   EXPECT_FLOAT_EQ(0.0 ,my_taxes(0.0) );  
-   EXPECT_FLOAT_EQ(10.0 ,my_taxes(100.0) );
-   EXPECT_FLOAT_EQ(20.0 ,my_taxes(200.0) );
-   EXPECT_FLOAT_EQ(37.55 ,my_taxes(375.5) );   
-   EXPECT_FLOAT_EQ(50.0 ,my_taxes(500.0) );  
+   EXPECT_DOUBLE_EQ(0.0 ,practice::my_taxes(0.0) );  
+   EXPECT_DOUBLE_EQ(10.0 ,practice::my_taxes(100.0) );
+   EXPECT_DOUBLE_EQ(20.0 ,practice::my_taxes(200.0) );
+   EXPECT_DOUBLE_EQ(37.55 ,practice::my_taxes(375.5) );   
+   EXPECT_DOUBLE_EQ(50.0 ,practice::my_taxes(500.0) );  
 }
 
 TEST(myTaxes,from501to1000){
-   using namespace practice;
 
-   EXPECT_FLOAT_EQ(75.15 ,my_taxes(501.0) );  
-   EXPECT_FLOAT_EQ(90.0 ,my_taxes(600.0) );
-   EXPECT_FLOAT_EQ(112.5 ,my_taxes(750.0) );
-   EXPECT_FLOAT_EQ(150.0 ,my_taxes(1000.0) );   
+   EXPECT_DOUBLE_EQ(75.15 ,practice::my_taxes(501.0) );  
+   EXPECT_DOUBLE_EQ(90.0 ,practice::my_taxes(600.0) );
+   EXPECT_DOUBLE_EQ(112.5 ,practice::my_taxes(750.0) );
+   EXPECT_DOUBLE_EQ(150.0 ,practice::my_taxes(1000.0) );   
 
    
 }
 
 TEST(myTaxes,from1000up){
-   using namespace practice;
 
-   EXPECT_FLOAT_EQ(250.0025 ,my_taxes(1000.01) );  
-   EXPECT_FLOAT_EQ(500.0 ,my_taxes(2000.0) );
-   EXPECT_FLOAT_EQ(2500.0 ,my_taxes(10000.0) );
-   EXPECT_FLOAT_EQ(25000.0 ,my_taxes(100000.0) );      
+   EXPECT_DOUBLE_EQ(250.0025 ,practice::my_taxes(1000.01) );  
+   EXPECT_DOUBLE_EQ(500.0 ,practice::my_taxes(2000.0) );
+   EXPECT_DOUBLE_EQ(2500.0 ,practice::my_taxes(10000.0) );
+   EXPECT_DOUBLE_EQ(25000.0 ,practice::my_taxes(100000.0) );      
 }
 \end{verbatim}
 
 Notice that we cover the boundary values in each variant. It's also worth noting that our double based function can and will spit out numbers that aren't dollar values.  If you're writing a real application involving money, you might do well to remember that doubles are not money and you should expect to spend a lot of time managing the difference if you choose to represent the former with the later\sidenote{look for libraries our if you can't find one build your own money type}
 
 \subsection{Completing the Function}
-
-Let's recall the logic template for itemized data:
-\begin{quote}
-\textsc{Itemization}: Use conditionals to determine which variant of the itemization you're dealing with and then call \sidenote{which often means design and write} a helper procedure to process that variant.\sidenote{apply recursively as needed}
-\end{quote}
 
 Before we get to the conditionals, let's talk about the helper procedures. You don't always have to write helpers. You do yourself some favors if you do. If it turns out one variant has some really non-obvious logic, then making a helper lets you logically and physically set that apart from the big picture of the itemization. You can set this problem case aside, finish the rest, and then go on to the complex case. In short, always using helpers will keep you sane with things get rough. It forces you to break the problem in to tiny, manageable pieces and helps to avoid getting overwhelmed by large, complex problems. I won't force you to always write helpers, but if you get stuck, I will. Our example problem is simple enough that helpers are needed, but I will talk about how to approach the task of writing and designing helpers after we do it without them.
 
@@ -594,7 +545,7 @@ We're done. Run your tests. If they fail then either the test is wrong or your c
   *   and (1000,inf)
   * @param income The individual's income 
   * @return taxes owed
-  * @precondition: income >= 0.0
+  * @preconditions income >= 0.0
   */
   double my_taxes(double income);
 \end{verbatim}
@@ -672,12 +623,12 @@ namespace practice{
 We need to test the new variant as well. This test is super easy.
 \begin{verbatim}
 TEST(myTaxes,negatives){
-   using namespace practice;
 
-   EXPECT_FLOAT_EQ(0.0,my_taxes(-0.001) );  
-   EXPECT_FLOAT_EQ(0.0 ,my_taxes(-2000.0) );
-   EXPECT_FLOAT_EQ(0.0 ,my_taxes(-1234.56) );
-   EXPECT_FLOAT_EQ(0.0 ,my_taxes(-5.0) );      
+
+   EXPECT_DOUBLE_EQ(0.0,practice::my_taxes(-0.001) );  
+   EXPECT_DOUBLE_EQ(0.0 ,practice::my_taxes(-2000.0) );
+   EXPECT_DOUBLE_EQ(0.0 ,practice::my_taxes(-1234.56) );
+   EXPECT_DOUBLE_EQ(0.0 ,practice::my_taxes(-5.0) );      
    
 }
 \end{verbatim}
@@ -726,15 +677,85 @@ double practice::my_taxes(double income){
 }
 \end{verbatim}
 
+\section{A Recursive Function}
+
+Recursive functions require conditionals and demonstrate function calls within a function definition as they must at least call themselves. Below is the basic recursive factorial function from lab 2. Notice that there's not much new going on in terms of syntax. We do make a recursive call in the definition, but we've actually already done lots of function calls in our tests. 
+
+Documentation and Declaration:
+\begin{verbatim}
+namespace ver1{
+  /**
+   *  Compute the factorial of n
+   *  @param n integer
+   *  @return the factorial of n
+   *  @preconditions n>=0
+   */
+  int factorial (int n);
+}
+\end{verbatim}
+
+Stub:
+\begin{verbatim}
+int ver1::factorial(int n){
+   return 0;
+}	
+\end{verbatim}
+
+Tests:
+\begin{verbatim}
+TEST(ver1,factorial){
+   // base case
+   EXPECT_EQ(1,ver1::factorial(0));
+   EXPECT_EQ(1,ver1::factorial(1));
+   // recursive case
+   EXPECT_EQ(2,ver1::factorial(2));
+   EXPECT_EQ(6,ver1::factorial(3));
+   EXPECT_EQ(120,ver1::factorial(5));
+}
+\end{verbatim}
+
+Implementation:
+\begin{verbatim}
+int ver1::factorial(int n){
+
+  if( n == 0 ){
+    return 1;
+  }
+  else{
+    return n * ver1::factorial(n-1);
+  }
+}
+
+\end{verbatim}
 
 \section{A Note About Predicates}
 
 Functions that return a \textit{bool} value are often called \textsc{predicates} or boolean-valued functions. Boolean expressions can always be replaced by predicate functions, and since boolean expressions are an integral part of control structures like our \textit{if...else if...else} statements, we'll stop and talk about a clean, concise style of writing predicates.  It's often a good idea to write predicates helpers to clear out long and hard to parse boolean expressions. 
 
 
-In many cases, predicates can, and should, be written without the use of conditional statements. The temptation is to view it as a two-variant itemization: all the values for which the condition is true and all the others for which it is false. For example, let's say we need a predicate \textit{isEven} which takes an \textit{int} type and returns true if it is even and false otherwise.  We could focus on the variants and write a procedure for itemized data like this:
+In many cases, predicates can, and should, be written without the use of conditional statements. The temptation is to view it as a two-variant itemization: all the values for which the condition is true and all the others for which it is false. For example, let's say we need a predicate \textit{isEven} which takes an \textit{int} type and returns true if it is even and false otherwise.  Here's some tests that demonstrate it's functionality and how to test boolean values.
 \begin{verbatim}
-bool isEven(int n){
+
+TEST(isEven,all){
+	
+	EXPECT_TRUE(practice::isEven(2));
+	EXPECT_TRUE(practice::isEven(0));
+	EXPECT_TRUE(practice::isEven(-2));	
+	EXPECT_TRUE(practice::isEven(12348));
+
+	EXPECT_FALSE(practice::isEven(1));
+	EXPECT_FALSE(practice::isEven(17));
+	EXPECT_FALSE(practice::isEven(-1));
+	EXPECT_FALSE(practice::isEven(1327));		
+}
+
+\end{verbatim}
+
+
+
+To implement this We could focus on the variants and write a procedure for itemized data like this:
+\begin{verbatim}
+bool practice::isEven(int n){
   
   if( n % 2 == 0 ){
     return true;
@@ -748,7 +769,7 @@ bool isEven(int n){
 
 However, notice that the \textit{boolean expression} \textit{n \% 2 == 0} takes on exactly the value we want to return. So, a better implementation is to simply return the value of that expression.
 \begin{verbatim}
-bool isEven(int n){
+bool practice::isEven(int n){
   
   return n % 2 == 0;
 
@@ -758,7 +779,7 @@ bool isEven(int n){
 Maybe you were thinking check for odds then let evens be the else case? That's OK, you can always use the boolean negation operator ! to ``flip'' the result. This
 
 \begin{verbatim}
-bool isEven(int n){
+bool practice::isEven(int n){
   if( n % 2 == 1 ){
     return false;
   }
@@ -769,7 +790,7 @@ bool isEven(int n){
 \end{verbatim}
 becomes,
 \begin{verbatim}
-bool isEven(int n){
+bool practice::isEven(int n){
   
   return !(n % 2 == 1);
   
@@ -787,5 +808,19 @@ We got away with simple one letter names for arguments with our mathematical exa
 
 The documentation we provide in our library header file should also be focused on the details about the problem we're addressing and the information we're representing. Rarely should we provide concrete details about \textit{how} we're solving the problem.  The biggest mistake I see students make is to write purpose statements as an English translation of the function code. This is wrong. Just wrong. You can avoid this with functions by focusing on the high-level relationship between the inputs and the output and ultimately describing the function output.
 
+\section{A Note on \textit{char} data}
+
+We didn't see an example that uses char type data. There isn't much new going on with them. They're tested just like integers. Here are the \textit{cctype} examples from before written as tests to illustrate the point:
+
+\begin{verbatim}
+
+EXPECT_EQ('a',tolower('a'));
+EXPECT_EQ('A',toupper('a'));
+EXPECT_TRUE(isdigit('5'));
+EXPECT_FALSE(isdigit(' '));
+
+\end{verbatim}
+
+The only other thing worth pointing out here is that old C libraries, like \textit{cctype}, don't use namespaces. Their definitions are technically in the \textit{global namespace} which doesn't require a namespace specifier or using namespace declaration. We don't put our definitions there as a matter of good style and best practices. 
 
 \end{document}
