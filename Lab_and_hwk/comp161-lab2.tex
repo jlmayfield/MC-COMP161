@@ -55,7 +55,7 @@ Here are the errors you should introduce:
 Compile an executable without a \textit{main} procedure. There are two easy ways to do this by modifying your Makefile instead of the code itself.  If you remove the \textit{-lgtest\_main} from the rule for the test executable, then you'll be missing the Google provided main. If you remove the lab2\_main.o from the compile command for the main executable, then you're missing the program main.  I suggest you try them both.
 
 \item \textit{Missing Semi-colon} \newline
-In \textit{factorial.cpp}, remove the semi-colon at the end of line 42. Any line ending in a semi-colon is a C++ statement. This particular statement instructs the computer to call another function. You might try removing other semi-colons to see if the different statements induce different errors when they're missing their terminating semi-colon.
+In \textit{factorial.cpp}, remove the semi-colon at the end of line 17. Any line ending in a semi-colon is a C++ statement. This particular statement instructs the computer to call another function do some multiplication, and then return a result to the site where this function was called from. You might try removing other semi-colons to see if the different statements induce different errors when they're missing their terminating semi-colon.
 
 \item \textit{Missing namespace specifier} \newline
 The statement on line 18 of \textit{lab2\_main.cpp} directs the computer to look in the \textit{std} namespace for names it doesn't known. This allows us to more easily call several functions from standard C++ libraries. Remove the code on line 18.
@@ -64,7 +64,7 @@ The statement on line 18 of \textit{lab2\_main.cpp} directs the computer to look
 In \textit{lab2\_main.cpp}, remove lines 10-13, each individually. Each line includes a different library. By doing each line individually you can see similarities and differences between forgetting to include different libraries.
 
 \item \textit{Missing define guards}. \newline
-In \textit{factorial.h} you should see the define guard code\sidenote{See lecture notes 4} on lines 10, 11, and 103.  Remove all of those lines at once to get rid of the define guard. Now do complete, clean build of the project, i.e. testing and main executable. 
+In \textit{factorial.h} you should see the define guard code\sidenote{See lecture notes 4} on lines 9, 10, and 75.  Remove all of those lines at once to get rid of the define guard. Now do complete, clean build of the project, i.e. testing and main executable. 
 
 \item \textit{Choose your own adventure} \newline
 Come up with at least two more errors to introduce. You might try searching around the web for common C++ syntax mistakes and see if you can introduce one of those.  Coming from Racket, an obvious thing you could do are missing parenthesis and curly braces. Just like in Racket, C++ makes use of matching opening and closing parenthesis and brackets quite often. When you type a closing bracket/parenthesis in Emacs, it will briefly highlight the opener it is associated with. If you're not sure what brackets go with what, then delete and retype a closer to see what opener it goes with. Try removing an open and a closer. Try different situations; not all brackets are created equal. Some brackets surround definitions where others are used to block statements together to make another statement within a definition. 
