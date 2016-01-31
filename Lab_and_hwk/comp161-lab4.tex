@@ -19,7 +19,7 @@ This week you'll be building basic interfaces for the functions you developed la
 
 During lab you'll get started on building the following programs:
 \begin{enumerate}
-\item A program that provides a basic CLI interface to the charge payback function from lab/hwk 2. \\
+\item A program that provides a basic CLI interface to the charge payback function from lab/hwk 3. \\
 The CLI program takes a single command line argument, the charge amount. The executable should be named \textit{payback}. When the user enters a negative charge amount, the program should print an error message and close without reporting a payback amount. Otherwise, the program should behave like this example: 
 \begin{verbatim}
 $> ./payback 250.0
@@ -28,7 +28,7 @@ $>
 \end{verbatim}
 
 
-\item A program that provides a basic REPL interface for some of the distance conversion functions from lab/hwk2. \\
+\item A program that provides a basic REPL interface for some of the distance conversion functions from lab/hwk 3. \\
 The executable program should be named \textit{convert}. The program should prompt the user for three things: the distance to be converted, its units, and the target units. Your program should only allow the conversion to and from inches, centimeters, and feet. Units can be specified by a single letter\sidenote{i.e. a char value}: i for inches, c for centimeters, and f for feet. If the user enters a negative value for the distance or a unit not covered by the program, then the program should write an error message to the standard error and continue to the next loop without attempting a conversion. Otherwise, the program should produce descriptive output. A execution of the program that terminates after a single loop might look like this:
 \begin{verbatim}
 $> ./convert
