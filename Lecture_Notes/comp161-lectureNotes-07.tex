@@ -5,25 +5,29 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{framed}
 
-  
-\title{COMP 161 - Lecture Notes - 07 - I/O and State Mutation Effects}
+
+\title{COMP 161 - Lecture Notes - 07 \newline main, I/O, and State Mutation Effects}
 
 
-\begin{document} 
+\begin{document}
 \maketitle
 
 \begin{abstract}
-In these notes we look at basic effects in C++. 
+In these notes we write our first \textit{main} procedures and in doing so look at some common CLI interface idioms and our first effect-based code.
 
 \end{abstract}
 
 \section{Interactive Testing}
 
-So far, you've only interacted with your functions by writing and running tests. While having frameworks like gTest are great. It's also really nice to interact with the code yourself. If we put this in the context of testing, it'd be nice to be able to choose an input on the fly, feed that to the function, and see the result. We want to interact with the code in a dynamic fashion. This can be an important part of debugging and problem solving, so we should learn how to do it. It also turns out that the programming tools we need to do interactive testing are the same tools we need to write interactive programs. So, while we're just going to think about the problem of testing functions. You should be imagining how these new tools lead to the kind of interactive functionality we know of love form computers. 
+So far, you've only interacted with your functions by writing and running tests. The user interface\sidenote{UI} for this was provided through a \textit{main} procedure written by Google and provided in the library \textit{libgtest\_main} which was linked in at compile time. It's time to start writing your own \textit{main} implementations. This will require that we dive into some basic I/O and state mutation. From here on out, when we talk about developing a program, we're talking about writing a \textit{main} procedure as any necessary helper procedures. The helpers are expected to be in a library and tested independent of their usage in main using the gTest libraries.
+
+The first programs we'll develop will be done enable interactive testing of one or more procedures\sidenote{Alternatively, you can think of them is very, very simple interfaces with one or more functions.} So far, our testing process with gTest is restrictive in that once you choose your values you have to re-write and re-compile your code in order to try new values.  The real goal of these tests is to cover all the cases of the problem and program logic.  Once we're sure these tests pass, it's likely we'd like to try a few more test cases on the fly. This means we need a program that allows us to feed values to our functions while it's running.
+
+We'll explore two common idioms for interactive testings: a REPL and a CLI program. The former prompts the user for input repeatedly. All the I/O is managed by the program after it is launched at the CLI. The process is looped so that any number of tests can be run. The later takes the function inputs from the CLI, processes them, and computes the result. It allows a single test but is meant to integrate with the CLI. Thus, if you wanted to do repeated tests you could automate that process using Bash and other CLI tools.
 
 \subsection{The Function}
 
-Let's look at problem 1 from section 4 of the HTDP1e online problem set\sidenote{\url{http://htdp.org/2003-09-26/Problems/4.html}}. I've renamed the function to conform with our C++ standards rather than BSL standards. 
+Let's start by knocking out problem 1 from section 4 of the HTDP1e online problem set\sidenote{\url{http://htdp.org/2003-09-26/Problems/4.html}}. I've renamed the function to conform with our C++ standards rather than BSL standards. Once we've designed and tested this function using gTest, then we'll write our interactive programs to go with it.
 
 \begin{framed}
 \begin{quote}
@@ -36,10 +40,10 @@ Here's the end product of our development process\sidenote{Recreate this process
 // In the header
 
 namespace TwoD{
-  
-  
+
+
   /**
-   * Determine if the point (x,y) is on or within a 
+   * Determine if the point (x,y) is on or within a
    * circle with center (0,0) and radius r
    * @param x the x coordinate of the point
    * @param y the y coordinate of the point
@@ -52,111 +56,109 @@ namespace TwoD{
 }
 
 // In the tests
-
 TEST(isWithin,all){
-  using namespace TwoD;
-  
-  // Positive Tests 
-  EXPECT_TRUE(isWithin(0,0,0));
-  EXPECT_TRUE(isWithin(0,0,0.5));
-  EXPECT_TRUE(isWithin(0,0,2.5));
-  EXPECT_TRUE(isWithin(1.0,0.5,2.5));   
-  EXPECT_TRUE(isWithin(2.5,0.0,2.5));
-  EXPECT_TRUE(isWithin(0.0,2.5,2.5));
-	  
+
+  // Positive Tests
+  EXPECT_TRUE(TwoD::isWithin(0,0,0));
+  EXPECT_TRUE(TwoD::isWithin(0,0,0.5));
+  EXPECT_TRUE(TwoD::isWithin(0,0,2.5));
+  EXPECT_TRUE(TwoD::isWithin(1.0,0.5,2.5));
+  EXPECT_TRUE(TwoD::isWithin(2.5,0.0,2.5));
+  EXPECT_TRUE(TwoD::isWithin(0.0,2.5,2.5));
+
   // Negative Tests
-  EXPECT_FALSE(isWithin(1.0,0,0));
-  EXPECT_FALSE(isWithin(0,1.0,0.5));
-  EXPECT_FALSE(isWithin(2.5,2.5,2.5));
-  EXPECT_FALSE(isWithin(0,0.501,0.5));   
-  EXPECT_FALSE(isWithin(2.5,0.1,2.5));
-  EXPECT_FALSE(isWithin(0.0,3.0,2.5));
-  
+  EXPECT_FALSE(TwoD::isWithin(1.0,0,0));
+  EXPECT_FALSE(TwoD::isWithin(0,1.0,0.5));
+  EXPECT_FALSE(TwoD::isWithin(2.5,2.5,2.5));
+  EXPECT_FALSE(TwoD::isWithin(0,0.501,0.5));
+  EXPECT_FALSE(TwoD::isWithin(2.5,0.1,2.5));
+  EXPECT_FALSE(TwoD::isWithin(0.0,3.0,2.5));
+
 }
+
 
 // In the Library Implementation
 
 #include <cmath>
 
-namespace TwoD{
-
-  bool isWithin(double x, double y, double r){
-     return r >= sqrt(x*x + y*y);
-  }
-
+bool TwoD::isWithin(double x, double y, double r){
+  return r >= sqrt(x*x + y*y);
 }
+
 \end{verbatim}
 
-With this kind of function we can expect to run into some double arithmetic rounding problems. In particular, when we're checking for the point one the edge of the circle, the equality case, things could easily get off and produce erroneous results. So, it might be nice to interactively test this function to see when that kind of problem crops up. It might also be nice to try some new values without the need to write new tests. 
+With this kind of function we can expect to run into some double arithmetic rounding problems. In particular, when we're checking for the point one the edge of the circle, the equality case, things could easily get off and produce erroneous results. So, it might be nice to interactively test this function to see when that kind of problem crops up. It might also be nice to try some new values without the need to write new tests.
 
 
 \section{Goal: Two Programs for Interactive Testing}
 
-Let's identify two programs that would allow us to test \textit{isWithin} in an interactive fashion:
-\begin{enumerate}
-\item an primative REPL\sidenote{Read Evaluate Print Loop} program that prompts you for input values and prints the results until you close it. The looping part is really optional. We could just do one test, then relaunch the program for more tests as needed.
-\item a CLI program that lets the user pass the \textit{isWithin} inputs as CLI arguments. This is like the previous program without a loop and without any prompts. 
-\end{enumerate}
+Both our REPL and CLI testing program for \textit{isWithin} will require the use of I/O and state. The results of the test need to be written to the screen, there's your \textsc{Output}. The REPL will read user input from the user directly and the CLI versions will use an input library to facilitate the processing of user input given at the CLI terminal, so there's your \textsc{Input}. User input cannot be acted on directly. It must first be stored in memory, which for the programmer is a \textsc{state variable}. The process of declaring/allocating and initializing a variable is a basic case of \textsc{mutation} effect. There we have it, all three major effects.
 
-We'll first focus on program number one, the REPL program. It's a bit easier to get off the ground and exposes to wide and wonderful world of effect-based, imperative, procedural programming. We'll also checkout program number two, but will likely hand-wave over a few details that we'll explore in depth later on down the line.
-
-\subsection{Problem: Effects}
-
-Before we dive into the guts of these programs, let's make it clear why we need effect-based code. Clearly we need \textsc{I/O}\sidenote{Input/Output} effects as we must \textsc{read} data from the CLI input, aka \textsc{stdin} and feed it as inputs to our function.  We then want to \textsc{write} the results of our computation to the CLI output, \textsc{stdout}.  Racket did this kind of thing implicitly in the interactions window. We have no such system now and need to explicitly manage it ourselves. 
-
-What's less clear is why we need \textsc{state mutation}. The short answer is because you cannot read from stdin directly into a function. You must first read into a variable\sidenote{i.e. memory}, then pass the value of that variable to the function.  This means declaring and initializing a variable, then using \textsc{mutation} to change the value to what is read from stdin. There are good reasons for this requirement. Sometimes the read fails. If that happens when you're attempting to call the function, then your program will probably crash. It's also just a bad idea to assume that what's coming in from \textit{stdin}, or input devices in general, is well-formed, valid data. You might be expecting a number, but the user could, for whatever reason, give you string data. This can be an honest mistake or malicious intent. In web-based systems, you want to check all user input from a form before acting on it in order to avoid SQL injection\sidenote{\url{http://en.wikipedia.org/wiki/SQL_injection}}. 
-
-When dealing with CLI arguments as we'll do with program two, we don't have to worry about reading from stdin. The operating system takes the CLI command, parses it, and sends it to our program as C strings.  This is great if we needed strings, but we need numbers. The solution is actually to use a C++ library that allows us to treat a string as a input device. We can then read from the string(s) in the exact way we read from the CLI. The end result is the same, we just have to work through an intermediate step. 
+This go around we'll start with the finished product and then break the code down bit by bit. The first program we'll look at is the REPL then the CLI program.
 
 \section{Program 1: Interactive REPL}
 
-Let's dive right into the first program. We'll first look at the whole main procedure, then we'll break down the logical steps. I've included the \textit{\#include} statements to highlight the standard C++ I/O library, \textit{iostream}\sidenote{\url{http://www.cplusplus.com/reference/iostream/}}. 
+I've included the \textit{\#include} statements to highlight the standard C++ I/O library, \textit{iostream}\sidenote{\url{http://www.cplusplus.com/reference/iostream/}}.
 
 \begin{verbatim}
 
-#include <iostream> //std::cout std::cin std::boolalpha
-#include "ln7.h"    // TwoD::isWithin
+#include <iostream> //std::cout, std::cin, std::boolalpha
+#include "ln7.h"
 
 int main(int argc, char* argv[]){
-  using namespace TwoD;
-  using namespace std;
 
-  // Declare Variables to hold user input
-  double x{0.0};
-  double y{0.0};
-  double r{0.0};
-
-  // explicit infinite loop
-  // Use Ctrl-C to kill the program at the CLI
-  // This is a terrible idea more often than not, but
-  // works for this application.
+  /**
+   * an explicit infinite loop
+   * This is a terrible idea more often than not, but
+   * works for this application.
+   */
   while(true){
-     
-    // Prompt and get x,y
-    cout << "Enter point coordinates: ";
-    cin >> x >> y;
-    // Prompt and get r
-    cout << "Enter circle radius: ";
-    cin >> r;
-    
-    // Compute and report results
-    cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
-      boolalpha << isWithin(x,y,r) << '\n';
-      
-  } //end while
+
+    /** declare variables **/
+    double x{0.0}; //point x coordinate
+    double y{0.0}; //point y coordinate
+    double r{0.0}; //circle radius
+
+    /** READ **/
+    // get point coordinates
+    std::cout << "Enter point coordinates: ";
+    std::cin >> x >> y;
+    // get radius
+    std::cout << "Enter circle radius: ";
+    std::cin >> r;
+
+    /** EVAL and PRINT **/
+    // print results and eval inline with printing
+    std::cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
+      std::boolalpha << TwoD::isWithin(x,y,r) << '\n';
+
+  } // end while(true)
 
   return 0;
+} // end main
+\end{verbatim}
+
+The body of \textit{main}\sidenote{the part between the curly braces} consists of an infinite while loop\sidenote{Users terminate the loop with Ctrl-C on the CLI}. Within the loop we see state variable declaration and initialization, the read phase carried out with through output prompts followed by the actual input, and finally a combined evaluate and print. Now that we see the big picture, let's break it down piece by piece.
+
+\subsection{Infinite Loop}
+
+The body of main should initialy be viewed as a single statement, an infinite \textit{while} loop. This statement has the following structure.
+\begin{verbatim}
+while(true){
+  // Loop body
 }
 \end{verbatim}
 
-The first two lines of the procedure are the familiar \textit{using namespace} statements. The first namespace is for \textit{isWithin}. The later, \textit{std}, is the \textit{standard} namespace that contains all the elements of the \textit{iostream} library. 
+A \textit{while} loop will repeat everything in it's curly brace block\sidenote{called the loop body} for as long as the boolean expression in the parenthesis evaluates to \textit{true}\sidenote{If you can't wait to learn more: \url{http://www.cplusplus.com/doc/tutorial/control/}}. In this case, we've explicitly put \textit{true} in parenthesis so this loop will repeat forever. We'll explore loops quite a bit soon, but it's really hard to separate loops constructs like this one from effects. A great many loops drive variable mutation over time or I/O like this one. In short, a loop is rarely, if ever, a functional, black-box process; they almost always have some kind of effect on the overall system with respect to your program.
+
+There aren't a lot of good reasons to write infinite loops. This one makes sense from the perspective that we're writing a program only meant to be run by us and with a very special purpose. It's a quick and dirty solution to the problem of creating a REPL and we're not imagining this program will have much of a life span or user base. As soon as your program is going to be around awhile or used by people not you, you should find a better way than an infinite loop\sidenote{Like an explicit quit key}Be warned, I'll rarely expect an explicitly infinite loop as a solution to a problem on your homework.
 
 
 \subsection{Variable Declaration and Initialization}
 
-The first step of the procedure is to declare and initialize variables for our user input. 
+The first step within the loop is to declare and initialize state variables\sidenote{we'll usuall drop the state part. ``state variable'' $==$ ``variable''} in which we can store the user input.
+
 \begin{verbatim}
-// Declare Variables to hold user input
 double x{0.0};
 double y{0.0};
 double r{0.0};
@@ -176,34 +178,29 @@ The first option is really a C style. It's only an initialization in that nothin
 
 The second option for initialization is nice because it's one cohesive statement, but because it uses the assignment operator $=$ it can sometimes confuse people about the usage of variable type annotation. They see the \textit{double} in this statement and want to then continue to use double wherever they are referring to, and specifically assigning values to, \textit{x}.  I prefer my initialization statements to look completely different from my general purpose assignment statements.
 
-The final option is great from the perspective that it looks different than assignment and therefore reminds us that initialization and general purpose assignment are different things. The only reason we'll use braces instead of parenthesis is that the parenthesis become more meaningful as we explore more involved kinds of data.  Curly brace initialization was introduced to provide a consistent means of initializing data for standard C++ types. 
+The final option is great from the perspective that it looks different than assignment and therefore reminds us that initialization and general purpose assignment are different things. The only reason we'll use braces instead of parenthesis is that the parenthesis become more meaningful as we explore more involved kinds of data.  Curly brace initialization was introduced to provide a consistent means of initializing data for standard C++ types.
 
 We'll always use the new brace initialization style as it really sets apart initialization and is fairly uniform across the types of data we'll use. You should recognize other initialization styles because you may need to read or write them someday, but \textit{always initialize and always use brace initialization in this class}\sidenote{second reminder: this requires the compiler option -std=c++11}.
 
-\subsection{Infinite Loop}
+\subsection{Variable Scope}
 
-Next you're confronted with an infinite loop, specifically an infinite \textit{while} loop. 
-\begin{verbatim}
-while(true){
-  // Loop body
-}
-\end{verbatim}
-A \textit{while} loop will repeat everything in it's curly brace block\sidenote{called the loop body} for as long as the boolean expression in the parenthesis evaluates to \textit{true}\sidenote{If you can't wait to learn more: \url{http://www.cplusplus.com/doc/tutorial/control/}}. In this case, we've explicitly put \textit{true} in parenthesis so this loop will repeat forever. We'll explore loops quite a bit soon, but it's really hard to separate loops constructs like this one from effects. A great many loops drive variable mutation over time or I/O like this one. In short, a loop is rarely, if ever, a functional, black-box process; they almost always have some kind of effect on the overall system with respect to your program.  
+Now that we undestand how to create variables we need to make certain we know where we can use those variables, aka the \textsc{scope} of a declared variable. The scope of a variable in C++ is within the most recent curly braces and for all lines following the declaration until the terminating curly brace. In this case, the most recent set of braces are those of the while loop. This restricts the usage of the variables to the loop. If we attempted to reference\sidenote{use the name, not redeclare!} the variables after the loop, then the compiler would protest.
 
-There aren't a lot of good reasons to write infinite loops. This one makes sense from the perspective that we're writing a program only meant to be run by us and with a very special purpose. It's a quick and dirty solution to the problem of creating a REPL and we're not imagining this program will have much of a life span or user base. As soon as your program is going to be around awhile or used by people not you, you should find a better way than an infinite loop\sidenote{Like an explicit quit key}Be warned, I'll rarely expect an explicitly infinite loop as a solution to a problem on your homework. 
+The school of thought we're subscribing to here is to \textit{declare variables in the most restrictive scope possible}. We only need \textit{x}, \textit{y}, and \textit{r} within the loop so that is where we declare them. The loop here gives the impression that the computer will create brand new variables everytime the loop repeates. This is not actually the case, but as written that is how it will appear. Everytime the loop repeats, the variables are reset to $0.0$.
+
+Understanding the \textit{scope} of a variable is vital to maintaining your sanity in C++ because we'll soon learn that its possible to alias variables such that two more more variables can refer to the same piece of state through different names. This wasn't an issue in Racket. Variables refered to fixed values and when two variables refer to the same value then the physical reality in Racket was that copies existed of that value. In C++ we can either have copies or shared references. Combine this with mutation, and we'll discover that the \textsc{extent}\sidenote{lifespan} of our data often outlives that of its variable's scope.
 
 \subsection{Prompt and Input Sequences}
 
-The body of our infinite loop contains our first I/O statements. What we see is a pattern of prompting the user for input then actually getting their input. Let's look at the first example. 
+Once we've declared and initialized our variables, then we're ready to fill them with user inputted data. What we see is a pattern of prompting the user for input using output statments and then actually getting their input with an input statement. Let's look at the first example.
 \begin{verbatim}
 cout << "Enter point coordinates: ";
 cin >> x >> y;
 \end{verbatim}
 
-We want to think of these statements in terms of the binary \textsc{streaming output operator} $<<$\sidenote{``put to'' operator} and the binary \textsc{streaming input operator} $>>$\sidenote{``get from''}. Let's start with the first statement-- the output statement. To the left of the operator is the output stream \textit{cout}\sidenote{or std::cout because it's in the \textit{std} namespace}. It is our direct connection to the CLI standard output. The effect of this statement is to print the string literal ``Enter point coordinates: ''. 
+We want to think of these statements in terms of the binary \textsc{streaming output operator} $<<$\sidenote{``put to''} and the binary \textsc{streaming input operator} $>>$\sidenote{``get from''}. Let's start with the first statement-- the output statement. To the left of the operator is the output stream \textit{std::cout}\sidenote{or cout as defined in the \textit{std} namespace}. It is our direct connection to the CLI's standard output. The effect of this statement is to print the string literal ``Enter point coordinates: ''.
 
-The input stream \textit{cin} connects us to \textit{stdin}. It reads values from the CLI and, in this case, writes them to variables. Data from \textit{cin} is, by default, separated by white space. In this case, we'll take the first \textsc{token} and read it like a double, because \textit{x} is a double, and save it to \textit{x}. The next token is also read as a double and then saved to \textit{y}. You can separate the two tokens with spaces, tabs, or even newlines as those all qualify as whitespace characters. It's important to note that the program will ready \textit{any} data as if it were a double.  If you type the string \textit{hello}, the program will attempt to interpret as a double literal and interesting and unexpected things will happen. 
-
+The input stream \textit{std::cin} connects us to the CLI's standard input. It reads values from the CLI and, in this case, writes them to variables. Data from \textit{cin} is, by default, separated by white space. In this case, we'll take the first \textsc{token}\sidenote{characters without any whitespace} and read it like a double, because \textit{x} is a double, and save it to \textit{x}. The next token is also read as a double and then saved to \textit{y}. You can separate the two tokens with spaces, tabs, or even newlines as those all qualify as whitespace characters. It's important to note that the program will ready \textit{any} data as if it were a double.  If you type the string \textit{hello}, the program will attempt to interpret as a double literal and interesting and unexpected things will happen.
 
 Our procedure continues with one more prompt and input sequence:
 \begin{verbatim}
@@ -222,11 +219,11 @@ There is a great deal of effect-based programming going on under the hood of the
 
 The last statement in out loop is a fairly involved output statement.
 \begin{verbatim}
-cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
-      boolalpha << isWithin(x,y,r) << '\n'; 
+std::cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
+      std::boolalpha << TwoD::isWithin(x,y,r) << '\n';
 \end{verbatim}
 
-First note that this is a long statement and I split it across two lines. The compiler typically treats all white space the same and generally ignores it. This means we're free to split a line as long as we don't break up something important.\sidenote{Don't split the string literal or a $<<$}. To understand why we have a lot of $<<$ operators in this statement remember that the operator is binary only with one operand being the stream and the other a single datum. So, in order to output $n$ things, we'll need $n$ operators. 
+First note that this is a long statement and I split it across two lines. The compiler typically treats all white space the same and generally ignores it. This means we're free to split a line as long as we don't break up something important.\sidenote{Don't split the string literal or a $<<$}. To understand why we have a lot of $<<$ operators in this statement remember that the operator is binary only with one operand being the stream and the other a single datum. So, in order to output $n$ things, we'll need $n$ operators.
 
 
 Before going further, let's see an example of the kind of output this produces:
@@ -237,10 +234,10 @@ All of the spacing in that output \textit{is not the result of breaking things u
 
 We could also get the exact same output with two statements instead of just the one.
 \begin{verbatim}
-cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> ";
-cout <<  boolalpha << isWithin(x,y,r) << '\n'; 
+std::cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> ";
+std::cout <<  std::boolalpha << TwoD::isWithin(x,y,r) << '\n';
 \end{verbatim}
-This alternative sequence of output statements tells us that \textit{new output statements do not produce new lines in the output}. 
+This alternative sequence of output statements tells us that \textit{new output statements do not produce new lines in the output}.
 
 Students first starting out with C++ I/O assume too much of their operators. So, commit this thought to memory now:
 \begin{quote}
@@ -248,11 +245,11 @@ If you want spaces and newlines in your output, then you must explicitly put it 
 \end{quote}
 
 
-There is one final thing of note in this statement. One of the tokens is not actual output, but a token used to modify how data in the stream following it is displayed. Any boolean values after the \textit{boolalpha}\sidenote{std::boolalpha} token will be printed as \textit{true} or \textit{false} rather than $1$ or $0$.  We call these tokens \textsc{I/O manipulators}. They are used to set the state of the I/O stream object and modify the way in which data is displayed.  They allow us to format how data is displayed. 
+There is one final thing of note in this statement. One of the tokens is not actual output, but a token used to modify how data in the stream following it is displayed. Any boolean values after the \textit{std::boolalpha} token will be printed as \textit{true} or \textit{false} rather than $1$ or $0$.  We call these tokens \textsc{I/O manipulators}. They are used to set the state of the I/O stream object and modify the way in which data is displayed.  They allow us to format how data is displayed.
 
 Before moving on, let's restate this dozy of an output statement in plain English:
 \begin{quote}
-The the stream \textit{cout} put the following data, in this order: the string literal ``isWithin( '' the value stored in the variable x, the string `` , '', the value stored in y, the string `` , '', the value stored in r, and the string `` ) -> ''. Next, put the boolalpha manipulator to the cout stream in order to format boolean output to alphabetic. Finally, put the result of \textit{isWithin(x,y,r)} to cout and the newline character. 
+The the stream \textit{cout} put the following data, in this order: the string literal ``isWithin( '' the value stored in the variable x, the string `` , '', the value stored in y, the string `` , '', the value stored in r, and the string `` ) -> ''. Next, put the boolalpha manipulator to the cout stream in order to format boolean output to alphabetic. Finally, put the result of \textit{isWithin(x,y,r)} to cout and the newline character.
 \end{quote}
 
 \subsection{Recap}
@@ -307,29 +304,63 @@ EXPECT_DOUBLE_EQ(0.707,amplitude);
 EXPECT_DOUBLE_EQ(1.414,2*amplitude);
 \end{verbatim}
 
-
 \subsection{Variable Mutation}
 
-To mutate a variable means to assign it a new value. This is carried out via the assignment operator $=$. This operator is binary. Its left-hand operand must be something with an associated location\sidenote{\textsc{l-value}}, i.e. the name of a variable. Its  right-hand operand must be an expression, i.e. something with an associated value\sidenote{\textsc{r-value}}. Let's look at a few examples and then break them down.
+To mutate a variable means to assign it a new value. This is carried out via the assignment operator $=$. This operator is binary. Its left-hand operand must be something with an associated location\sidenote{\textsc{l-value}}, i.e. the name of a variable. Its  right-hand operand must be an expression, i.e. something with an associated value\sidenote{\textsc{r-value}}. We can again use tests to demonstrate the result of mutation. The key difference here is that the mutation statement should really be bracketed by a before and after test as what we're really testing isn't a value but a change in state.
+
 \begin{verbatim}
-size = 5;
-achar = toupper('R');
-size = size + 5;
-achar = toupper(achar);
+char achar{'a'};
+
+// BEFORE and AFTER
+EXPECT_EQ('a',achar);
+achar = 'x'; //mutation
+EXPECT_NE('a',achar); // not 'a'
+EXPECT_EQ('x',achar); // is 'x'
 \end{verbatim}
 
-The first example is straight forward: ``Assign the value 5 to the variable \textit{size}''.  The second example assigns the return result of \textit{toupper('R')} to the variable achar. The next example looks nuts if you confuse assignment $=$ with how we read $=$ in mathematics. As a C++ assignment statement it reads: ``Assign the value of size+5 back to size''.  If the current value in size is 10, then it changes to 15 as a result of this statement.  If we read this statement like mathematics then it says: ``size is the same as itself plus 5''. That's nuts. No number is equal to five plus itself.  The final assignment example is like the second in that we're first computing the toupper of the current value in achar, then assigning that back to achar.
+It is possible to do assignment as an expression. You shouldn't do it at all for this class, but it is a style of programming you might run across. Assume we're picking up right where we left off and the current value stored by \textit{achar} is the character x.
 
-Assigning a variable an updated value based on its current value is so common that several shortcut operators exist for just this purpose.
+\begin{verbatim}
+EXPECT_EQ('x',achar); //before
+EXPECT_EQ('b',achar = 'b'); //assignment expression!
+EXPECT_EQ('b',achar); // after mutation
+\end{verbatim}
+
+As you can see, the value of assignemnt is the assigned value.
+
+An extremely common form of assignemnt is an assignment done relative to the existing value in the variable. This is done when you want to update a variable rather than replace it altogether. Several shortcut operators exist for just this purpose.
 \begin{center}
 \begin{tabular}{rl}
 Operator & purpose \\ \hline
 $+=$ & $a+=b$ is the same as $a = a + b$ \\
 $*=$ & like $+=$ but with $*$ \\
 $-=$ & like $+=$ but with $-$ \\
-$/=$ & like $+=$ but with $/$ 
+$/=$ & like $+=$ but with $/$
 \end{tabular}
 \end{center}
+
+Notice these are shortcut expressions for the case where the varible is used on
+both the left and right hand side of the assignment. We'll always use them as statements, but they can also be used as expressions. A few tests with $+=$ should illustrate the point.
+
+\begin{verbatim}
+int x{4};
+EXPECT_EQ(4,x);
+x += 6;
+EXPECT_EQ(10,x);
+// update assignemnt also has value
+EXPECT_EQ(6,x-=4);
+\end{verbatim}
+
+There is one more set of shortcuts that update variables based on their existing value and you'll use them \textbf{a lot}. The $++$ operator increases a variable by $1$ where $--$ will decrement by $1$. These operators can be used before and after the variable. As statements the result is equivalent, but as expressions they have different values. The following tests illustrate the difference with $++$.
+
+\begin{verbatim}
+x = 0;
+EXPECT_EQ(0,x);
+EXPECT_EQ(1,++x);
+EXPECT_EQ(1,x);
+EXPECT_EQ(1,x++);
+EXPECT_EQ(2,x);
+\end{verbatim}
 
 \section{Streaming I/O}
 
@@ -344,7 +375,7 @@ As we've seen already, streaming output is done via the ``put to'' operator \tex
 \item the only white space that gets written is the white space you explicitly add to the stream
 \item you chain together multiple uses of $<<$ with a single stream as long as its one datum per operator
 \end{itemize}
-To illustrate these points I give you one example. 
+To illustrate these points I give you one example.
 \begin{verbatim}
 cout << 7 << 8.36 << " isn't ";
 cout << 7 << " " << 8.36 << "\n" << "hi\n";
@@ -355,15 +386,15 @@ The result of these two statements is the output:
 hi
 
 \end{verbatim}
-The cursor ends immediately below the h in hi. 
+The cursor ends immediately below the h in hi.
 
 \subsection{Streaming Input}
 
-Once again, our example problem pretty much covers all the bases. Go back and read it carefully. Some key points to remember are: 
+Once again, our example problem pretty much covers all the bases. Go back and read it carefully. Some key points to remember are:
 \begin{itemize}
 \item You cannot do streaming input without variables because you must have a place to store the value that $>>$ gets from the stream
 \item Data from the stream is broken up by whitespace. This includes the enter key, so hitting enter doesn't terminate input, reading tokens does.
-\item The way in which data is read from the stream is determined by the type of the variable in which the data is being stored and not by how it appears in the stream. 
+\item The way in which data is read from the stream is determined by the type of the variable in which the data is being stored and not by how it appears in the stream.
 \item You can chain input together to read multiple values with a single statement.
 \end{itemize}
 
@@ -377,40 +408,38 @@ Without further ado, here's a version of this program that lets you pass in your
 #include <sstream> //std::istringstream
 #include "ln7.h"
 
-int main(int argc, char* argv[]){
-  using namespace TwoD;
-  using namespace std;
-
+  // Variable Declaration
   double x{0.0};
   double y{0.0};
   double r{0.0};
 
   // Quick error check for enough arguments
   if( argc != 4 ){
-    cerr << "Not enough arguments. Usage: " << argv[0] << " x y r\n";
+    std::cerr << "Not enough arguments. Usage: " << argv[0] << " x y r\n";
     return 1;
   }
 
   // Let's assume we typed numbers as arguments
-  istringstream xstream{argv[1]};
+  // and not error check the CLI input
+  std::istringstream xstream{argv[1]};
   xstream >> x;
 
-  istringstream ystream{argv[2]};
+  std::istringstream ystream{argv[2]};
   ystream >> y;
 
-  istringstream rstream{argv[3]};
+  std::istringstream rstream{argv[3]};
   rstream >> r;
 
-
-  cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
-    std::boolalpha << isWithin(x,y,r) << '\n';
+  // Eval and Print
+  std::cout << "isWithin( " << x <<" , " << y << " , " << r << " ) -> " <<
+    std::boolalpha << TwoD::isWithin(x,y,r) << '\n';
 
 
   return 0;
 }
 \end{verbatim}
 
-First off, take note that we're using two libraries: \textit{iostream} and \textit{sstream}. The first is familiar. It provides basic I/O capabilities and access to \textit{std::cout} and \textit{std::cin}. The second library is for string streams\sidenote{\url{http://www.cplusplus.com/reference/sstream/}}. It provides us with the \textit{istringstream}\sidenote{input string stream} type that lets you treat a string as if it were an a streaming input device.  
+First off, take note that we're using two libraries: \textit{iostream} and \textit{sstream}. The first is familiar. It provides basic I/O capabilities and access to \textit{std::cout} and \textit{std::cin}. The second library is for string streams\sidenote{\url{http://www.cplusplus.com/reference/sstream/}}. It provides us with the \textit{std::istringstream}\sidenote{input string stream} type that lets you treat a string as if it were an a streaming input device and read data from that string in the exact manner that you do from the standard input. Here we use them in order to convert the CLI input, which always comes as a string, to double.
 
 At a very high-level this program proceeds as follows:
 \begin{quote}
@@ -419,7 +448,7 @@ Declare variables to store the CLI input. Check that a sufficient number of CLI 
 
 \subsection{CLI Inputs and \textit{main}'s arguments}
 
-When we run our programs from the CLI, the operating system will take the command run, package each piece as a string, count the number of pieces, and hand all of this off to the program as arguments to main. 
+When we run our programs from the CLI, the operating system will take the command run, package each piece as a string, count the number of pieces, and hand all of this off to the program as arguments to main.
 
 Let's look at main's signature:
 \begin{verbatim}
@@ -431,18 +460,18 @@ The first parameter, the integer \textit{argc}, is the number of arguments or th
 \end{verbatim}
 then the value of \textit{argc} is 4. The arguments themselves are stored in the parameter \textit{argv}.
 
-The parameter \textit{argv} is an \textit{array of C-Strings}. We know this because the type \textit{char*} is, informally, the C-String type and when you put a set of square brackets after a variable or parameter name you're indicating that its an array. Arrays are important structures and we'll look at them more in the future. For now it's enough to know that they are collections of homogeneous data. In this case, the array \textit{argv} is a collect of C-strings. If we had the parameter \textit{int vals[]} or \textit{double vals[]}, then we'd be working with a collection of integers or doubles, respectively. Arrays are an \textsc{indexed} collection such that each datum is accessible via its index number. The first element in the collection is always 0\sidenote{say it again, ``the first element in an array is always zero''} and the index values increase sequentially from there. 
+The parameter \textit{argv} is an \textit{array of C-Strings}. We know this because the type \textit{char*} is, informally, the C-String type and when you put a set of square brackets after a variable or parameter name you're indicating that its an array. Arrays are important structures and we'll look at them more in the future. For now it's enough to know that they are collections of homogeneous data. In this case, the array \textit{argv} is a collect of C-strings. If we had the parameter \textit{int vals[]} or \textit{double vals[]}, then we'd be working with a collection of integers or doubles, respectively. Arrays are an \textsc{indexed} collection such that each datum is accessible via its index number. The first element in the collection is always 0\sidenote{say it again, ``the first element in an array is always zero''} and the index values increase sequentially from there.
 
-Returning to our example from above, we demonstrate how to access the array \textit{argv} and how CLi arguments are stored through some gTest unit tests\sidenote{EXPECT\_STREQ is used to test two C-Strings for equality}.
+Returning to our example from above, we demonstrate how to access the array \textit{argv} and how CLI arguments are stored through some gTest unit tests\sidenote{EXPECT\_STREQ is used to test two C-Strings for equality}.
 \begin{verbatim}
 EXPECT_STREQ("./runIsWithin" , argv[0]);
 EXPECT_STREQ("2.3" , argv[1]);
 EXPECT_STREQ("4.5" , argv[2]);
 EXPECT_STREQ("10.6" , argv[3]);
 \end{verbatim}
-Restating the first test in plain English, we'd say, ``Expect the value of \textit{argv} at 0 to be the same as the string ``./runIsWithin''''. 
+Restating the first test in plain English, we'd say, ``Expect the value of \textit{argv} at 0 to be the same as the string ``./runIsWithin''''. These tests are not meant to be run, they're meant as an illustration. 
 
-It's a recipe for disaster to attempt to access an array at a location where no data exists. We call this an \textsc{index out of bounds} error and it's a classic bug in software.  Thankfully, the value of \textit{argc} always tells us exactly which index values are OK and which are not-- it tells us the size of \textit{argv}\sidenote{arrays of size $s$ have index values from $\{0,\ldots,(s-1)\}$}. For our program we need exactly 4 arguments, the executable name and the three numbers. It's easy enough to check that we have exactly 4 and we should do so. 
+It's a recipe for disaster to attempt to access an array at a location where no data exists. We call this an \textsc{index out of bounds} error and it's a classic bug in software.  Thankfully, the value of \textit{argc} always tells us exactly which index values are OK and which are not-- it tells us the size of \textit{argv}\sidenote{arrays of size $s$ have index values from $\{0,\ldots,(s-1)\}$}. For our program we need exactly 4 arguments, the executable name and the three numbers. It's easy enough to check that we have exactly 4 and we should do so.
 \begin{verbatim}
 // Quick error check for enough arguments
 if( argc != 4 ){
@@ -450,7 +479,7 @@ if( argc != 4 ){
   return 1;
 }
 \end{verbatim}
-Here we check the value of \textit{argc} and if it's not 4, we output a message to \textit{cerr}\sidenote{where errors go}. Notice we include the executable name in the message and attempt to remind the user, i.e. ourselves, how to use the program properly. Finally, we end \textit{main} by returning 1. Here we assume that a non-zero return value signals an error condition of some kind. 
+Here we check the value of \textit{argc} and if it's not 4, we output a message to \textit{cerr}\sidenote{where errors go}. Notice we include the executable name in the message and attempt to remind the user, i.e. ourselves, how to use the program properly. Finally, we end \textit{main} by returning 1. Here we assume that a non-zero return value signals an error condition of some kind.
 
 \subsection{Streaming Strings}
 
@@ -467,14 +496,14 @@ ystream >> y;
 istringstream rstream{argv[3]};
 rstream >> r;
 \end{verbatim}
-Assuming the strings can be read as double literals, then that's it.  We've now read our CLI arguments in as doubles. The final statement in our program is the same as version 1, we just report the results with an output statement.  
+Assuming the strings can be read as double literals, then that's it.  We've now read our CLI arguments in as doubles. The final statement in our program is the same as version 1, we just report the results with an output statement.
 
 \section{This Doesn't Scale Well}
 
-You've seen the basics of streaming I/O and started to get some sense of how to work with variables through basic statements in C++. The problem with only knowing statements is that it doesn't scale. Complex effects typically need to be abstracted away from main, or whatever procedure initiated them, and turned into a procedure in their own right. Doing this simplifies program logic by breaking it down to task-specific procedures and provides us with an opportunity to test our effect-based code. 
+You've seen the basics of streaming I/O and started to get some sense of how to work with variables through basic statements in C++. The problem with only knowing statements is that it doesn't scale. Complex effects typically need to be abstracted away from main, or whatever procedure initiated them, and turned into a procedure in their own right. Doing this simplifies program logic by breaking it down to task-specific procedures and provides us with an opportunity to test our effect-based code.
 
-As it stands, the only way we can tell if our testing programs are producing the desired effect is to run them.  This is mainly due to the fact that the effect-based statements are in main and not abstracted away into a helper procedure. The other problem is that the effects are generally taking place on the standard input and output devices and there is no way to tell the computer to inspect those devices. 
+As it stands, the only way we can tell if our testing programs are producing the desired effect is to run them.  This is mainly due to the fact that the effect-based statements are in main and not abstracted away into a helper procedure. The other problem is that the effects are generally taking place on the standard input and output devices and there is no way to tell the computer to inspect those devices.
 
-We can easily solve the first problem by laying down some ground rules for designing and writing procedures whose purpose is to carry out a desired effect. We can work around the later problem by designing our procedures in such a way that they leverage the Object-Oriented design of the C++ streaming I/O system. We'll be able to write general purpose I/O procedures and test them relative to string streams. We can then use them on cin, cout, and even file file streams without changing the code. Before we can do any of this, we really need to take a moment to study the world of strings in C++. 
+We can easily solve the first problem by laying down some ground rules for designing and writing procedures whose purpose is to carry out a desired effect. We can work around the later problem by designing our procedures in such a way that they leverage the Object-Oriented design of the C++ streaming I/O system. We'll be able to write general purpose I/O procedures and test them relative to string streams. We can then use them on cin, cout, and even file file streams without changing the code. Before we can do any of this, we really need to take a moment to study the world of strings in C++.
 
 \end{document}
