@@ -362,6 +362,13 @@ EXPECT_EQ(1,x++);
 EXPECT_EQ(2,x);
 \end{verbatim}
 
+\subsection{Procedure Parameters are Variables}
+
+Now that we're getting a handle on variables we need to revisit the nature of procedure parameters. In a purely functional world it's safe to think of the parameters as names assigned to the argument values. When we call \textit{TwoD::isWithin(1.0,2.0,3.0)}, then 1.0 is named $x$, 2.0 is $y$, and $3.0$ is $r$. We can then imagine the execution of the procedure proceeding with all names \textsc{substituted} for their associated values. This was the rule in BSL-Racket and there were no exceptions. 
+
+In C++ the functional, substitution \textsc{semantics}\sidenote{how something is interpreted, what it means} is only part of the picture and only applies when you stick to a strict functional style that does not modify parameters within the body of the function. The technical reality is that \textit{all procedure parameters are variables scoped to the body of the procedure and initialized with their respective argument values}. When calling \textit{TwoD::isWithin(1.0,2.0,3.0)} we are not simply matching argument name to value, we are initializing the \textit{local state} of the procedure.  This distinction is important because it opens up some new programming idioms. 
+
+
 \section{Streaming I/O}
 
 The C++ streaming I/O system provides a fairly uniform way of approaching I/O tasks. Streams provide buffered I/O access to a device and the operators $<<$ and $>>$ are used to put and get, respectively, data from those streams. Our testing REPL exposed us to the standard output stream \textit{cout} and the standard input stream \textit{cin}. The \textit{iostream} library also provides the output stream \textit{cerr}, which is the standard error output. The \textit{fstream} library allows us to create I/O streams for files. The \textit{stringstream} library allows us to treat string objects like streaming I/O devices and in doing so lets us leverage the streaming I/O capabilities for interpreting characters as typed data, and vice versa, when processing string data. Our first use for this will be working with arguments passed to our programs form the command line.
