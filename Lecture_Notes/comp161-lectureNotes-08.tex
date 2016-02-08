@@ -60,13 +60,13 @@ Until we have a reason to do otherwise, we'll avoid directly working with C-Stri
 
 Our preferred string type is the \textit{std::string} class as defined in the string library\sidenote{ http://www.cplusplus.com/reference/string/string/}.  We can initialize string variables from string literals:
 \begin{verbatim}
-string str{"hello"};
-string ing{" world!"};
+std::string str{"hello"};
+std::string ing{" world!"};
 \end{verbatim}
 Occasionally we want to have a string object independent of an actual variable. This is very useful in testing for example. To do this we use a standard constructor form where the class name is followed by a set of parenthesis with the value inside them.  Here we see this in the context of some tests that examine the values of our previously declared string variables:
 \begin{verbatim}
-EXPECT_EQ(string("hello"),str);
-EXPECT_EQ(string(" world!"),ing);
+EXPECT_EQ(std::string("hello"),str));
+EXPECT_EQ(std::string(" world!"),ing));
 \end{verbatim}
 
 We can, in fact, use gTest's \textit{EXPECT\_EQ} test on C++ string data because the class definition includes a definition for string equality. What we cannot do, is compare C++ strings to C-Strings. These tests will give you nothing but compiler errors:
@@ -85,13 +85,13 @@ Class methods are invoked using the \textsc{dot operator}, \textbf{.}.  It's a b
 
 You don't necessarily need variables to invoke class methods\sidenote{it's the most typical use case, but the dot operator doesn't care if the left operand has a name or not}.  Here we see \textit{c\_str} at work on an unnamed string object.
 \begin{verbatim}
-EXPECT_STREQ("wierd",string("wierd").c_str());
+EXPECT_STREQ("wierd",std::string("wierd").c_str());
 \end{verbatim}
 
 The string library contains a host of useful methods and operators and you're encouraged to spend some time with the reference to see what's out there\sidenote{\url{http://www.cplusplus.com/reference/string/string/}}. For now, I'll leave you with a few gTests that demonstrate a few of the more useful functional methods and operators and let you connect the dots on those:
 \begin{verbatim}
-string str{"hello"};
-string ing{" world!"};
+std::string str{"hello"};
+std::string ing{" world!"};
 
 // Size/Length
 EXPECT_EQ(5,str.length());
@@ -104,10 +104,10 @@ EXPECT_EQ(' ',ing.at(0));
 EXPECT_EQ('w',ing.at(1));
 
 // Substring Selection
-EXPECT_EQ(string("ell"), str.substr(1,3));
-EXPECT_EQ(string("orld"), ing.substr(2,4));
-EXPECT_EQ(string(" wor"), ing.substr(0,4));
-EXPECT_EQ(string(" ld!"), ing.substr(4));
+EXPECT_EQ(std::string("ell"), str.substr(1,3));
+EXPECT_EQ(std::string("orld"), ing.substr(2,4));
+EXPECT_EQ(std::string(" wor"), ing.substr(0,4));
+EXPECT_EQ(std::string(" ld!"), ing.substr(4));
 
 // Concatenate 
 EXPECT_EQ(string("hello world!"), str + ing);
@@ -116,69 +116,69 @@ EXPECT_EQ(string("hello world!"), str + ing);
 String class mutators expose us to the world of variable mutation. In order to demonstrate their effect on a string object with tests we must do a pre-post test. One test establishes the state of the variable prior to mutation, the second test is then run after the mutator is called to demonstrate that the desired change has occurred. This technique is import to understand-- you'll be writing a lot of tests like this as we start designing procedures for state mutation.  The first test you'll see demonstrates the effect of assignment\sidenote{$=$} with strings.  I'll then make use of assignment to reset variables post-mutation as needed.
 \begin{verbatim}
 // The assignment operator with C++ and C strings
-string s{""};
-EXPECT_EQ(string(""),s); //before
-s = string("hello!"); //mutation
-EXPECT_EQ(string("hello!") , s); //after .. and before
+std::string s{""};
+EXPECT_EQ(std::string(""),s); //before
+s = std::string("hello!"); //mutation
+EXPECT_EQ(std::string("hello!") , s); //after .. and before
 s = "world";
-EXPECT_EQ(string("world") , s);
+EXPECT_EQ(std::string("world") , s);
 
 
-string str{"hello"};
-string ing{" world!"};
+std::string str{"hello"};
+std::string ing{" world!"};
 
 // string append
-EXPECT_EQ(string("hello") , str);
+EXPECT_EQ(std::string("hello") , str);
 str.append(ing);
-EXPECT_EQ(string("hello world!") , str);
+EXPECT_EQ(std::string("hello world!") , str);
 str = "hello"; // reset
 str.append("world!"); //works with C strings too
-EXPECT_EQ(string("helloworld!") , str);
+EXPECT_EQ(std::string("helloworld!") , str);
 str = "hello"; // reset
 
 // erase
-EXPECT_EQ(string("hello") , str);
+EXPECT_EQ(std::string("hello") , str);
 str.erase(0,2);
-EXPECT_EQ(string("llo") , str);
+EXPECT_EQ(std::string("llo") , str);
 str = "hello";
 str.erase();
-EXPECT_EQ(string("") , str);
+EXPECT_EQ(std::string("") , str);
 str = "hello";
 str.erase(2,3);
-EXPECT_EQ(string("he") , str);
+EXPECT_EQ(std::string("he") , str);
 str = "hello";
 
 // Single character assignment and append
-EXPECT_EQ(string("hello") , str);
+EXPECT_EQ(std::string("hello") , str);
 str[0] = 'H';
-EXPECT_EQ(string("Hello") , str);
+EXPECT_EQ(std::string("Hello") , str);
 str[2] = 'L';
-EXPECT_EQ(string("HeLlo") , str);
+EXPECT_EQ(std::string("HeLlo") , str);
 str.at(4) = 'O';
-EXPECT_EQ(string("HeLlO") , str);
+EXPECT_EQ(std::string("HeLlO") , str);
 str.push_back('!');
-EXPECT_EQ(string("HeLlO!") , str);
+EXPECT_EQ(std::string("HeLlO!") , str);
 \end{verbatim}
 
 The last thing we'll look at from the string library is the \textit{getline} procedure. This is a classic example of a Input effect based procedure. The typical use is to read a whole line from an input stream object like \textit{cin}.  Typically, input is broken up by white space. Sometimes you want to read several tokens in and stop when you encounter the newline character.  For example, if you want to get my name as one string, ``Logan Mayfield'', you'd either need to read each piece in to a string, then concatenate or append, or use getline. Let's demonstrate\sidenote{assume my name is typed in the obvious places}.
 \begin{verbatim}
-string first{""};
-string last{""};
-string name{""};
+std::string first{""};
+std::string last{""};
+std::string name{""};
 
-cin >> first >> last;
+std::cin >> first >> last;
 
-EXPECT_EQ(string("Logan",first);
-EXPECT_EQ(string("Mayfield",last);
+EXPECT_EQ(std::string("Logan",first));
+EXPECT_EQ(std::string("Mayfield",last));
 
 name = first + " " + last;
 
-EXPECT_EQ(string("Logan Mayfield"), name);
+EXPECT_EQ(std::string("Logan Mayfield"), name);
 
 name = "";
 
-getline(cin,name);
-EXPECT_EQ(string("Logan Mayfield"), name);
+std::getline(cin,name);
+EXPECT_EQ(std::string("Logan Mayfield"), name);
 \end{verbatim}
 As an input procedure, \textit{getline} is also a mutator as it must assigned the input value to the second argument, namely a variable. This implies a key issue when working with input and mutation procedures: \textit{you must pass variables}. Something like \textit{getline(cin,string())} might work but is useless. Even if the  string object passed as the second argument were modified, we'd have no way of accessing the results. 
 
@@ -216,15 +216,13 @@ std::string ln9::rest(std::string astr){
 }
 
 TEST(rest,all){
-  using namespace std;
-  using namespace ln9;
   
-  string a{"this"};
-  string b{"his"};
+  std::string a{"this"};
+  std::string b{"his"};
 
   EXPECT_EQ(b,rest(a));
-  EXPECT_EQ(string("is"),rest(b));
-  EXPECT_EQ(string("dog"),rest(string(" dog")));	  
+  EXPECT_EQ(std::string("is"),ln8::rest(b));
+  EXPECT_EQ(std::string("dog"),ln8::rest(std::string(" dog")));	  
   
 }
 
@@ -243,14 +241,14 @@ The other use for string streams, in particular input string streams, that we've
 The \textit{istringstream} type lets us read data from strings in the same fashion that we do from the standard input stream \textit{cin}. We can initialize istringstream objects from C and C++ strings. Here are few demonstrations:
 \begin{verbatim}
 
-istringstream istr{"Hello 1345 3.4 a"};
-string s{""};
+std::istringstream istr{"Hello 1345 3.4 a"};
+std::string s{""};
 int x{0};
 double d{0.0};
 char c{'\0'};
 
 istr >> s >> x >> d >> c;
-EXPECT_EQ(string("Hello") , s);
+EXPECT_EQ(std::string("Hello") , s);
 EXPECT_EQ(1345 , x);
 EXPECT_DOUBLE_EQ(3.4,d);
 EXPECT_EQ('a', c);
@@ -258,11 +256,11 @@ EXPECT_EQ('a', c);
 
 The \textit{ostringstream} types lets us write data to a string in the same fashion we do from the standard output stream \textit{cout}. You can initialize the stream with some data, but it's probably more likely that we'll start with an empty string stream and fill it with data. To extract the string we use the class method \textit{str}.
 \begin{verbatim}
-ostringstream sout{""};
+std::ostringstream sout{""};
 
 sout << "Hello" << 1345 << 3.4 << 'a';
 
-EXPECT_EQ(string("Hello13453.4a"), sout.str() );
+EXPECT_EQ(std::string("Hello13453.4a"), sout.str() );
 \end{verbatim}
 
 Let's quickly return to our getline example to see how we can have testable I/O.  To test getline working with \textit{cin} you physically have to type input. With a string stream you can fill the stream and then test the I/O. All of this can be done by the computer and requires zero human intervention at the time of testing.
@@ -271,21 +269,21 @@ string first{""};
 string last{""};
 string name{""};
 
-istringstream sin{"Logan Mayfield"};
+std::istringstream sin{"Logan Mayfield"};
 sin >> first >> last;
 
-EXPECT_EQ(string("Logan"),first);
-EXPECT_EQ(string("Mayfield"),last);
+EXPECT_EQ(std::string("Logan"),first);
+EXPECT_EQ(std::string("Mayfield"),last);
     
 name = first + " " + last;
 
-EXPECT_EQ(string("Logan Mayfield"), name);
+EXPECT_EQ(std::string("Logan Mayfield"), name);
 
 name = "";
-istringstream sin2{"Logan Mayfield"};
+std::istringstream sin2{"Logan Mayfield"};
 
-getline(sin2,name);
-EXPECT_EQ(string("Logan Mayfield"), name);
+std::getline(sin2,name);
+EXPECT_EQ(std::string("Logan Mayfield"), name);
 \end{verbatim}
 
 \end{document}
