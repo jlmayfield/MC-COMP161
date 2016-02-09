@@ -3,73 +3,29 @@
 \usepackage{hyperref}
 \usepackage{framed}
 
-\title{COMP161 - Lab 5 \& Homework 4}
+\title{COMP161 - Lab 5}
 \author{}
-\date{Spring 2015}
+\date{Spring 2016}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For this lab and homework you'll develop a function for itemized data and then write two main programs that allow you to test it interactively as describe in Lecture Notes 7.
+For this lab you'll get some practice working with the string class and using class objects and methods. 
 \end{abstract}
 
-\section{The Problem}
+\section{ A function for strings }
 
-Consider the following adaptation of an HtDP1e problem\sidenote{4.4.4 from \url{http://htdp.org/2003-09-26/Book/curriculum-Z-H-7.html\#node_sec_4.4}}:
-\begin{framed}
+The following functional procedure let's you continue to practice the basics while requiring that you use some key methods from the string library. 
 \begin{quote}
-An equation is a claim about numbers; a quadratic equation is a special kind of equation. All quadratic equations (in one variable) have the following general shape:
-\[ ax^2+bx+c=0 \]
-In a specific equation, $a$, $b$ and $c$ are replaced by numbers, as in
-\[ 2x^2+4x+2 = 0 \]
-or
-\[ 1x^2+0x+(-1) = 0 \]
-The variable $x$ represents the unknown.
-
-Depending on the value of $x$, the two sides of the equation evaluate to the same value. If the two sides are equal, the claim is true; otherwise it is false. A number that makes the claim true is a solution. The first equation has one solution, $-1$, as we can easily check:
-\[ 2(-1)^2+4(-1)+2 = 0 \]
-The second equation has two solutions: $+1$ and $-1$.
-
-The number of solutions for a quadratic equation depends on the values of $a$, $b$, and $c$. Assuming $a$ is not $0$, the equation has
-\begin{enumerate}
-\item two solutions if $b^2 > 4ac$,
-
-\item one solution if $b^2 = 4ac$
-
-\item no solution if $b^2 < 4ac$
-\end{enumerate}
-
-When $a$ is $0$, then the equation is no longer quadratic, it is linear and has the form
-\[ bx + c = 0 \]
-Linear equations have a single solution so long as $b$ is not $0$. When $b$ is zero, then the equation isn't really an equation but an assertion that is either true when $c$ is $0$ or false otherwise. Alternatively, we could say it has $1$ ``solution'' when $c$ is 0 and $0$ solutions otherwise.  
-
-All three forms of equations are special cases of polynomial equations. Quadratic equations are called second degree polynomials because the largest $x$ term with a non-zero coefficient is squared where linear equations are first degree polynomials because the largest term with a non-zero coefficient is raised to the first power. The final case, the one with no $x$ term, can be re-written as
-\[ c*x^0 = 0 \]
-From this perspective we see that it's a zeroth degree polynomial.  
+Design and develop the function \textit{shorten} which takes a string as input and for strings with length greater than 10, it returns a string containing the first 5 characters and the last 5 characters joined by ellipses. For example, the string "this is a long string" would get shortened to "this ...string" and "abcdefghijklmnopqrstuvwxyz" would get shortened to "abcde...vwxyz". If the string's length is less than 10, then it is returned as is from \textit{shorten}. 
 \end{quote}
-\end{framed}
+In addition to developing a set of unit tests for this procedure, write a main procedure with a basic REPL for testing this procedure. Instead of using \textit{cin} and the input operators, use the string library procedure \textit{getline} to read in an entire line of text to a string\sidenote{\url{http://www.cplusplus.com/reference/string/string/getline/}}. The shortened version of that line should be reported back to the CLI by your program.
 
-Your lab and homework revolve around the problem of determining the number of solutions to a polynomial equation of the form $ax^2+bx+c=0$ for any real-valued \sidenote{can be written in decimal notation} $a$, $b$, and $c$. 
+When you're done, or at the end of the lab period, submit your source documents and Makefile using \textit{handin}. The assignment designation is obviously \textit{lab5}. If you didn't complete the program during lab, then complete it and submit the finished code as \textit{hwk5} by the start of class on Friday 2/12.
 
-\section{Lab 5}
+\section{ More practice with strings and new material? }
 
-For lab you need to design and develop the function \textit{how\_many}\sidenote{or \textit{howMany} if you prefer camel case} which returns the number of solutions to the polynomial equation with coefficients $a$, $b$, and $c$ as described above. Your function should be developed in the same manner we've been using for the past two weeks: put it in an appropriately named namespace in an appropriately named library and write an appropriate set of gTest unit tests for it.  When you've completed the development and testing of your function, submit it via handin as assignment \textit{lab4}.
-
-\section{Homework 4}
-
-\begin{framed}
-\begin{quote}
-\textbf{Due by class time on Monday 2/16}
-\end{quote}
-\end{framed}
-
-For homework you need to develop two main programs in the style shown in lecture notes 7. The first program should be an interactive REPL and the second a one-shot CLI-based program. Both programs should report the results to match the following examples exactly.  If you input 2 for $a$, 4 for $b$ and $2$ for c, then your program should report:
-\begin{verbatim}
-2(x^2) + 4x + 2 = 0 has 2 solutions
-\end{verbatim}
-This output should end with a newline such that further I/O doesn't begin after ``solutions''.
-
-Note that this assignment has three executable programs to it: the library unit tests, the main with the REPL and the main that takes arguments from the CLI. You must adapt your Makefile to compile each executable separately. Use the example code found at /home/comp161/sp15/ln7.zip as a guide.  Submit you source code and Makefile via handin as assignment \textit{hwk4}.
+If you want to play around with string methods more, you should consider writing up some tests like those seen in lecture notes 8. I highly recommend you play with some of the mutation based methods and writing tests to verify expected mutation effects as this is a new phenomenon.
 
 \end{document}
