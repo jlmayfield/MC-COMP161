@@ -24,7 +24,7 @@
 }
 
   
-\title{COMP 161 - Lecture Notes - 10 - State and Functions}
+\title{COMP 161 - Lecture Notes - 10 - State and Functions: Putting It All Together}
 \date{Spring 2016}
 
 \begin{document} 
@@ -103,7 +103,7 @@ int main( int argc, char* argv[] ){
 
 \section{Wish Lists and Top-Down Design}
 
-Now that we have a very basic starting place, we can begin the process of generating a wish list of procedures that can be used to complete the problem. Notice we do not start completing the program. This procedural design so we start by finding procedures. We also want to give ourselves some options for each part of the program. We'll call this \textit{exploring the program design space}. The first procedure we think of might work just fine, but there are bound to be options and we should consider how those options compare to our first idea.
+Now that we have a \textit{very} basic starting place, we can begin the process of generating a wish list of procedures that we can use to complete the problem. Notice we do not start completing the program by writing statements. This procedural design so we start by finding procedures. \textit{Your goal is to thing through the problem as procedures}. Why? Procedures are flexible because they are abstract. You can build any procedure you can imagine. Statements are fixed and constrained by the operations and procedures that already exist in the language and libraries. Resist the urge to write statements and instead imagine procedures. 
 
 To find procedures we'll start by thinking big and work our way down to details. Everything that happens in this program clearly happens inside the loop. So we need a sequence of procedures that carry out the different steps of the loop. This is what is typically meant by \textit{top-down} thinking. At the top is the big picture. At the bottom is the micro-level view. For procedural programs in C++ that can mean \textit{main} is at the top and all its helpers\sidenote{out program libraries} are at the bottom. For top-down design, our goal is to write main first, then implement the library needed to complete the main we've written. 
 
@@ -115,11 +115,84 @@ So what happens inside the loop? We can break this game down to three steps:
 \item Get the next move from the user
 \item Update the game state
 \end{enumerate}
-Hey! Those could each be procedures. The first is an output procedure and the second is an input procedure. The third step is neither input nor output. The most natural expression of this step is as a mutator that (potentially) modifies both state variables. This is natural because we're thinking in terms of state and the fundamental operation of state is mutation. The word ``update'' itself implies a $+=$ like operation. 
+Hey! Those could each be procedures. The first is an output procedure and the second is an input procedure. The third step is neither input nor output. The most natural expression of this third step is as a mutator that (potentially) modifies both state variables. This is natural because we're thinking in terms of state and the fundamental operation of state is mutation. The word ``update'' itself implies a $+=$ like operation. 
 
-We could rethink the update as assignment ($=$) plus a function. This is \textit{exactly} how you operated in COMP160. A function is used to compute the new value for the state and basic assignment is then used to update the state. We will definitely look at this option when we implement step three, but choosing this option now means we need to break step three into two steps: update the location and update the wrapped score. Why? Functions can only return a single value and we need two values. Using a mutator we can write a procedure that takes two reference parameters and modifies them both. Alternatively, we could figure out how to use \textsc{structs} in C++. This would allow us to create a game state struct type that \textsc{encapsulated} both the location and the wrapped score. The update function would then take one of these structs by value and return one by value. Again, this is \textit{exactly} how you operated in COMP160. Rather than add C++ structs to the mix, we'll work with basic atomic variables\sidenote{one value. as opposed to compound (struct) data with multiple contained values} and write a double-mutator. 
+We could rethink the update as the assignment ($=$) of the return value of a function. This is \textit{exactly} how you operated in COMP160. A function is used to compute the new value for the state and basic assignment is then used to update the state. We will definitely look at this option when we implement step three, but choosing this option now means we need to break step three into two steps: update the location and update the wrapped score. Why? Functions can only return a single value and we need two values. Using a mutator we can write a procedure that takes two reference parameters and modifies them both. Alternatively, we could figure out how to use \textsc{structs} in C++. This would allow us to create a game state struct type that \textsc{encapsulated} both the location and the wrapped score. The update function would then take one of these structs by value and return one by value. Again, this is \textit{exactly} how you operated in COMP160. Rather than add C++ structs to the mix, we'll work with basic atomic variables\sidenote{one value. as opposed to compound (struct) data with multiple contained values} and write a double-mutator. 
 
-Let's go ahead and declare and document these procedures to transliterate our ideas to C++. We'll use several namespaces to organize things. All the procedures will get put in a \textit{movegame} namespace which will act as the programs main namespace.  We'll then stick our I/O procedures in a \textit{ui} namespace which is where we'll put procedures that are clearly about the User Interface. Finally, we'll put the update procedure in a \textit{model} namespace as it's all about interacting with our \textsc{computational model} of the game state, i.e. those two variables. We'll just go ahead and stick all of this in a single library \textit{move\_lib.h}. We could split \textit{ui} and \textit{model} into two libraries, but this program is simple enough that there isn't a good reason to do so. The beginning of our library header is given in figure \ref{fig:top}.
+At this point we might work out our ideas by actually completing main with procedures. The idea is to work out the details of the declaration and documentation of a procedure by working it in context. The power of this technique shouldn't be under estimated. Just like writing tests for procedures prior to implementing procedures lets you think through the expected behavior of the procedure, using procedures in main\sidenote{or where ever you might call them} lets you think through the purpose and signature of a procedure before ``officially'' documenting and declaring a procedure. It's all about establishing the \textit{what} of your program specification and implementation before worrying about the \textit{how}. 
+
+We'll plan to use several namespaces to organize things. All the procedures will get put in a \textit{movegame} namespace which will act as the programs main namespace.  We'll then stick our I/O procedures in a \textit{ui} namespace which is where we'll put procedures that are clearly about the User Interface. Finally, we'll put the update procedure in a \textit{model} namespace as it's all about interacting with our \textsc{computational model} of the game state, i.e. those two variables. We'll just go ahead and stick all of this in a single library \textit{move\_lib.h}. We could split \textit{ui} and \textit{model} into two libraries, but this program is simple enough that there isn't a good reason to do so.
+
+If we stick to basic procedure design\sidenote{A procedure is either a function, a mutator, an input, or an output procedure}, then we're likely to end up with something like what we see in figure \ref{fig:main-final1}. On the other hand, it might be nice to combine the user input prompt with the user input itself. This requires a hybrid I/O procedure. We haven't done that but it's not a big stretch. The basic procedure types aren't the only possible options, they're just the fundamental building blocks.  \textit{They are are bottom}. When we combine them into multipurpose procedures, we should be ready to jump right to more primitive helpers. If we allow ourselves some hybrid-purpose procedures then we end up with what we see in figure \ref{fig:main-final2}.
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+
+int main( int argc, char* argv[] ){
+
+	// Program State Variables
+	int cur_loc{0}; // player location
+	int num_wrap{0}; // number of times player wrapped
+	
+	while( true ){
+		// write out game state
+		movegame::ui::displayState(std::cout,cur_loc,num_wrap);		
+
+		std::cout << '\n';
+		std::cout << "move? : ";
+		// get the next move
+		int move{0}; // user's move
+		movegame::ui::getMove(std::cin,move);
+
+		std::cout << '\n';		
+		
+		// update the state
+		movegame::model::updateState(cur_loc,num_wrap,move);		
+	}
+
+	return 0;
+}
+\end{lstlisting}
+\caption{The complete definition of \textit{main}}
+\label{fig:main-final1}
+\end{figure}
+
+
+
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+
+int main( int argc, char* argv[] ){
+
+	// Program State Variables
+	int cur_loc{0}; // player location
+	int num_wrap{0}; // number of times player wrapped
+	
+	while( true ){
+		// write out game state
+		movegame::ui::displayState(std::cout,cur_loc,num_wrap);		
+
+		std::cout << '\n';
+		
+		// get the next move
+		int move{0}; // user's move
+		movegame::ui::getMoveWithPrompt(std::cout,std::cin,move);
+
+		std::cout << '\n';		
+		
+		// update the state
+		movegame::model::updateState(cur_loc,num_wrap,move);		
+	}
+
+	return 0;
+}
+\end{lstlisting}
+\caption{The complete definition of \textit{main} ver. 2}
+\label{fig:main-final2}
+\end{figure}
+
+Let's go ahead and declare and document these procedures to transliterate our ideas to C++.  The beginning of our library header is given in figure \ref{fig:top}.
 
 \begin{figure}[!htbp]
 \begin{lstlisting}
@@ -150,6 +223,19 @@ namespace movegame{
 		 *    in
 		 */						  
 		void getMove(std::istream& in, int& move);		
+		
+		/**
+		 * Prompt the user for the number of spaces to move and get that 
+		 *  number from the player 
+		 * @param out the stream where the prompt is written
+		 * @param in the stream where user input can be found
+		 * @param move the variable where the user's move is stored
+		 * @return none
+		 * @pre none
+		 * @post a prompt is written to out and the user's move 
+		 *  (int number of steps) is read from in
+		 */						  
+		void getMoveWithPrompt(std::ostream& out, std::istream& in, int& move);		
 	
 	
 	} // end ui
@@ -176,36 +262,7 @@ namespace movegame{
 \label{fig:top}
 \end{figure}
 
-In declaring these steps as procedures we're forced to work out some program level details. For starters, we need some local state (\textit{move}) to manage user-input. Otherwise, we need to carefully consider what information each step is dependent upon. Displaying the state requires, well, all the state. Getting the new move requires that local state, but that's it. Finally, updating the state requires the state and the move, but we only need the move value, not the state itself.
-
-We can now actually finish main! This sounds crazy but if we implement those procedures to do what we want them to do, then main should do what it needs to do. Of course \textit{until} the procedures are fully implemented, \textit{main} won't work as intended. That shouldn't stop you. Not at all. Finishing up \textit{main} like this gives you a concrete testable specification to work towards. This is a much better place to be than working towards some undetermined end point. Out procedures should all come together just like we see in figure \ref{fig:main-final}.
-\begin{figure}[!htbp]
-\begin{lstlisting}
-
-int main( int argc, char* argv[] ){
-
-	// Program State Variables
-	int cur_loc{0}; // player location
-	int num_wrap{0}; // number of times player wrapped
-	
-	while( true ){
-		// write out game state
-		movegame::ui::displayState(std::cout,cur_loc,num_wrap);		
-
-		// get the next move
-		int move{0}; // user's move
-		movegame::ui::getMove(std::cin,move);
-		
-		// update the state
-		movegame::model::updateState(cur_loc,num_wrap,move);		
-	}
-
-	return 0;
-}
-\end{lstlisting}
-\caption{The complete definition of \textit{main}}
-\label{fig:main-final}
-\end{figure}
+In declaring these steps as procedures and working them in their desired context we're forced to work out some program level details. For starters, we need some local state (\textit{move}) to manage user-input. Otherwise, we need to carefully consider what information each step is dependent upon. Displaying the state requires, well, all the state. Getting the new move requires that local state and if we want to prompt with the input we need an ostream. Finally, updating the state requires the state and the move, but we only need the move value, not the state itself. We also can think about spacing the different output. Should the procedures pad spacing like our example or should we manage that within \textit{main} itself.
 
 At this point we can just stub out the procedures and compile and run our program. It will do nothing, but now we have a complete design for main that we can work towards. Stubs for the top-level helpers can be found in figure \ref{fig:top-stubs}.
 
@@ -221,6 +278,11 @@ void movegame::ui::displayState(std::ostream& out,
 void movegame::ui::getMove(std::istream& in, int& move){
 	return;
 }
+ 
+void movegame::ui::getMoveWithPrompt(std::ostream& out, std::istream& in,
+								     int& move){
+	return;
+}
                      
 void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
 	return;
@@ -230,11 +292,109 @@ void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
 \label{fig:top-stubs}
 \end{figure}
 
-\section{Getting the User's next Move}
-
 \section{Display the Game State}
 
+Before we do anything, let's write tests for \textit{displayState}. We shouldn't consider how we'll implement this thing until we're certain what it should do. There aren't really any cases to \textit{displayyState} procedure assuming that all the preconditions are met\sidenote{which we can manage through updateState}.  For the sake of our understanding, figure \ref{fig:display-tests} provides a few different test cases. 
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+
+  TEST(dispSt,all){
+    std::string expected{""};
+    std::ostringstream actual{""};
+
+    expected = std::string("|X--------------------|\n");
+    expected += std::string("wrapped: 0\n");
+    movegame::ui::displayState(actual,0,0);
+
+    EXPECT_EQ(expected,actual.str());
+
+    actual.str("");
+    actual.clear();
+    expected.clear();
+
+    expected = std::string("|-----X---------------|\n");
+    expected += std::string("wrapped: 4\n");
+    movegame::ui::displayState(actual,5,4);
+    EXPECT_EQ(expected,actual.str());
+
+    actual.str("");
+    actual.clear();
+    expected.clear();   
+
+    expected = std::string("|--------------------X|\n");
+    expected += std::string("wrapped: 2\n");
+    movegame::ui::displayState(actual,20,2);
+    EXPECT_EQ(expected,actual.str());
+
+    actual.str("");
+    actual.clear();
+    expected.clear();   
+
+  }
+
+\end{lstlisting}
+\caption{Tests for \textit{displayState}}
+\label{fig:display-tests}
+\end{figure}
+
+
+\section{Getting the User's next Move}
+
+Before we do anything, let's write tests for \textit{getMove} and \textit{getMoveWithPrompt}. We shouldn't consider how we'll implement this thing until we're certain what it should do. If we assume valid user inputs\sidenote{a poor assumption but we'll make it for now}, then there's not much in the way of cases here either. As seen in figure \ref{fig:get-tests}, the tests for the basic \textit{getMove} is standard input testing.  On the other hand, the test for \textit{getMoveWithPrompt} requires us to test the compound effects of input and output. We see this in figure \ref{fig:getPrmt-tests}.
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+  TEST(getmv,all){
+    std::istringstream in{""};
+    int mv{0};
+
+    in.clear();
+    in.str("5");
+    EXPECT_EQ(0,mv);    
+    movegame::ui::getMove(in,mv);
+    EXPECT_EQ(5,mv);
+
+  }
+\end{lstlisting}
+\caption{Tests for \textit{getMove}}
+\label{fig:get-tests}
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+  TEST(getmvprompt,all){
+    std::istringstream in{""};
+    std::ostringstream out{""};
+    int mv{0};
+    std::string expected{""};
+
+    in.str("5");
+    expected = "move? ";
+    movegame::ui::getMoveWithPrompt(out,in,mv);
+    EXPECT_EQ(5,mv); // the input effect
+    EXPECT_EQ(expected,out.str()); // the output effect
+    
+  }
+\end{lstlisting}
+\caption{Tests for \textit{getMove}}
+\label{fig:getPrmt-tests}
+\end{figure}
+
+
 \section{Updating the Game State}
+
+Before we do anything, let's write tests for \textit{updateState}. We shouldn't consider how we'll implement this thing until we're certain what it should do. 
+
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+
+\end{lstlisting}
+\caption{Tests for \textit{updateState}}
+\label{fig:update-tests}
+\end{figure}
+
 
 \end{document}
 
