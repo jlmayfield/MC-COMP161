@@ -338,7 +338,158 @@ Before we do anything, let's write tests for \textit{displayState}. We shouldn't
 \label{fig:display-tests}
 \end{figure}
 
+First things first, we need to recognize that the game's state, taken as abstract information, is compound. It's the combination of the location and the wrapped score. While our physical representation of it is as two atomic variables, the logic of our design should mirror the reality of the problem whenever possible. We learned from COMP160 that when faced with compound data, we should deconstruct the pieces and use helpers. In this case that means two auxiliary procedures, an output procedure for each state variable.
 
+We know we need two procedures, but what should they do and how will we use them?  At this point we have two ways to proceed: functionally or statefully. The later approach means each helper is an output procedure and the design goal is two simply decompose the compound output into two distinct output procedures. We'll call them \textit{displayLocOnBoard} and \textit{displayWrap} and they output the board and the wrapped score respectively. As seen in figure \ref{fig:display-twoOut}, we can combine them through \textsc{sequential statements} or if you want to chain them we could use returned references to do a single statement with \textsc{nested effects} as seen in figure \ref{fig:display-twoOut-chained}. To leave our options open we can simply implement them with returned references and then choose which style we prefer\sidenote{You can always ignore the returned reference because the return value isn't necessary for producing the desired effect.} In both cases, we might give serious consider to the creative use of I/O manipulators \textit{std::setw}, \textit{std::setfill}, and possibly the alignment manipulators to solve this problem quickly and easily while keeping the logic squarely in the realm of I/O. 
+ 
+\begin{figure}[!htbp]
+\begin{lstlisting}
+// in move_lib.cpp
+
+void movegame::ui::displayState(std::ostream& out,
+	                            int loc, int wrap){
+
+	// Sequential Statements called for effect
+	movegame::ui::displayLocOnBoard( out , loc );                            
+	movegame::ui::displayWrap( out , wrap );
+	return;	                            
+}	       
+
+\end{lstlisting}
+\caption{\textit{displayState} }
+\label{fig:display-twoOut}
+\end{figure}
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+// in move_lib.cpp
+
+void movegame::ui::displayState(std::ostream& out,
+	                            int loc, int wrap){
+
+	// Nested Output effects, i.e. effect chaining
+	movegame::ui::displayWrap( movegame::ui::displayLocOnBoard( out , loc ),
+							   wrap) ;                            
+	return;	                            
+}	       
+
+\end{lstlisting}
+\caption{\textit{displayState} }
+\label{fig:display-twoOut-chained}
+\end{figure}
+
+The functional option is less obvious because we solve an output problem by first doing something other than output. It is appealing though because the it more clearly separates UI code from model code. This underlying design goal is known as \textsc{separation of concerns}. The output procedure, which is part of the UI, doesn't need to know anything about the game state because the model procedure will be designed to provide an appropriate string for the UI to output. The role of \textit{displayState} is now simply to invoke the model procedures that produce the two strings it needs to output and then output those strings. We take this design for a spin in figure \ref{fig:display-func}. 
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+// in move_lib.cpp
+
+void movegame::ui::displayState(std::ostream& out,
+	                            int loc, int wrap){
+
+	std::string boardStr{ movegame::model::boardString(loc) };
+	std::string wrapStr{ movegame::model::wrapString(wrap) };
+	
+	out << boardStr << wrapStr;
+
+	return;	                            
+}	       
+
+\end{lstlisting}
+\caption{\textit{displayState} }
+\label{fig:display-func}
+\end{figure}
+
+We have two design options for \textit{displayState}'s helper procedures. The first simply decomposes the output task to mirror the logical structure of the state it's meant to output. We can finish that design up using either sequential statements or chained effects in a single statement and the helpers \textit{displayLocOnBoard} and \textit{displayWrap} can be designed and implemented to support either option. Our second design uses the functions \textit{boardString} and \textit{wrapString} of the state variables \textit{loc} and \textit{wrap} respectively to produce strings that are then output by \textit{displayState}. This design illustrates an important technique in program design. When programs are software that is developed and maintained over time, then the separation afforded by this design eases the burden of typical software maintenance tasks\sidenote{fixing bugs and adding features}. In lab you'll complete the design and implementation of all four of the functions so that you can then choose one of the \textit{displayState} implementations above. 
+
+
+\section{Updating the Game State}
+
+Before we do anything, let's write tests for \textit{updateState}. We shouldn't consider how we'll implement this thing until we're certain what it should do. In writing tests we need to carefully analyze the cases of this problem. This problem is compounded by the fact that we're dealing with a compound state. Naively, this means we might do a case analysis of each individual state variable. For the location, there appears to be three cases: the move doesn't wrap around, it wraps around the left hand side, it wraps around the right hand side. Wrapping an happen multiple times so we should first test a single wrap then test more than one wrap. A quick analysis reveals that these are in fact the same cases we find for the warp count state. All told, we have 5 cases and we need to test the effect of each case on both state variables.
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+  TEST(udtSt,all){
+
+    int loc{0};
+    int wrap{0};
+	
+	// no wrap
+    movegame::model::updateState(loc,wrap,3);
+    EXPECT_EQ(3,loc);
+    EXPECT_EQ(0,wrap);
+
+    loc = 0;
+    wrap = 0;
+
+	// wrap left
+    movegame::model::updateState(loc,wrap,-3);
+    EXPECT_EQ(18,loc);
+    EXPECT_EQ(1,wrap);
+
+    loc = 0;
+    wrap = 0;
+
+	// wrap right
+    movegame::model::updateState(loc,wrap,25);
+    EXPECT_EQ(4,loc);
+    EXPECT_EQ(1,wrap);
+
+    loc = 0;
+    wrap = 0;
+
+	// multiple wraps right
+    movegame::model::updateState(loc,wrap,50);
+    EXPECT_EQ(8,loc);
+    EXPECT_EQ(2,wrap);    
+    
+    loc = 0;
+    wrap = 0;
+
+   	// multiple wraps right
+    movegame::model::updateState(loc,wrap,-50);
+    EXPECT_EQ(7,loc);
+    EXPECT_EQ(2,wrap);    
+    
+  }
+\end{lstlisting}
+\caption{Tests for \textit{updateState}}
+\label{fig:update-tests}
+\end{figure}
+
+Now that we have a clearer picture of what \textit{updateState} should do we can turn our attention to the implementation design. Once again we're presented with two familiar options: decompose the mutator into two single variable mutators or design two functions that compute the next value for \textit{updateState} to assign to the variables. In both cases we find that computing the next wrapped value requires the value of the current location\sidenote{but not the state itself!}. We see the mutator based solution in figure \ref{fig:update-mutate} and the functional solution in figure \ref{fig:update-func}.
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
+	
+	movegame::model::updateLoc(cur_loc , move);
+	movegame::model::updateWrap(num_wrap, cur_loc, move);	
+	
+	return;
+}
+\end{lstlisting}
+\caption{\textit{updateState} done with two mutators}
+\label{fig:update-mutate}
+\end{figure}
+
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
+	
+	cur_loc = movegame::model::nextLoc(cur_loc , move);
+	num_wrap = movegame::model::nextWrap(num_wrap, cur_loc, move);	
+	
+	return;
+}
+\end{lstlisting}
+\caption{\textit{updateState} done with two functions}
+\label{fig:update-func}
+\end{figure}
+
+The two implementations of \textit{updateState} shown here bear careful consideration as their equivalency is a simple demonstration of how one can use either functions or state mutation to achieve a computational solution to a problem. For lab you'll implement all four of the helpers listed above. 
+ 
 \section{Getting the User's next Move}
 
 Before we do anything, let's write tests for \textit{getMove} and \textit{getMoveWithPrompt}. We shouldn't consider how we'll implement this thing until we're certain what it should do. If we assume valid user inputs\sidenote{a poor assumption but we'll make it for now}, then there's not much in the way of cases here either. As seen in figure \ref{fig:get-tests}, the tests for the basic \textit{getMove} is standard input testing.  On the other hand, the test for \textit{getMoveWithPrompt} requires us to test the compound effects of input and output. We see this in figure \ref{fig:getPrmt-tests}.
@@ -381,20 +532,75 @@ Before we do anything, let's write tests for \textit{getMove} and \textit{getMov
 \label{fig:getPrmt-tests}
 \end{figure}
 
-
-\section{Updating the Game State}
-
-Before we do anything, let's write tests for \textit{updateState}. We shouldn't consider how we'll implement this thing until we're certain what it should do. 
-
+If we step back from \textit{getMoveWithPrompt} for a second, then we can see an obvious decomposition of the hybrid I/O task into the output and input task as seen in figure \ref{fig:getPrmt-basic}.  The input task can be accomplished with \textit{getMove} so all we need is an output procedure to display the prompt.  Let's call it \textit{movePrompt}. 
 
 \begin{figure}[!htbp]
 \begin{lstlisting}
 
+void movegame::ui::getMoveWithPrompt(std::ostream& out, std::istream& in,
+								     int& move){
+	movegame::ui::movePrompt(out);
+	movegame::ui::getMove(in,move);
+
+	return;
+}
 \end{lstlisting}
-\caption{Tests for \textit{updateState}}
-\label{fig:update-tests}
+\caption{\textit{getMoveWithPrompt} Basic design}
+\label{fig:getPrmt-basic}
 \end{figure}
 
+
+This procedure is so simple that we might just make it a statement. Then again, it's so simple that doing it as a procedure wouldn't take much time. The whole thing is done in figure \ref{fig:mvprmt}. 
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+// in the library header (within movegame::ui
+
+    /**
+     * Display the getMove prompt on the stream out
+     * @param out the stream where the prompt is written
+     * @return none
+     * @pre none
+     * @post prompt written to out
+     */
+    void movePrompt(std::ostream& out);
+
+// in the tests
+ 	
+ 	TEST(movePrompt,all){
+    	std::string expected{"move? "};
+    	std::ostringstream actual{""};
+
+	    movegame::ui::movePrompt(actual);
+  	    EXPECT_EQ(expected,actual.str());
+  	}
+
+// in the implementation
+
+	void movegame::ui::movePrompt(std::ostream& out){
+		
+		out << "move? ";
+		return;
+		
+	}
+	
+\end{lstlisting}
+\caption{\textit{movePrompt}}
+\label{fig:mvprmt}
+\end{figure}
+
+
+
+\section{Big Picture}
+
+Two very important design principles came up in our work with this program. 
+\begin{enumerate}
+\item Decomposition of a task/procedure into smaller, more constrained tasks/procedures of the original task/procedure and recombine the results.
+\item Draw a clear separation between UI and Model tasks using procedures on model state to provide necessary elements of the UI and using UI procedures to manage basic I/O tasks only. 
+\end{enumerate}
+These principles are not disjoint and can work in tandem to complete the design for a program. In lab you should play around with all the variations of this program we discussed in these notes and in class and then consider other procedural designs that could be used to complete this program.
+
+The other thing we looked at is our ability to use both functional thinking and effectful thinking to solve problems. Our core model update procedure can be implemented using either mutators or functions. The same is true of \textit{displayState}.  What that means is you can often use functions to implement an effect. We've seen in previous assignments that local mutation of a pass-by-value parameter can be used to implement a function\sidenote{see the shorten function from lab a few weeks ago}. Putting these two together means that functions can implement effects and effects can implement functions. As the designer and implementer of a program, you can choose which suits your needs and requirements best. 
 
 \end{document}
 
