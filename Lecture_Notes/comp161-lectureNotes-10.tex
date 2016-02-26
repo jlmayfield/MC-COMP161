@@ -192,13 +192,12 @@ int main( int argc, char* argv[] ){
 \label{fig:main-final2}
 \end{figure}
 
-Let's go ahead and declare and document these procedures to transliterate our ideas to C++.  The beginning of our library header is given in figure \ref{fig:top}.
+Let's go ahead and declare and document these procedures to transliterate our ideas to C++.  The beginning of our library header is given in figures \ref{fig:top1} and \ref{fig:top2}.
 
 \begin{figure}[!htbp]
 \begin{lstlisting}
 // in move_lib.h
 namespace movegame{
-
 	namespace ui{
 		
 		/**
@@ -239,7 +238,16 @@ namespace movegame{
 	
 	
 	} // end ui
+} //end movegame	
+\end{lstlisting}
+\caption{The top-level ui helpers for \textit{main}}
+\label{fig:top1}
+\end{figure}
 
+\begin{figure}[!htbp]
+\begin{lstlisting}
+// in move_lib.h
+namespace movegame{
 	namespace model{
 	
 		/**
@@ -255,11 +263,11 @@ namespace movegame{
 		void updateState(int& cur_loc, int& num_wrap, int move);
 	}
 
-} //end move
+} //end movegame
 
 \end{lstlisting}
-\caption{The top-level helpers for \textit{main}}
-\label{fig:top}
+\caption{The top-level model helpers for \textit{main}}
+\label{fig:top2}
 \end{figure}
 
 In declaring these steps as procedures and working them in their desired context we're forced to work out some program level details. For starters, we need some local state (\textit{move}) to manage user-input. Otherwise, we need to carefully consider what information each step is dependent upon. Displaying the state requires, well, all the state. Getting the new move requires that local state and if we want to prompt with the input we need an ostream. Finally, updating the state requires the state and the move, but we only need the move value, not the state itself. We also can think about spacing the different output. Should the procedures pad spacing like our example or should we manage that within \textit{main} itself.
@@ -368,8 +376,9 @@ void movegame::ui::displayState(std::ostream& out,
 	                            int loc, int wrap){
 
 	// Nested Output effects, i.e. effect chaining
-	movegame::ui::displayWrap( movegame::ui::displayLocOnBoard( out , loc ),
-							   wrap) ;                            
+	movegame::ui::displayWrap( 
+		movegame::ui::displayLocOnBoard( out , loc ),
+		wrap) ;                            
 	return;	                            
 }	       
 
@@ -410,27 +419,21 @@ Before we do anything, let's write tests for \textit{updateState}. We shouldn't 
 \begin{figure}[!htbp]
 \begin{lstlisting}
   TEST(udtSt,all){
-
     int loc{0};
     int wrap{0};
-	
-	// no wrap
+
     movegame::model::updateState(loc,wrap,3);
     EXPECT_EQ(3,loc);
     EXPECT_EQ(0,wrap);
 
     loc = 0;
     wrap = 0;
-
-	// wrap left
-    movegame::model::updateState(loc,wrap,-3);
-    EXPECT_EQ(18,loc);
+    movegame::model::updateState(loc,wrap,-2);
+    EXPECT_EQ(19,loc);
     EXPECT_EQ(1,wrap);
 
     loc = 0;
     wrap = 0;
-
-	// wrap right
     movegame::model::updateState(loc,wrap,25);
     EXPECT_EQ(4,loc);
     EXPECT_EQ(1,wrap);
@@ -438,33 +441,29 @@ Before we do anything, let's write tests for \textit{updateState}. We shouldn't 
     loc = 0;
     wrap = 0;
 
-	// multiple wraps right
     movegame::model::updateState(loc,wrap,50);
     EXPECT_EQ(8,loc);
     EXPECT_EQ(2,wrap);    
-    
+
     loc = 0;
     wrap = 0;
-
-   	// multiple wraps right
     movegame::model::updateState(loc,wrap,-50);
-    EXPECT_EQ(7,loc);
-    EXPECT_EQ(2,wrap);    
-    
+    EXPECT_EQ(13,loc);
+    EXPECT_EQ(3,wrap);    
   }
 \end{lstlisting}
 \caption{Tests for \textit{updateState}}
 \label{fig:update-tests}
 \end{figure}
 
-Now that we have a clearer picture of what \textit{updateState} should do we can turn our attention to the implementation design. Once again we're presented with two familiar options: decompose the mutator into two single variable mutators or design two functions that compute the next value for \textit{updateState} to assign to the variables. In both cases we find that computing the next wrapped value requires the value of the current location\sidenote{but not the state itself!}. We see the mutator based solution in figure \ref{fig:update-mutate} and the functional solution in figure \ref{fig:update-func}.
+Now that we have a clearer picture of what \textit{updateState} should do we can turn our attention to the implementation design. Once again we're presented with two familiar options: decompose the mutator into two single variable mutators or design two functions that compute the next value for \textit{updateState} to assign to the variables. In both cases we find that computing the next wrapped value requires the value of the current location\sidenote{but not the state itself!}. This causes a bit of a problem as we need to be certain that we use the original location to compute the new wrapped score. We see the mutator based solution in figure \ref{fig:update-mutate} and the functional solution in figure \ref{fig:update-func}.
 
 \begin{figure}[!htbp]
 \begin{lstlisting}
 void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
 	
-	movegame::model::updateLoc(cur_loc , move);
 	movegame::model::updateWrap(num_wrap, cur_loc, move);	
+	movegame::model::updateLoc(cur_loc , move);	
 	
 	return;
 }
@@ -478,8 +477,8 @@ void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
 \begin{lstlisting}
 void movegame::model::updateState(int& cur_loc, int& num_wrap, int move){
 	
-	cur_loc = movegame::model::nextLoc(cur_loc , move);
 	num_wrap = movegame::model::nextWrap(num_wrap, cur_loc, move);	
+	cur_loc = movegame::model::nextLoc(cur_loc , move);
 	
 	return;
 }
