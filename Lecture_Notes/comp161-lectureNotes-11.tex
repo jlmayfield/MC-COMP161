@@ -623,6 +623,14 @@ void setStrToUpper(std::string& str){
 
 The final version of \textit{setStrToUpper} is strikingly similar to our iterative version:  it works on a single string object rather than produce any copies and its logic is oriented around counting through indexes.  
 
+\section{C++ Strings, Recursion, and Efficiency}
+
+The beauty of structural recursion is that you can find recursive structure in just about any data type if you need or want it. The downside is that this structure is often abstract and not indicative of the actual implementation of the data type. This is the case for \textit{std::string} in C++.  We can absolutely work with them using good old fashioned structurally recursive thinking and arrive at logically simple, correct implementations of procedures.  The problem is \textit{they will be inefficient when compared to iterative solutions}. This is not the fault of recursion. It is a matter of a mismatch between what we need for efficient recursion and what we need for efficient iteration.We'll revisit this issue after we equip ourselves with some basic tools for analyzing and understanding efficiency.  For now, we'll focus on basic intuition. 
+
+When working recursively we need efficient access to the first/last of a string as well as the rest/but-last because every step of the process\sidenote{plus or minus the base case} requires we select these two components of the structure. The first/last is accessible through \textit{operator[]} or the \textit{at} method. Both of these work very efficiently in what we call \textit{constant time}.  This means only some fixed number of basic operations are needed to select this element of the string. Selecting the rest/but-last using \textit{substr} unfortunately requires an amount of work that is dependent on the length of the substring you're selecting. Working iteratively only requires that we select a single element at each step by using \textit{operator[]} or \textit{at}. Without even getting into problem specific details, it seems clear that substring selection is a bottleneck. 
+
+Given this discrepancy in efficiency, what are we to do. For starters, we could ignore it unless it's actually a problem in the real world.  If you're strings are short\sidenote{this could mean lengths into the hundreds} 
+
 \section{Recap}
 
 Let's wrap-up this discussion by looking at the preferred implementations. Let's first look at the recursive vs. iterative functional strToUpper.
