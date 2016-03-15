@@ -1,296 +1,97 @@
-\documentclass[]{tufte-handout}
+\documentclass[nobib]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm,color}
 \usepackage{multirow}
 \usepackage{booktabs}
-\usepackage{framed}
 \usepackage[pdftex]{graphicx}
 
   
-\title{COMP 161 - Lecture Notes - 12 - Randomized Procedures}
+\title{COMP 161 - Lecture Notes - 12 - Streaming File I/O}
 
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we discuss issues with designing procedures that utilize randomized data.
+In these notes we see how to use the streaming file I/O classes. 
 \end{abstract}
 
+\section{File Streams}
 
-\section{Randomness in Computing}
+The \textit{fstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/}} library provides a set of classes for doing streaming I/O with files in the same general way that we've done with standard in/out and with stringstreams. The input file stream, or \textit{ifstream},\sidenote{\url{http://www.cplusplus.com/reference/fstream/ifstream/}} class lets you establish a file as a streaming input object and thereby lets you read data from a file.  The usage of the \textit{ifstream} is exactly the same as \textit{std::cin}, but, like istringstream, setting up the stream takes a little work. Similarly, the output file stream, or \textit{ofstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/}}, class lets you use a file in the same fashion as \textit{std::cout} or an ostringstream.
 
-Early on in the history of modern computing, people figured out that there was often some advantage to utilizing randomness as resource in the design of procedures.  Monte Carlo methods\sidenote{\url{http://en.wikipedia.org/wiki/Monte_Carlo_method}} work by repeating a computation of a large sample of randomly generated inputs. Optimization algorithms often use randomness to escape a local minimum or maximum.  In cryptography, randomness lends itself to stronger guarantees of security.  
+\section{Creating File Streams}
 
-Of course even if there weren't some computational advantage to the use of randomness, we'd still like computers to have access to randomness as lots of real world problems and applications rely on randomness. Games that use dice or cards often require randomness. Random processes exist in nature and we might wish to simulate or emulate these processes.  Sometimes we're not concerned with randomness as much as we are uncertainty. We can use probability to quantify uncertainty, but to simulate this uncertainty we'd need some level of randomness. 
-
-Whether it's a problem solving device or a part of a problem, we often need randomness in our programs. What we'd like is for our computer to have a fair coin. If it did, then any time we needed some randomness we could simply instruct the computer to flip the coin.  Just like we've constructed a wealth of data from raw binary numbers, we can construct a whole host of interesting random phenomenon  from a single coin. If you want a random \textit{int} value, you could simply flip the coin 32 times. A random \textit{char} would need 8 flips.  In practice, we don't deal in random bits, but instead in random numbers\sidenote{Typically random unsigned integers}.  So when we want randomness in our programs we look for libraries that provide access to a random number generator.  Unfortunately, computers don't \textit{really} have a built in random number generator.
-
-The hardware on which modern computers are build is deterministic and therefore has no way to produce randomness\sidenote{no coins in there}. We've found some clever means of harvesting the apparent randomness in nature, but these are often slow or hard to implement for general use\sidenote{\url{http://en.wikipedia.org/wiki/Random_number_generation\#Generation_methods}}. Historically, people would employ tables of randomly generated numbers such that whenever a new number was needed they'd just grab the next one from the table. This practice of fetching a predetermined random value lends some intuition to the most common source of randomness in modern computers, the \textsc{Psuedo Random Number Generator}
-
-
-\section{Psuedo Random Number Generation}
-
-Imagine a giant book full of tables of seemingly random sequences of numbers. The book has a clear table of contents such that you can flip to any one table easily. To the owner of the book there's nothing really random going on here. The $i$th entry of the $j$th table is always the same.  From this perspective this book is totally deterministic. We could simply write it to a computer chip and have the same data accessible in the same way we it was in the book. 
-
-Now consider the outside observer that does not have access to the book. Let's say they know the book's owner will read off one number from the book. Well there's no way to know what that number will be and given that the tables themselves contain random sequences, there's no way to predict the next number having heard one or more already. That is given the $i$th entry from a table, there's no way to predict the $(i+1)$th entry.  In a perfect world we'd like there to be no way to predict any one entry given any number of of the other entries from the table. 
-
-Now lets put a computational spin on this. The combination of the book's owner and the book is one system such that the table number $j$ and the current entry on the table $i$ defines the \textit{state} of the system. We can modify the state by choosing a different table or by reading off a number from the current table. Numbers are read in order, so when we read number $i$ the next number to be read is $i+1$. In the event that we run out of numbers on the current table, we'll simply start over again and begin reading numbers from the beginning of the same table. This repetition is only a problem if our table size is smaller or near in size to the number of random numbers we expect to need\sidenote{repeating the table causes a pattern to form. patterns are antithesis of random}. Notice that given this book, we have a totally deterministic means of generating random numbers. 
-
-The problem is that for the book metaphor to work, we'd need to set aside a large amount of space for the tables. What we really want is some mathematical function that computes the tables. We need some $\mathcal{f}$ such that $\mathcal{f}(j,i)$ returned the $i$th number from the $j$th table. It's not the least bit obvious that we should even attempt to find such a function. It would seem like the ability to calculate the tables via some formula would imply a pattern in the numbers. Our imagined tables are random. They should have no pattern.  Yet by the 40s people had discovered easy to compute functions that when given a \textsc{seed} value produced a stream of numbers that generally appear to be random to the outside observer. Given the same seed value, they'll continue to produce the same sequence, just like our tables. We call these functions \textsc{pseudo random number generators}, or PRNGs.  A PRNG does not provide true randomness. Certain PRNGs do a much better job at obfuscating the underlying pattern than others.  So, when simulating true randomness matters, then you'll need to known a bit more about the landscape of PRNGs available to you. For the things we're doing in this class, we're OK with whatever default PRNG the system provides and the level of randomness that PRNG offers to us.
-
-Given a PRNG we have access to as many sequences of random numbers as there are possible seed values for the PRNG. This is great, except that we often  don't want the exact numbers given to us by our PRNG and we have no way to directly modify the possible values our PRNG computes. To get around this we typically turn to statistics, which provides us with a whole vocabulary for describing the form and function of randomness in terms of \textsc{distributions}. So, the other thing we look for libraries to provide is a way of turning PRNG output into numbers from a specific statistical distribution. So, before we translate all of this over to C++, I want to plug your local Probability and Statistics course.  Out best means of understanding and quantifying randomness is through probability and statistics. Making good use of randomness is becoming increasingly common in computing. It's well worth your time to familiarize yourself with the basic principles of probability and statistics. 
-
-\section{PRNGs in C++}
-
-The changes to C++ brought about by the new C++11 standard included a new library called \textit{random}. This library provides several different PRNGs and a set of procedures for converting PRNG output to well studied probability distributions, including uniform distributions. Prior to C++11 people used the C standard library PRNG and either wrote their own methods transforming its output to a specific distribution or sought out non-standard C++ libraries. Let's see how to use this library to get uniformly distributed random integers and doubles.    
-
-All PRNGs are represented as random number engine objects. To get an instance of one of these objects we declare a variable of type \textit{std::default\_random\_engine}\sidenote{Other generator types are available, but this will work OK for our purposes}. Like all variables, we'd like to initialize generator. To initializing a PRNG means passing it a seed value. The basic way to seed a PRNG\sidenote{and the only way we'll explore} is to give it an unsigned integer. We can either do this when we declare the variable or after the fact.  Here you see both options.
-
+To connect a file to a stream we simply need to initialize the stream with the file's path. Path strings can be relative or absolute.
 \begin{verbatim}
-std::default_random_engine generator; //default seed
-generator.seed(5); //seed with 5
+std::ofstream outFile{"newlog.log"};
 
-std::default_random_engine gen(0);  //seed value 0 
+std::ifstream inFile{"old/yesterdaylog.log"};
+\end{verbatim}
+The \textit{ofstream} object named \textit{outFile} can be used to write data to the file named \textit{newlog.log}.  That file must be in the current working directory\sidenote{do you see why?}. The \textit{ifstream} object named \textit{inFile} can be used to read data from a file named \textit{yesterdaylog.log} which should be found in the \textit{old} subdirectory of the current working directory. We can also declare uninitialized streams and open a file with them after the fact by using the \textit{open } method.
+\begin{verbatim}
+ofstream outFile;
+ifstream inFile;
+
+outFile.open("newlog.log");
+infile.open("old/yesterdaylog.log");
 \end{verbatim}
 
-The \textit{min} and \textit{max} methods allow you to determine the minimum and maximum value possible with the PRNG.
-\begin{verbatim}
-std::default_random_engine gen(0);  
+There are several quirks with initializing file streams that you need to keep in mind.  Let's start with ofstreams.  If the file you're attempting to stream to does not currently exist, then \textit{the act of writing to it will create that file}.  This is the same behavior we saw on the CLI and it let's you create new files in your C++ programs by simply opening a file and writing to it. 
 
-cout << "The default PRNG produces integers from [" << gen.min() << "," 
-     << gen.max() <<"]\n";
+If the file does exist, then the default behavior is to \textit{overwrite} the current file's contents.  If you want to append to the file, you need to open it differently. If we wanted to append to \textit{newlog.log}, then we'd open it like this:
+\begin{verbatim}
+ofstream outFile{"newlog.log",std::ofstream::app}; 
+
+// alternative 
+ofstream outFile;
+outFile.open("newlog.log",std::ofstream::app);
 \end{verbatim}
 
-To extract a random number from the PRNG object we do something we've never done before- \textit{we use the object as if it were a procedure}. Let's get and print 15 numbers, 5 per line.
+The biggest problem you can face when opening an ifstream is attempting to open a file that does not exist.  In this case, your write operations will fail. To get around this, we can check that the open succeeded before attempting to read the file. The \textit{is\_open}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/is_open/}} class method is a predicate for exactly this state.  The simple strategy we see here is to end the procedure if input file open fails.
 \begin{verbatim}
-std::default_random_engine gen(0);  
 
-for(int i{0} ; i < 15 ; ++i)
+ifstream inFile("mydata.dat");
 
-  cout << gen();
-  
-  if( i % 5 == 4 ){
-    cout << '\n';
-  } 
-  else{
-    cout << ' ';
-  }
+if( !inFile.is_open() ){
+  return ; 
 }
+
+// we only reach here if the file opened
 \end{verbatim}
-Here we see the expression \textit{gen()} being used to extract random numbers from our PRNG \textit{gen}. This is weird for two reasons. First we expect the thing before a set of parenthesis to be a procedure name or control structure keyword\sidenote{if, while, for}. In this case its the name of a variable. The second source of weirdness is the fact that the ``procedure'' takes no inputs.
 
-We can use our PRNG object as a procedure because C++ gives us the ability to treat parenthesis as operators\sidenote{operator() in the documentation}. We call this operator the \textsc{application operator}.  Object classes with a defined application operator are typically called \textsc{functors}. Functors can be a bit confusing at first. They blur the line between data and procedures by virtue of functioning in both worlds. We'll get our feet wet with functors with the random library. Later we'll learn to write our own functors.
 
-No argument procedures seem a bit strange coming from a purely functional world. However, considering what we know about PRNGs and our PRNG gen, we can start to piece together why this is a perfect case for a no argument procedure. When we constructed \textit{gen} we seeded the PRNG.  The user of \textit{gen()} simply wants a random number. In terms of our book metaphor, it makes no sense to force them to choose a table\sidenote{seed} and entry number from that table. In fact, if they did, the process would cease to be random because they'd simply be selecting entry $i$ from table $j$ and table which is always the same.  So, in the end, the seed and the ``location'' of the next entry should be hidden away from the user in order to ensure the interface we wanted all along-give me a random number. 
+\section{Read and Writing}
 
-Of course, we deterministically selected the seed value for or PRNG.  This is a bit problematic. Every time we run our code to print 15 random values we'll get the same 15 values- the first 15 value in the sequence generated by seed 0. What would be great was if we generated a random seed, but that causes a bit of a paradox. Instead, we could settle for a different seed every time we run the program. You could keep the previous seed value in a file\sidenote{Files are the only way to save program state from one execution to the next} and then when the program runs it reads that value from the file and then adds one to it. This would let you count through seeds. This approach is a bit cumbersome however. A better source for numbers that are different every time you run your program is time itself.
-
-The standard approach to generating unique seeds across program executions is to use the system time. Computers tend to see time as the number of milliseconds that have passed since some fixed point in time called the \textsc{epoch}\sidenote{\url{http://en.wikipedia.org/wiki/Unix_time}}.  What we want to do is get this number and use it as our seed. This means that unless we call our program more than once in the same millisecond, we'll have a different seed every time we run it. 
-
-To get the time since the Epoch in C++ we can use the C++11 \textit{chrono} library. By chaining together a few method calls we can get time since the epoch measured in milliseconds\sidenote{we'll trace through these method calls in class. It's a great exercise in reading library documentation}.
+Once your stream is open, basic reading and writing proceed in the same fashion as they do with \textit{cout} and \textit{cin}.  The $<<$ operator can be used with output streams to write to files and the $>>$ operator can be used with input streams to read from files. The only difference is the I/O stream object being used.
 \begin{verbatim}
-// ms since epoch
-unsigned int seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+ofstream outFile{"writeToMe.txt"};
+ifstream inFile{"readFromMe.txt"};
 
-// use time as seed
-std::default_random_engine gen(seed1);    
+outFile << "This text appears in the file\n";
 
-// do some random stuff
+// get one int
+int x{0};
+inFile >> x;
+
+// get 3 a string token (everything to next whitespace char)
+string t{""}, r{""}, u{""};
+inFile >> t >> r >> u;
+
+// get a whole line of text as a string
+string s{""};
+getline(inFile,s);
 \end{verbatim}
-We did not use the curly braces for initialization because we're actually converting between \textit{long int} and \textit{unsigned int}. In this case, if the conversion changes the number, we don't particularly care.  The actual time isn't important, just the fact that it's different than the last time we ran the program. If you use the curly braces you'll get a narrowing conversion warning\sidenote{go try it!}. 
 
-Getting the current time in milliseconds and initializing a variable with it is a bit cumbersome, we could break it up. While doing so, we could make use of the C++11 \textit{auto} feature. This lets the compiler determine variable types for us. This is a good place for \textit{auto} because the whole statement is pretty much boilerplate whenever we want to seed a PRNG and so the types are not essential to the problem. When using \textit{auto}, it's typical to use assignment based initialization rather than curly braces. 
-
+Perhaps the biggest gotcha with file output is that all the data you write won't show up in the file on the hard drive until you close the file stream. \textit{The act of closing the file stream causes the changes to the file to be saved to disc}.  To close a our \textit{outFile} stream we simply use the \textit{close} method.
 \begin{verbatim}
-// get the time 
-auto clk = std::chrono::system_clock::now();
-auto now_in_ms = clk.time_since_epoch().count();
-
-// create and seed the PRNG
-std::default_random_engine gen(now_in_ms);    
-\end{verbatim}
-
-Using the current time gets us a pretty good approximation to a random seed and we'll use it for most applications. However, it's important to note the fact that we can pass an explicit seed value and get a specific sequence of numbers.  We'll see that this is extremely helpful when it comes to testing code involving randomness. 
-
-\section{Uniformly Distributed Randomness in C++11}
-
-When people tend to think of randomness they think of the \textsc{uniform distribution}. A single flip of a coin and the roll of a die are classic examples of discrete, uniform randomness. You're just as likely to get heads as you are tails. On a six sided die, all six sides are equally likely. In terms of a PRNG, we're talking about getting some integer from the interval $[a,b]$ where all possible outcomes are equally likely. We can imagine something similar for doubles.  The key difference is that there are, in theory, an infinite number of possible numbers in the interval $[0,1]$.  Setting that issue aside, what we really want is no favoritism between possible outcomes. In more formal terms, the probability of each possible outcome is the same, or uniform\sidenote{Probability is exactly what we're distributing when we talk about statistical distributions}.  This is the essence of uniformly distributed possibilities and what most people probably associated with randomness. 
-
-Distributions in the C++ library work by first declaring a distribution object with the parameters of that distribution. Then, given a source of randomness\sidenote{a PRNG}, we can use that distribution object as a functor for retrieving random values from that distribution. In the case of uniformly distributed numbers from a set range, we first declare the distribution and supply the min and max value of the range. Here we see distributions for integers and real values. 
-\begin{verbatim}
-// simulating a six sided die 
-std::uniform_int_distribution<int> distribution{1,6};
-
-// getting random reals in [0,1]
-std::uniform_real_distribution<double> distribution{0.0,1.0};
-\end{verbatim}
-These types utilize \textsc{templates}.  This is another new and extremely useful feature of C++ that the random library exposes us to. 
-
-Recall that C++ allows us to use many different types for mathematical integers. The standard is the \textit{int} but we could also use \textit{long}, \textit{short}, and \textit{byte}.  All of these also have \textit{unsigned} versions as well. For real valued\sidenote{things you write with a decimal} numbers, we typically use \textit{double}, but we could also use the less precise \textit{float}.  This means that if we want random integers, we must also choose the type C++ uses to represent these integers and similarly for reals. This is what templates do for you. The type \textit{std::uniform\_int\_distribution$<$int$>$} provides uniformly distributed integers as \textit{int} values where \textit{std::uniform\_int\_distribution$<$short$>$} would provide them as short integers. Similarly \textit{std::uniform\_real\_distribution$<$double$>$} provides real values as doubles as opposed to some other type. The sub-type\sidenote{int in \textit{std::uniform\_int\_distribution$<$int$>$}} is called the \textsc{template arguments}. The definition for the distribution has a \textsc{template parameter} that acts as a type variable. What we're seeing is writing definitions with variable types and not just variable values. 
-
-
-We can now produce PRNGs and distributions. All that's left is to put the two together. In order to do this we use the distribution as a functor that takes a single argument, a PRNG.  Let's generate and print 30 random numbers from 1 to 6\sidenote{30 rolls of a six sided die} with 6 numbers per line.
-\begin{verbatim}
-// Setup the PRNG
-auto clk = std::chrono::system_clock::now();
-auto now_in_ms = clk.time_since_epoch().count();
-std::default_random_engine gen{now_in_ms};    
-
-// Declare and initialize 
-std::uniform_int_distribution<int> dist{1,6};
-
-
-for(int i{0} ; i < 30 ; ++i ){
-  // dist(gen) produces a uniformly distributed random int from [1,6]	
-  cout << dist(gen);
-
-  if( i % 6 == 5 ){
-    cout << '\n';
-  } 
-  else{
-    cout << ' ';
-  }
-}
-\end{verbatim}
-
-If the look of \textit{dist(gen)} bothers you, then the documentation for the random class points you in the direction of some more mysterious\sidenote{for now} code that lets you hide passing of the PRNG and replace \sidenote{dist(gen)} with something that looks like the no argument PRNG call we saw in the previous section.  The procedure \textit{std::bind} is in the \textit{functional} library.
-\begin{verbatim}
-auto clk = std::chrono::system_clock::now();
-auto now_in_ms = clk.time_since_epoch().count();
-std::default_random_engine gen{now_in_ms};    
-std::uniform_int_distribution<int> dist{1,6};
-
-// dice now acts like dist(gen)
-auto dice = std::bind ( dist, gen );
-
-// roll 3D6 for your wisdom stat
-int wisdom = dice()+dice()+dice();
-\end{verbatim}
-Binding your PRNG to the distribution is certainly optional, but it is nice to hide the PRNG away. It also allows us to establish a uniform signature\sidenote{void $\rightarrow$ number} for sources of randomness that we can later exploit for designing randomized procedures.
-
-\section{Random Permutations and std::shuffle}
-
-Sometimes we don't want a sequence of random numbers, but instead we just want some set of data in a random order. The mathematical term for this is a \textsc{random permutation}. Since C++11, the library \textit{algorithm} provides the procedure \textit{std::shuffle} that, given a source of randomness\sidenote{i.e. a seeded PRNG}, will reorder data in a collection. 
-
-The std::shuffle algorithm is a mutator.  Like many algorithm library procedures, it makes use of \textsc{iterator} objects, a type of object that acts as an abstract pointer to an element in the collection. We're currently working with strings and have been using the integer value of character indexes to ``point'' to specific locations in the string. Iterators to those locations do the same thing but do it with respect to the specific string in question. Things may make a bit more sense after seeing a few examples. For the following examples, you can assume that \textit{gen} is a default PRNG.
-
-The first argument to std::shuffle is an iterator to the first item to be shuffled. The second argument is an iterator to the item after the last item to be shuffled. So if \textit{first} is the first argument and \textit{last} is the second argument, then std::shuffle will shuffle everything in \textit{[first,last)}. The third argument to std::shuffle is a PRNG, or some source of uniform randomness.
-
-We can use the procedure \textit{begin} to get an iterator to the first item in a string\sidenote{or any C++ collection} and \textit{end} to get an iterator to just off the end such that the following call to std::shuffle sorts the whole string.
-\begin{verbatim}
-
-std::string str{"hello world!"};
-
-// shuffle all of str using gen as our source of randomness	
-std::shuffle(begin(str),end(str),gen);
-\end{verbatim}
-If $begin(str)$ and $end(str)$ were integer indexes they'd be $0$ and $str.length()$.
-
-
-To shuffle part of a string we can add and subtract from our iterators to step forward and backward, respectively, from the start and end of our string.  
-\begin{verbatim}
-std::string str{"hello world!"};
-
-// shuffle all but the first and last 3 characters
-std::shuffle(begin(str)+3,end(str)-3,gen);
-\end{verbatim}
-
-\section{Randomized Procedure Design}
-
-The std::shuffle procedure and the use of the application operator\sidenote{operator()} with distribution objects\sidenote{dist(gen)} gives us a good design cue for how to design a randomized procedure in C++. Both procedures use an external source of randomness passed as an argument to the procedure. The highly stateful nature of PRNGs is also a good indicator that our random number generating argument is passed by reference. This makes the design of randomized procedures similar to that of I/O procedures. Both designs utilize another resource in the system that is initialized outside of the procedure and then passed by reference to the procedure. 
-
-There is another important advantage to passing the PRNG as an argument to the procedure: testing. If the PRNG is local to our randomized procedure, then we're most likely going to want to use something like the system time to seed it. This is fine for the actual application when we want the outward appearance of randomness.  It also means the the randomness of the PRNG and the logic of what we're doing with random values are inseparable. If, instead, we initialize and seed the PRNG externally, then we can use a seed value for which we know the behavior. We can save the first $n$ values produced by the PRNG and evaluate the expected behavior of the procedure with respect to those values.  Put another way, we can remove randomness from the equation and test the expected results in a completely deterministic way.
-
-Let's look at the following procedure.
-\begin{verbatim}
-  /*
-    Simulate rolling n m-sided dice and get the 
-    total of all n dice.
-    @param n number of dice
-    @param m number of sides per dice
-    @param prng instance of the system's uniform random number generator
-    @return total from rolling n m-sided dice
-    @pre prng has been seeded. m > 0. 
-    @post prng produced n new random numbers
-   */
-  unsigned int ndm(unsigned int n, unsigned int,
-		   std::default_random_engine& prng);
-\end{verbatim}
-
-To test this we'll pick a seed value, in this case 1, and generate some tables relative to this seed\sidenote{The program RandTabMaker.cpp was used for this purpose and the data is in randData.txt}.
-\begin{verbatim}
-First 20 numbers from seed 1:
-16807       282475249   1622650073  984943658   1144108930  
-470211272   101027544   1457850878  1458777923  2007237709  
-823564440   1115438165  1784484492  74243042    114807987   
-1137522503  1441282327  16531729    823378840   143542612   
-
-First 20 numbers from [1,4] with seed 1:
-1  1  4  2  3  1  1  3  3  4  2  3  4  1  1  3  3  1  2  1  
-
-First 20 numbers from [1,6] with seed 1:
-1  1  5  3  4  2  1  5  5  6  3  4  5  1  1  4  5  1  3  1  
-
-First 20 numbers from [1,8] with seed 1:
-1  2  7  4  5  2  1  6  6  8  4  5  7  1  1  5  6  1  4  1  
-
-First 20 numbers from [1,10] with seed 1:
-1  2  8  5  6  3  1  7  7  10 4  6  9  1  1  6  7  1  4  1  
-
-First 20 numbers from [1,12] with seed 1:
-1   2   10  6   7   3   1   9   9   12  5   7   10  1   1   7   9   
-1   5   1   
-
-First 20 numbers from [1,20] with seed 1:
-1   3   16  10  11  5   1   14  14  19  8   11  17  1   2   11  14  
-1   8   2   
-\end{verbatim}
-
-Now that we know what numbers the PRNG will spit out we can predict exactly what would happen with our procedure with a freshly seeded PRNG.  
-\begin{verbatim}
-std::default_random_engine prng;
-
-prng.seed(1);
-EXPECT_EQ(0,ln12::ndm(0,6,prng));
-
-prng.seed(1);
-EXPECT_EQ(1,ln12::ndm(1,1,prng));
-
-prng.seed(1);
-EXPECT_EQ(5,ln12::ndm(5,1,prng));
-
-prng.seed(1);    
-EXPECT_EQ(1,ln12::ndm(1,4,prng));
-
-prng.seed(1);
-EXPECT_EQ(2,ln12::ndm(2,4,prng));
-
-prng.seed(1);
-EXPECT_EQ(11,ln12::ndm(5,4,prng));
-
-prng.seed(1);
-EXPECT_EQ(1,ln12::ndm(1,12,prng));
-
-prng.seed(1);
-EXPECT_EQ(60,ln12::ndm(10,12,prng));
+outFile.close();
 \end{verbatim}
 
 
-We can no work out the design for the procedure itself.  We'll go with iteration and accumulate the total as we ``roll'' the dice.
-\begin{verbatim}
-unsigned int ndm(unsigned int n, unsigned int m,
-	std::default_random_engine& prng){
-  
-    std::uniform_int_distribution<unsigned int> d{1,m};
+One thing to keep in mind with file input is a sense of where the read pointer\sidenote{like a cursor} is currently located.  Be default, it starts at the beginning of the file.  Every time you read from the stream, you advance that pointer.  It is possible to use \textit{seekg}\sidenote{\url{http://www.cplusplus.com/reference/istream/istream/seekg/}} to move the read pointer around. The trick is that as far as seekg is concerned, positions are specified in bytes not in logical tokens.  So if you need to read the 10th word in a file where words are separated by whitespace, it's probably easier to read and ignore the first 9 words, then read and keep the 10th.
 
-    unsigned int total{0};
-    for( unsigned int i{0}; i < n ; ++i){
-      total += d(prng);
-    }
+\section{File I/O and Procedures}
 
-    return total;
-}
-\end{verbatim}
+There's not a ton to say about writing file I/O procedures because the way we do I/O procedures in general works for all types of streams.  If you write an output procedure that takes an ostream by reference, then you can pass it an ofstream to write to a file. If you write an input procedure that takes an istream by reference, then you can pass it an ifstream and read from a file.  The catch is that \textit{we cannot open or close the stream within our procedure because those methods are specific to file streams}.  We write our file I/O procedures with just the act of reading or writing in mind. We must then take steps to declare our stream in the procedure's calling space\sidenote{or prior to that and pass it along by reference} and for file output we must do the same with closing the file.
 
-
-\end{document}
+\end{document} 
