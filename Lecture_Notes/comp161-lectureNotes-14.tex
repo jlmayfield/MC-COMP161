@@ -1,173 +1,222 @@
 \documentclass[]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage{listings}
+\usepackage{color}
 
-\title{COMP 161 - Lecture Notes 14 - Efficiency and Complexity}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+  frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  stepnumber=1,    
+  firstnumber=1,
+  numbersep=5pt,
+  numberfirstline=true,
+  numberstyle=\tiny\color{black},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+
+\title{COMP 161 - Lecture Notes 14 - Search and Sort}
 \date{}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at the basic ideas of program and algorithm efficiency and some techniques for profiling the run time requirements of a C++ procedure. 
+In these notes we apply the basic recursive and iterative design template to the problems of searching and sorting. 
 \end{abstract}
 
-\section{Efficiency, Complexity, and Computational Resources}
+\section{Structural Recursion and \textit{std::vector}s}
 
-Being efficient means optimizing the use of one or more resources.  A fuel efficient car will travel far while minimizing the consumption of fuel. This means the ratio of miles traveled per gallon of fuel is high relative to a less efficient vehicle\sidenote{conversely the ratio of gallons consumed per mile is lower}.  When comparing cars for fuel efficiency we tend to look at things like the expected miles per gallon or perhaps the highest achievable miles per gallon. In both cases, we're operating the car not under a guarantee of peak efficiency but with an understanding that we can expect a certain level of efficiency when driving. In short, we understand that manufactures typically provide us with theoretically achievable efficiency for our vehicle and that in practice, mileage may vary. 
+Structural recursions is about making recursive procedures that recurse on the recursive structure of the data. The most basic form of this structure come from having an empty collection \textsc{base case} and a non-base case where the data is deconstructed into the first element and all of the rest. The ``rest'' is a smaller version of the original structure. More generally, we can identify any non-recursive smallest size\sidenote{one element, two elements, etc} as a base case and deconstruct the non-base case in any way so long as repetition of the decomposition eventually results in a base case\sidenote{all but the last + last, left half + right half, etc.}. Such structures exists abstractly for just about any collection type.  However, not all collections support recursive decomposition or do so in an inefficient manner. The C++ \textit{std::vector} does not support recursive decomposition directly. 
 
-Of course efficiency is not a singular measure. It is relative to the consumption of a specific resource.  Perhaps the consumption of fuel is not your concern, but time is.  A time efficient car would exhibit a higher acceleration rate and/or top speed.  We typically expect that this increased time efficiency came at the cost of fuel efficiency. So not only is efficiency subjective, but the overall efficiency of a vehicle involves trade offs.  Less time means more fuel, less fuel means more time. 
+Thankfully, any structure with indexed elements can be managed recursively thought the recursive handling of the set of index values. A vector of size \textit{s} used the integer interval $[0,s)$ for its indices. When the vector is empty, then the interval $[0,0)$ is also empty\sidenote{$[a,b)$ is empty if $a \geq b$}. The first of this interval is $0$ and the rest is $[1,s)$. Similarly, the last is $s-1$ and all but the last is $[0,s-1)$. We can generalize this for any range of contiguous positive integers $[a,b)$. The interval is empty if $a \geq b$. When $a < b$, the first is $a$ and the rest is $[a+1,b)$.
 
-\subsection{Complexity}
+To recursively process a vector we must write a procedure that takes the index interval bounds $first$ and $last$.  We don't always need both bounds. Pure functions on vectors can often exclude the last when recursing first to last or last when recursing last to first.  Having both, however, provides maximum flexibility.  If you need to mutate the vector and doing so changes the size, then you're probably going to need to shift first and last to account for the change in the vector's structure. You also can design with both bounds so that you can defer choosing the exact pattern of recursion to implementation time. Sometimes you don't realize that a pattern won't work until you really start working with the details. 
 
-Enough about cars. What about computers and computation? The most discussed and emphasized computational resource around is \textsc{time}. Time efficient computations take less time.  We then tend to look at other resources in terms of their relationship with time. By increasing the \textsc{space}\sidenote{memory} needs of a computation we can often decrease the \textit{time} needs.  Conversely, decreasing space often requires increased time. In this way space might be viewed as the fuel of computation. There are still more resources used in computation. When we get into parallel computation, we start to think about things like \textsc{communication} as a resource.  The less computers working in parallel have to communicate, the less time they need and vice versa.  
+If your goal is to work with a vector in its entirety, then the extra parameters change the basic interface to that problem. To hide them we use a \textsc{overloaded} function where one version takes on the vector and calls the recursive procedure with first equal to zero and last equal to the size of the vector. This will cause the recursive variant of the function to consider all the elements of the vector. 
 
-\textsc{Complexity Theory} is the branch of theoretical computer science in which problems are classified by the resource needs of their solutions.  Go look at the documentation for C++ library procedures and class methods on cplusplus.com and you'll see a section title \textit{Complexity}.  This is exactly the complexity theoretic view of the efficiency of that procedure. It provides the programmer with a broad classification of the efficiency of the procedure in favor of a fine-grained view. From the programmer's perspective, complexity measures of efficiency provide you with an expectation of efficiency in much the same way that a car manufacture's reported miles per gallon does for fuel efficiency.
-
-Unless otherwise specified, complexity classifications are based on the \textsc{worst case} resource needs of the procedure. The worst and best case are often generated by a very specific variation of the input and it's easier to be concrete about their resource needs. For example, the basic search procedure's best case is when the item we're looking for is the first item we look at and it's worst case is when it's the last. The average case is much less specific; it's when the item we're looking for is neither the first nor the last.  Given a choice between best case and worst case thinking, we err on the side of worst case.  Knowing that your program needs at most some amount of time means that on average we can can expect that efficiency or better.  This \textsc{upper bound} on the resource needs is ultimately more useful to the programmer than the \textit{lower bound} offered by the best case. 
-
-Complexity theory is carried out in a machine and language agnostic fashion. We measure time by counting basic operations, not by the clock. We measure space sometimes by bits and bytes but sometimes by abstract, discrete units of data. By classifying procedures in this way we are able to rule out the language used and the machine executing the code and instead focus on some underlying abstract model of computation. In doing so, the assessment of a procedure's complexity becomes an assessment of the underlying \textit{algorithm} and not the actual implementation. As a discipline of study, complexity theory is smack dab at the intersection of mathematics and computer science\sidenote{The work itself is done in mathematics where the objects of study are those of computer science. The distinction between the two disciplines gets awful blurry in this realm}. For our purposes, we simply with to apply the basic principles, broad categorization of program efficiency based on the the expected worst case performance of the procedures, to program design and evaluation. 
-
-\subsection{Efficiency in the Wild}
-
-Complexity theory and its tools tame the complicated world of efficient computation. It has proven itself to be an invaluable tool for understanding and discussing efficient computation. Efficient programs are designed to minimize complexity.  However, minimizing complexity is only the first step.  Within the realm of minimal complexity is a whole host of fine-grained details that drive actual performance. Let's return to the car comparison. Best practices might let you guarantee a car with 20-25 miles per gallon fuel efficiency, but the actual nuts and bolts of how you put that car together are likely going to be the difference between a real world performance of 20 and 25. The same is true with programming. We must first choose efficient algorithms\sidenote{low complexity}, and then efficiently implement them on systems\sidenote{platforms and languages} that can achieve optimal performance. It's nearly impossible to build efficient programs with clever implementation of high complexity solutions. On the other hand, it's easy to achieve poor efficiency of low complexity solutions by making bad implementation choices. 
-
-When we assess the complexity of our programs we're analyzing the algorithms. When we assess the real-world efficiency of our program we're often \textsc{profiling} its performance. Profiling is concrete and from the scientific perspective it is the empirical verification of the underlying theory.   Profiling is also appealing because it deals in real world measures. Time is measured by the clock and space by the byte. 
-
-
-
-\section{Profiling}
-
-Our previous efforts at profiling code did not require any changes to the code that we wished to profile. All tAt most, we'd write some contrived \textit{main} procedures to make specific calls to the target code.  Profiling without modifying existing library code allows us to profile a program in context. Often this lets you get a good idea of what's going on under the hood. On the other hand, it produces data about a lot of code we're not concerned with and can prevent us from getting the kind of detailed data we're looking for.
-
-Sometimes we're not worried about code within a specific application, but instead we're focused on detailed experimentation. For example, to get a good picture of the behavior of a specific vector procedure we're likely to want to run the procedure on a large number of inputs and gather individualized data about each execution. 
-
-When optimizing a program, it's often better to use dedicated profiling tools such as \textit{gprof} or \textit{valgrind}. These tools collect profiling data about the program by gathering data as it runs.  In this scenario you're attempting to see how the program behaves on typical data.  If, however, you're attempting to experimentally verify the efficiency of a specific procedure, then it's often better to write programs specifically designed to measure performance. Here we get to choose a specific range of data that covers the whole spectrum of inputs from best to worst case. 
-
-\section{Getting Execution time with \textit{chrono}}
-
-The general pattern for timing code is to check the time prior to code execution and then again after code execution. You then subtract the start time from the end time to get the elapsed duration. The C++11 library \textit{chrono} provides several classes that can be used to time the execution of code. There is a complete example for getting the execution time of a line of code in the example for the \textit{now} function, which gets the current time\sidenote{\url{http://www.cplusplus.com/reference/chrono/high\_resolution\_clock/now/}}
-
-
-To get the current time we'll use a \textit{high\_resolution\_clock::time\_point} object. As the name indicates, these objects measure time at a high resolution\sidenote{nano seconds}. We can store the difference of two time points as a \textit{duration$<$double$>$} which, by default, tells us the number of seconds as a double. We can access the number of seconds with the duration class method, \textit{count}. 
-
-Let's say we wanted to time the \textit{std::find} procedure\sidenote{aka search \url{http://www.cplusplus.com/reference/algorithm/find/}}. Then we might build a main procedure with the following:
-\begin{verbatim}
- // search data
-  std::vector<int> data{1,2,3,4,5,6,7,8,9,10,11};
-  // get iterators now so they aren't captured in the timing data
-  auto data_fst = std::begin(data);
-  auto data_end = std::end(data);
-  
-
-  // Timing Data
-  std::chrono::high_resolution_clock::time_point start;
-  std::chrono::high_resolution_clock::time_point end;
-  std::chrono::duration< double >  elapsed;
-
-    
-  // Gather a single time data point
-  start = std::chrono::high_resolution_clock::now();
-  std::find(data_fst,data_end,9);
-  end = std::chrono::high_resolution_clock::now();
-
-  elapsed = std::chrono::duration_cast< std::chrono::duration<double> >(end-start);
-
-  std::cout << elapsed.count() << " secs\n";
-\end{verbatim}
-This code is simply a modification of the example found in the documentation for \textit{high\_resolution\_time::now}. What it illustrates is that the time oriented classes provide all the functionality we need for getting execution time and that we can even do things like subtract time points using \textit{operator-}.  Operators also work with \textit{duration$<$double$>$}, so you can add, subtract, multiply and divide durations as needed\sidenote{See \url{http://www.cplusplus.com/reference/chrono/duration/operators/}}.  It's also important to note that the time reported by \textit{elapsed.count()} is in seconds.
-
-\subsection{Some notes on chrono}
-
-It's pretty clear from our example the the namespaces and types involved in the chrono library are quite verbose. One way to make things easier would be to use a \textit{using namespace} directive with the namespace \textit{std::chrono}. In doing so we clearly highlight the types and considerably shorten the type declarations. If you go back to the above example and ignore all the instances of \textit{std::chrono}, then we find the following types are used in our profiling code:
-
-\begin{center}
-\begin{tabular}{ll}
-high\_resolution\_clock::time\_point & \url{http://www.cplusplus.com/reference/chrono/time\_point/} \\
-duration$<$double$>$ & \url{http://www.cplusplus.com/reference/chrono/duration/} 
-\end{tabular}
-\end{center}
-
-It's worth spending some time with the documentation for the classes in order to get a general sense of what they represent and how they work. We'll soon be dealing with vectors of durations and we'll want to know how to hard code a duration object's initial value in order to do things like testing. It's also a good idea to scan through the chrono documentation\sidenote{\url{http://www.cplusplus.com/reference/chrono/}} in order to get a better understanding of what things like \textit{high\_resolution\_clock::now()} and \textit{duration\_cast} do.
-
-\section{Experimental Analysis of Algorithms}
-
-\textsc{Experimental Algorithmics} is the experimental arm of algorithm analysis.  It empirically tests the theoretical performance bounds laid down by complexity-based analysis. If you have already done a complexity analysis and have an expected run time performance, then you can use experiment to validate your implementation against the underlying algorithm's complexity.  Experimental studies can also guide theoretical analysis. You could build a through profile of the procedure's run-time and use that to guide a complexity analysis. 
-
-Whether we're using experimentation to validate theory or in attempt to discover underlying theoretical properties, we need to generate a sufficiently robust set of experimental data. Let's go back to thinking about \textit{std::find} and the underlying search algorithm it employs and think about the data we'd need to properly study this procedure.
-
-\subsection{The complexity of \textit{std::find}}
-
-According to cplusplus.com, \textit{std::find} has the following complexity\sidenote{\url{http://www.cplusplus.com/reference/algorithm/find/}}:
-\begin{quote}
-Up to linear in the distance between first and last: Compares elements until a match is found.
-\end{quote}
-Let's simplify the discussion a bit by thinking about searching the entire contents of a vector of integers. This means that the ``distance between first and last'' is the same as the size of the vector. In this case, the complexity is:
-\begin{quote}
-Up to linear in the size of the vector: Compares elements until a match is found.
-\end{quote}
-
-The first and most important thing to take away from this description is that \textit{complexity is a function of the vector's size}.  More specifically, we know that the function is linear. But if the vector's size is the function input, then what's it's output? We're talking about time complexity so what we're looking at is the number of elementary operations carried out by the computer. Let's fill some details in: 
-\begin{quote}
-The number of elementary operations carried out by the computer when computing \textit{std::find} is up to linear in the size of the vector being searched because \textit{std::find} compares elements until a match is found.
-\end{quote}
-Earlier I said that we typically think in terms of the worst case. The language ``up to linear'' implies that worst case upper bound is linear. For this reason we call std::find a \textit{linear time procedure}. 
-
-We can express all of this very concisely using mathematics. Let $\mathcal{T}$ be the function that computes the elementary operations carried out by std::find given the size $n$ of the vector being searched. Then there must exist some $a > 0$ and $b$ such that,
-\begin{equation}
-\mathcal{T}(n) \leq an+b
-\end{equation}
-When we look at the math, we see how much we're simplifying matters.  By saying that std::find is linear, we're ignore the details of the line\sidenote{the value of $a$ and $b$} and simply saying, ``I can draw a line such that all the values of the time function $\mathcal{T}$ are on or below that line''. In the next set of notes we'll learn \textsc{Big-O notation} which allows us to express this kind of mathematical information in an even more concise manner. Big-O notation is the official ``language'' of complexity. You'll learn some basics in this class and continue to use and refine your understanding of it as you progress in the major.
-
-\subsection{Verifying the complexity of \textit{std::find}}
-
-How can we experimentally verify that std::find is, in fact, a linear time procedure? Choose some arbitrary but ``large'' size for your vector\sidenote{maybe something like 100000}.  Now, imagine you ran all possible searches for all the sizes up to your choosen size and recorded the time it took for each search. Here we assume that these elementary operations always take some fixed amount of time so that the real time is just some multiple of elementary operations. Finally, plot those time points on a graph where the x-axis is vector size and the y-axis is time. What do you expect to see?  
-
-If you said, ``a line'' you're both right and wrong. First off, for any given size there are many different searches. Look back at the complexity description: 
-\begin{quote}
-The number of elementary operations carried out by the computer when computing \textit{std::find} is up to linear in the size of the vector being searched because \textit{std::find} compares elements until a match is found.
-\end{quote}
-The ``compares elements'' part implies that we traverse the vector until we find the item we're looking for. Sometimes that item is the first item and sometimes it's the last. Sometimes it's in the middle and sometimes it's not there at all. If we wanted to be more specific, then we could identify $n+1$ cases for vectors of size $n$\sidenote{$n$ locations and not there at all}. On our graph, we'll see $n+1$ points at each size $n$. It seems highly unlikely that each of these sub-cases of $n$ will take exactly the same time.  Don't agree? Let $n$ be 10000000. Do you think it will take the same amount of time to look at one element (the case where it's the first item) as it will to look at all of them (the case there it's not in the vector)? I don't. 
-
-Even if it were possible for all $n+1$ sub-cases to have the same running time, we'd have to contend with experimental error. Running programs isn't really just a function of elementary operations. Lots of things can happen in the memory system that affect running time. The operating system could be multi-tasking and the other tasks could affect our procedure's execution. More formally, we have to expect some noise, some variance from one experiment to the next even when the inputs are exactly the same. 
-
-We won't see a line because we have multiple data-points (cases) per x-value (vector size) and our data will be a bit noisy. We also won't see ``a line'' in the data because (worst case) complexity isn't about the data, it's about \textit{an upper bound on the data}. The line you should see is the one you can draw just above all of your data points. This is what we expect to see. This probably means we can find lines and a general linear shape in the data, but most importantly it means we can box all of our std::find data into a quadrilateral with sides the x-axis, y-axis, max size value, and the upper-bound line. This general shape is what we want to see. 
-
-\subsection{Gathering Data}
-
-The data set we need to verify the efficiency of std::find should be clear.  The complete set involves execution times for all $n+1$ cases for each vector size $n$ from $[0,m]$ where $m$ is some suitably large upper bound on the vector size. This set is so regular that you can\sidenote{and will!} write programs to gather it for you automatically. Even still, we need to understand some issues inherent in this data set and what we can do with it. 
-
-The first problem we see in this approach is that we really don't know what happens after $m$.  That's OK. Mathematics and statistics will let us make some pretty sound inferences about this unknown region of std::find's efficiency. It may also be OK because we simply don't care about vectors above a certain size. Either out problem deals with a fixed max size or sizes above $m$ don't fit in the computer's memory and we need a different algorithm anyway. 
-
-The second limitation of the data set is that it quickly becomes unwieldy. We can actually compute exactly how many data points we're talking about using some basic discrete math\sidenote{you don't need to know this math...yet}.
-\begin{equation}
-\begin{array}{rcl}
-\sum\limits_{n=0}^{m} n+1 &=& m + 1 + \sum\limits_{n=0}^{m} \\
- &=&  \lceil \dfrac{m^2}{2} \rceil +m+1
-\end{array}
-\end{equation}
-
-This quadratic function grows pretty fast. 
-\begin{tabular}{ll}
-$m$ & size of data set \\ \hline
-5 & 19 \\
-50 & 1301\\
-500 & 125500\\
-5000 & 12505000\\
-500000 & 125000000000\\
-\end{tabular}
+Figure \ref{code:vecrec} gives the basic template for first + rest structural recursion on vectors with a top-level variant that works on the whole vector by using the recursive variant as a helper. We'll be applying this template to search and sort.
+\begin{figure}[htpb!]
+\begin{lstlisting}
+/**
+ * 
+ *@param v the vector 
+ *@param first the smallest index to be processed
+ *@param last the excluded upper bound of the interval of indexes to be 
+ *  processed
+ *@return ...
+ *@pre 0 <= first,last < v.size()
+ *@post ...
+ */ 
+... foo([const] std::vector< ... >& v, int first, int last){
  
-Thankfully, we know from statistics that we don't really need all of that data to see the pattern. It's enough to have a representative sample.  What constitutes a representative sample varies a bit from situation to situation and what, specifically, we're trying to determine from the data. In the case of our std::find analysis, we'd like to get some verification of the linearity of the worst case as well as the average behavior of the procedure. What we need is a representative sample of sizes and for each of those sizes a representative sample of sub-cases. 
+   if( first >= last ){
+      // base case
+      ....
+   }
+   else{
+      ... v[first] ... foo(v,first+1,last)
+   }
+	
+}
 
-A classic method for choosing samples is to select at random. In this situation we'd choose some fraction of $[0,m]$ at random and for each of those sizes we choose a random fraction of the sub-cases. A key advantage to this process is that randomness is not biased.  If our goal is to verify the linear complexity of std::find, then we should see that linear pattern in any sufficiently large random sample. We might think to only test what analysis tells us is the worst case (key not found), but this assumes that our theoretical analysis of the algorithm mirrors the implementation. If we test only the key not found cases, then we don't know if some other case just happens to trigger some kind of unexpected worst case behavior. If we do it right, randomness saves us from this bias. We can then apply the same principle to the sub-cases for each size. 
+/**
+ * 
+ *@param v the vector 
+ *@return 
+ *@post ...
+ */ 
+... foo([const] std::vector< ... >& v){
+  ... foo(v,0,v.size()) ...	
+}
 
-On the other hand, we do know about some underlying structure in this problem.  Size 0 and size $m$ really are bookends to the space that we're exploring, so it makes sense to test them specifically.  With this in mind we could compromise by testing size 0 and $m$ then doing a random sample of $(0,m)$. We can do the same thing with the size sub-cases. Test when the key is the first and when it's not found (our expected best and worst) and then test a random sample of when the key is at an index in $(0,n)$ for vector size $n$. The key here is that we're utilizing structures found in the overall problem to guide our sample selection.
-
-If we know something about the implementation, then we might use those structures to guide the sampling as well. If the search proceeds in the standard zero to size fashion, then rather than randomly select key locations we might just choose evenly spaced out cases. In this case we might test the cases where the key is at an index that is a multiple of $3$. This covers $\frac{1}{3}$ of the total cases and should paint a pretty clear picture of how the search plays out as we do more and more repetitions of the loop.  Of course, this kind of targeted sampling is possible only when we can control the procedure inputs.  For some problems it's hard to specifically select this intermediate, average cases. In these situations, we have to rely on randomly generated inputs. 
-
-
-
+\end{lstlisting}
+\caption{Structural Recursion Template for Vectors}
+\label{code:vecrec}
+\end{figure}
 
 
-  
+\section{Search: The Problem}
+
+Search is a fundamental problem in computing. Given a collection\sidenote{std::vector for now}, find a specific element, typically called the \textit{search key}\sidenote{or just \textit{key}} in that collection. Several variations can occur: find the first occurrence, the last occurrence, and more generally the $k-th$ occurrence.    With the \textit{std::vector}, we want to return the index of occurrence. A simpler version of search is the \textit{contains} predicate that returns true if the collection contains at least one occurrence of the search key. Finally, another search-like procedure is a counting procedure that returns the total number of occurrences. 
+
+For these notes we'll look at the version of search that examines the entire vector and returns the index of the first occurrence 
+of the key. The declaration for this function is given in figure \ref{code:searchdecl} with tests in figure \ref{code:searchtests}.
+
+\begin{figure}[!htpb]
+\begin{lstlisting}
+/**
+ * Compute the location of the first occurrence of the integer key
+ * in the vector data.
+ * @param data vector of integers
+ * @param key search value
+ * @return -1 if key is not found, otherwise the index where key
+ * is first found
+ * @pre none
+ * @post none
+ */
+int search(const std::vector<int>& data,int key);
+\end{lstlisting}
+\label{code:searchdecl}
+\caption{The Basic Search Function}
+\end{figure}
+
+\begin{figure}[htpb!]
+\begin{lstlisting}
+TEST(search,all){
+
+   EXPECT_EQ(-1,search(std::vector<int>({}),1));
+   EXPECT_EQ(-1,search(std::vector<int>({2}),1));
+   EXPECT_EQ(0,search(std::vector<int>({1}),1));
+   EXPECT_EQ(1,search(std::vector<int>({1,3,5}),3));
+   EXPECT_EQ(0,search(std::vector<int>({1,3,1}),1));
+   EXPECT_EQ(2,search(std::vector<int>({1,3,5}),5));
+
+}
+\end{lstlisting}
+\label{code:searchtests}
+\caption{Tests for Basic Search}
+\end{figure}
+
+This basic interface and the tests should work regardless of the underlying implementation.  
+
+\section{Search: The Solutions}
+
+The recursive and iterative versions share a lot in common. We'll start with the recursive variant and then look at the iterative version. In both cases it's clear that we only need read-only access to the vector and using \textit{pass-by-const-reference} would be a good idea.
+
+\subsection{Recursive Search}
+
+For the recursive implementation we need the variant of the search that accepts the bounds of the search range in order to recurse along that interval as shown in figure \ref{code:searchrecdecl}. It's wroth noting this function, as declared, doesn't need to be recursive. We could simply view it as a more general version of search: find the key within this sub-section of the vector. The more generic interface to search gives us the space we need to enable recursion. 
+
+\begin{figure}[htpb!]
+\begin{lstlisting}
+/**
+ * Compute the location of the first occurence of the integer key
+ * in the vector data for the index range [fst,lst).
+ * @param data vector of integers
+ * @param fst the lower bound of the search range
+ * @param lst the excluded upper bound of the search range
+ * @param key search value
+ * @return -1 if key is not found, otherwise the index where key
+ * is first found
+ * @pre fst <= lst
+ * @post none
+ */
+int search(const std::vector<int>& data,int fst, int lst, int key);	
+\end{lstlisting}
+\label{code:searchrecdecl}
+\caption{Recursive-Capable Search}
+\end{figure}
+
+When testing the more generic search we should test it not only for whole vector searches but partial vector searches as we see in figure \ref{code:searchrectests}.
+\begin{figure}[htpb!]
+\begin{lstlisting}
+TEST(search,some){
+
+  // search all
+  EXPECT_EQ(-1,ln14::search(std::vector<int>({}),0,0,1));
+  EXPECT_EQ(1,ln14::search(std::vector<int>({1,2,3,2,1}),0,5,2));
+  EXPECT_EQ(-1,ln14::search(std::vector<int>({1,2,3,2,1}),0,5,7));
+  // search some
+  EXPECT_EQ(3,ln14::search(std::vector<int>({1,2,3,2,1}),2,5,2));
+  EXPECT_EQ(-1,ln14::search(std::vector<int>({1,2,3,2,1}),2,3,2));
+
+}
+\end{lstlisting}
+\label{code:searchrectests}
+\caption{Recursive-Capable Search Tests}
+\end{figure}
+
+The top-level search\sidenote{search the whole vector} simply calls the more generic version with the interval for the entire vector as shown in figure \ref{code:searchrectop}.
+\begin{figure}[htpb!]
+\begin{lstlisting}
+int search(const std::vector<int>& data,int key){
+	return search(data,0,data.size(),key);
+}
+\end{lstlisting}
+\label{code:searchrectop}
+\caption{Top-Level Search: Recursive Implementation}
+\end{figure}
+
+To work out the recursive implementation of the generalized search we start with the base case. When a vector is empty, it cannot contain the key so return $-1$. With the non-empty case we usual think to recurse on the rest\sidenote{search(data,fst+1,lst,key)} then combine that result with something relative to the first\sidenote{data[fst]} and in this case the key. A key observation to make here is that we don't need the result of the recursive call if the first element is the key. This allows us to break out the non-empty case into two cases where one doesn't need or use recursion on the rest. 
+
+In figure \ref{code:searchrecwork} we see the finished code for the recursive search. The two cases of the non-empty portion of the main conditional have been flattened into the main conditional itself rather than nesting a second conditional in the else of the main conditional. 
+
+\begin{figure}[htpb!]
+\begin{lstlisting}
+int search(const std::vector<int>& data,int fst, int lst, int key){
+	if( fst >= lst ){
+		return -1;
+	}
+	else if( data[fst] == key ){
+		return fst;
+	}
+	else{
+		return search(data,fst+1,lst,key);
+	}
+}
+\end{lstlisting}
+\label{code:searchrecwork}
+\caption{Search Some: Recursive Implementation}
+\end{figure}
+
+
+
+\subsection{Iterative Search}
 
 \end{document}
