@@ -3,48 +3,28 @@
 \usepackage{hyperref}
 \usepackage{framed}
 
-\title{COMP161 - Lab 9 and Homework 6}
+\title{COMP161 - Lab 9}
 \author{}
-\date{Spring 2015}
+\date{Spring 2016}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For this lab and homework you'll exercise your iterative design skills on some vector problems.
+In this lab you'll practice basic iterative and recursive design on the classic problem of finding the max. There is no required homework with this lab. It is, however, recommended you finish it out by Monday so that reviewing the solutions is more meaningful for you.
 \end{abstract}
 
-\section{Choose your own adventure}
+\section{Lab 9}
 
-Be sure to loop for opportunities to use the pass by const reference optimization when the input vector is read-only. 
-
+On the server in \textit{/home/comp161/sp16} you'll find c161-lab9-starter.zip. It contains the basic setup for implementing a basic max finding function for a vector of doubles. Get it and unzip it to your home directory. Then:
 \begin{enumerate}
-\item \textit{isSorted} \newline
-This predicate takes a vector of integers and returns true if the contents of the vector are in least to greatest sorted order and false otherwise. 
+\item Put your names in each of the file headers
+\item Write tests for both implementations in \textit{lab9-test.cpp}.  These tests can, and should, test the same data. The implementation doesn't change the problem.
+\item Finish documentation by filling in the pre and post conditions
+\item Implement the iterative version
+\item Implement the recursive version
+\end{enumerate}
 
-\item \textit{find} a.k.a. \textit{search} \newline
-Given a vector of integers and a target number called the \textit{key}, find and return the location of the first occurrence of the key or if the key is not in the vector return $-1$. So, if a vector contains $\{0,2,4,6,8\}$ and the key is $4$, you should return $2$. If for that same vector the target was $1$, you'd return $-1$.  
-
-\item \textit{max} \newline
-Find and return the maximum value in a vector of doubles. 
-
-\item \textit{minLoc} \newline
-Find and return the location of the first occurrence of the minimum value in a vector of doubles. 
-
-\item \textit{mapToOdds} \newline
-Compute the odd numbers corresponding to the contents of a vector of integers. The $k$th odd number is $2k+1$. So the number $4$ maps to $2*4+1 = 9$.  Using \textit{mapToOdds} on a vector containing $\{2,4,6,8\}$ should return the vector containing $\{5,9,13,17\}$.  
-
-\item \textit{removeOdds} \newline
-Mutate a vector of integers my removing all the odd numbers. Given a vector containing $\{1,2,3,4,5,6\}, \textit{removeOdds}$ should modify the contents such that they're now the vector containing $\{2,4,6\}$. You'll want to explore the vector class documentation\sidenote{\url{http://www.cplusplus.com/reference/vector/vector/}} to see what methods are available for adding and removing elements from vectors.
-
-\end{enumerate}  
-
-\section{Lab 9 Assignment}
-
-Begin work on the problems and when lab is over submit what you have as \textit{lab9} using handin. Do the problems one at a time, not as a batch. I don't want to see declarations and tests for everything with no implementation. I'd rather see one of the problems fully done and nothing for the others. Place all of the procedures in one library and one namespace. 
-
-\section{Homework 6 Assignment}
-
-Complete the problem set and submit the complete set \textit{by class time next Friday}. Submissions should be done via handin. The assignment is, of course, \textit{hwk6}.
+When you're done, or lab is over, submit your lab directory as assignment \textit{lab9} using the handin script. 
 
 \end{document}
