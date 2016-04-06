@@ -423,9 +423,153 @@ void iter::insert(std::vector<int>& data,
 \caption{Insert: Iterative Implementation}
 \end{figure}
 
-
+The important take away here is that insertion sort is what you'd eventually discover if you apply basic iterative design with respect to the structure of the vector. In that sense it is the most natural sort from a basic computational perspective. 
 
 \subsection{Recursive Implementation}
+
+If insertion sort is what comes from basic iterative design, then what comes from basic recursive design? What we've learned about sort generally is that any vector of size one or smaller is trivially sorted. This is our recursive base case and it's worth noting that it boils down to two cases\sidenote{empty and size 1} as opposed to a single, usually empty, non-recursive base case. This is OK! The only hard and fast rule is that you identify at least one non-recursive case and that your recursive case eventually decomposes to one of those cases.
+
+Applying the basic recursion strategy for sort means recursively sorting the rest then combining the first with that in some way such that we achieve the desired result of a completely sorted vector. As we learned from searching, working with vectors recursively requires more general versions of our functions that allow us to set arbitrary ranges of the vector to be worked with. For sort that means the function give in figure \ref{code:sortrecwork}.
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+/**
+ * Sort the contents of data in least to greatest order
+ * @param data vector of integers
+ * @param fst the lower bound of the sort range
+ * @param lst the excluded upper bound of the sort range
+ * @return none
+ * @pre fst <= lst
+ * @post contents of data[fst..lst-1] have been sorted in least to greatest order
+ *  for all i in [fst,lst-1), data[i] <= data[i+1]
+ */
+void sort(std::vector<int>& data,int fst, int lst);
+\end{lstlisting}
+\caption{Sort: Generalized version that supports Recursion}
+\label{code:sortrecwork}
+\end{figure}
+
+This function should behave as shown in its tests give in figure \ref{code:sortrecworktests}. Once again, it's good to treat this function as a standalone entity and write tests for cases we don't intend to use, namely sorting interior portions of the vector. 
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+TEST(sortrecur,some){
+    std::vector<int> sortme;
+
+    sort(sortme,0,sortme.size());
+    EXPECT_EQ(std::vector<int>({}),sortme);
+
+    sortme = std::vector<int>({5});
+    sort(sortme,0,sortme.size());
+    EXPECT_EQ(std::vector<int>({5}),sortme);
+
+    sortme = std::vector<int>({5,7});
+    sort(sortme,0,sortme.size());
+    EXPECT_EQ(std::vector<int>({5,7}),sortme);
+
+    sortme = std::vector<int>({7,5});
+    sort(sortme,0,sortme.size());
+    EXPECT_EQ(std::vector<int>({5,7}),sortme);
+
+    sortme = std::vector<int>({5,1,4,3});
+    sort(sortme,0,sortme.size());
+    EXPECT_EQ(std::vector<int>({1,3,4,5}),sortme);
+
+    sortme = std::vector<int>({5,1,4,3});
+    sort(sortme,2,sortme.size());
+    EXPECT_EQ(std::vector<int>({5,1,3,4}),sortme);
+
+    sortme = std::vector<int>({5,1,4,3});
+    sort(sortme,1,sortme.size()-1);
+    EXPECT_EQ(std::vector<int>({5,1,4,3}),sortme);
+}
+\end{lstlisting}
+\caption{Sort: Tests for Generalized version that supports Recursion}
+\label{code:sortrecworktests}
+\end{figure}
+
+We can now complete the top-level sort as a special case of the more general sort procedure as shown in figure \ref{code:sortrectop}.
+\begin{figure}[!htbp]
+\begin{lstlisting}
+void sort(std::vector<int>& data){
+    sort(data,0,data.size());
+    return;
+}
+\end{lstlisting}
+\caption{Sort: Top-Level Recursive Procedure}
+\label{code:sortrectop}
+\end{figure}
+
+With the main, top-level procedure done it's time to work out the recursive logic for the helper. The base case occurs if size is less than or equal to one. This means that \textit{fst} is greater than or equal to \textit{lst}. When this occurs, we simply return and leave the vector untouched. When the portion of the vector we wish to sort contains more than one element, then we need to sort. We do so by first sorting the rest, namely $[fst+1,lst)$. If the portion of the vector we wish to sort originally contains $\{3,6,1,4,8\}$, then the recursive call to sort should leave us with $\{3,1,4,6,8\}$.  The final ``operation'' must move the 3 in the \textit{fst} position between the 1 and 4. Once again, what we really need here is an \textit{insert} operation. This time we need to insert an element immediately to the left of the sorted region where in the iterative case the element was to the right.  The documentation and declaration of our new insert is in figure \ref{code:insertrecdecl} with tests found in figure \ref{code:insertrectests}.
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+/**
+ * Move data[fst] into sorted region data[fst+1..lst] such that
+ * the whole region, data[fst..lst] is now sorted.
+ * @param data vector of integers
+ * @param fst lowest index of region for insertion, location to be inserted
+ * @param lst the upper bound of the sorted region
+ * @pre fst < lst. data[fst+1 .. lst-1] is sorted in
+ *  least to greatest order
+ * @post data[fst..lst] is sorted in least to greatest order
+ */
+void insert(std::vector<int>& data, unsigned int fst, unsigned int lst);
+\end{lstlisting}
+\caption{Insert: Another variation of Insert}
+\label{code:insertrecdecl}
+\end{figure} 
+
+\begin{figure}[!htbp]
+\begin{lstlisting}
+TEST(insertrecur,all){
+    std::vector<int> actual;
+
+    actual = std::vector<int>({1,2});
+    insert(actual,0,actual.size()-1);
+    EXPECT_EQ(std::vector<int>({1,2}),actual);
+
+    actual = std::vector<int>({2,1});
+    insert(actual,0,actual.size()-1);
+    EXPECT_EQ(std::vector<int>({1,2}),actual);
+
+    actual = std::vector<int>({5,2,4,6});
+	insert(actual,0,actual.size()-1);
+    EXPECT_EQ(std::vector<int>({2,4,5,6}),actual);
+
+    actual = std::vector<int>({3,1,5,2,4,6,1});
+	insert(actual,2,5);
+    EXPECT_EQ(std::vector<int>({3,1,2,4,5,6,1}),actual);
+}
+\end{lstlisting}
+\caption{Insert: Tests for the new Insert}
+\label{code:insertrectests}
+\end{figure} 
+
+It's important to stop for a second and think about why it is that we need a different insert. What would have happened if we recursively sorted all but the last of the vector region containing $\{3,6,1,4,8\}$? This would have left us with $\{1,3,4,6,8\}$\sidenote{which is fully sorted by coincidence only\}. We'd still need insert and this time we'd need the exact same variation of insert that we used in our iterative solution. For practice, we'll continue forward with our new insert and this time implement it recursively as well. If we wanted to, we could recurse on all but the last and then just use our iteratively implemented insert to finish the job. 
+
+The base case of a recursive insert occurs when the vector region is empty and all we're looking at is the element we wish to insert. When this happens we simply return and leave the vector untouched. From our work with an iterative insert we learned that the strategy that seems to work for the recursive case is to repeated swap the target element with adjacent elements from the sorted rejoin\sidenote{or conversely swapping the next element in the sorted region with the target element} seems to get the job done. We can employ this same strategy using a recursive procedure. If the target element, the one at \textit{fst} is greater than the one next to it, then swap. We then recursively insert on $[fst+1,lst]$ with the item to be inserted now stored at $fst+1$ and the old $fst+1$ at $fst$. If the target element isn't greater than the first of the insertion region, then it's in the right place and we can return without swapping or recursively inserting any more. . 
+
+Our recursive insertion logic is written up in C++ in the insert implementation given in figure \ref{code:insertrecipml}.
+\begin{figure}[!htbp]
+\begin{lstlisting}
+void recur::insert(std::vector<int>& data,
+	     	       unsigned int fst, unsigned int lst){
+    if( fst >= lst ){
+      return;
+    }
+
+    if( data[fst] > data[fst+1] ){
+      std::swap(data[fst],data[fst+1]);
+      insert(data,fst+1,lst);
+    }
+    return;    
+  }
+\end{lstlisting}
+\caption{Insert: A recursive implementation}
+\label{code:insertrecipml}
+\end{figure} 
+
 
 
 \end{document}

@@ -1,245 +1,152 @@
 \documentclass[]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm}
+\usepackage[pdftex]{graphicx}
 
-\title{COMP 161 - Lecture Notes - 15 - Some Mathematica}
+\title{COMP 161 - Lecture Notes - 15 - Complexity and Big-O}
 \date{}
+
+\newtheorem{define}{Definition}
+\newtheorem{theorem}{Theorem}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we take a quick side-step from C++ to look at the basic Mathematica we need for Project 2.
+In these lecture notes we look at algorithm complexity and the use of Big-O notation to express complexity classes.
 \end{abstract}
 
-\section{Mathematica}
+\section{Efficiency, Complexity, and Computational Resources}
 
-Mathematica is a powerful system for all things mathematics\sidenote{\url{https://www.wolfram.com/language/fast-introduction-for-programmers/}}. We'll be using it to work with execution time data gathered by C++ programs and written to csv files. The typical way to work with Mathematica is through a \textsc{notebook}. With notebooks we can input one or more statements from the Wolfram Language\sidenote{\url{https://www.wolfram.com/language/fast-introduction-for-programmers/}} in a single notebook \textsc{cell} and then evaluate them right there. Notebooks have the advantages of interactive environments like Dr.Rackets interaction window and the physicality of source documents.  
+Being efficient means optimizing the use of one or more resources.  A fuel efficient car will travel far while minimizing the consumption of fuel. This means the ratio of miles traveled per gallon of fuel is high relative to a less efficient vehicle\sidenote{conversely the ratio of gallons consumed per mile is lower}.  When comparing cars for fuel efficiency we tend to look at things like the expected miles per gallon or perhaps the highest achievable miles per gallon. In both cases, we're operating the car not under a guarantee of peak efficiency but with an understanding that we can expect a certain level of efficiency when driving. In short, we understand that manufactures typically provide us with theoretically achievable efficiency for our vehicle and that in practice, mileage may vary. 
 
-In the notes that follow I'll give you statements in Mathematica that you can and show enter into a Notebook. To evaluate a \textit{cell} hit \textit{Shift-Enter}. You can also Evaluate an entire notebook through the Evaluate drop-down menu. When you evaluate a cell, the results are printed within that cell. If you wish to suppress the output of a statement, then end the statement with a semi-colon. I do not recommend putting all your code in a single cell. Use cells like procedures and put little logical chunks of code that carry out clear distinct tasks in a single cell. Just be aware  that when you write variables and definition in one cell and use them in another they must first be evaluated before their used. 
+Of course efficiency is not a singular measure. It is relative to the consumption of a specific resource.  Perhaps the consumption of fuel is not your concern, but time is.  A time efficient car would exhibit a higher acceleration rate and/or top speed.  We typically expect that this increased time efficiency came at the cost of fuel efficiency. So not only is efficiency subjective, but the overall efficiency of a vehicle involves trade offs.  Less time means more fuel, less fuel means more time. 
 
-As functions are introduced you should look them up in the Documentation which is accessible on the web and through the Help drop-down menu. Any text surrounded by (* and *) is a comment and will not be evaluated when the cell is evaluated. You'll soon notice that when calling functions we put arguments in square brackets rather than the parenthesis we're used to from C++ and Racket.
+\subsection{Complexity}
 
-\section{Lists}
+Enough about cars. What about computers and computation? The most discussed and emphasized computational resource around is \textsc{time}. Time efficient computations take less time.  We then tend to look at other resources in terms of their relationship with time. By increasing the \textsc{space}\sidenote{memory} needs of a computation we can often decrease the \textit{time} needs.  Conversely, decreasing space often requires increased time. In this way space might be viewed as the fuel of computation. There are still more resources used in computation. When we get into parallel computation, we start to think about things like \textsc{communication} as a resource.  The less computers working in parallel have to communicate, the less time they need and vice versa.  
 
-When we read our csv data into a notebook we'll end up with a list of lists. You can more or less think of this as a table. Each row corresponds to a line from the file and the elements of the row are the values delineated by commas. Task number one is to learn how to manipulate and work with lists\sidenote{\url{https://reference.wolfram.com/language/guide/ListManipulation.html}}. 
+\textsc{Complexity Theory} is the branch of theoretical computer science in which problems are classified by the resource needs of their solutions.  Go look at the documentation for C++ library procedures and class methods on cplusplus.com and you'll see a section title \textit{Complexity}.  This is exactly the complexity theoretic view of the efficiency of that procedure. It provides the programmer with a broad classification of the efficiency of the procedure in favor of a fine-grained view. From the programmer's perspective, complexity measures of efficiency provide you with an expectation of efficiency in much the same way that a car manufacture's reported miles per gallon does for fuel efficiency. The specifics of your usage of a procedure, the actual inputs, the actual state of the system, will have an impact on the time needed but the complexity provides some general guarantees. 
 
-Let's start by specifying a few lists by hand before we get to the lists that result from reading our csv files. List literals are written by comma separated values surrounded by curly braces. Here we define a few variables with list values.
-\begin{verbatim}
-threes = {3,3,3,3}
-alist = {1,2,3,4,5,6,7}
-alolon = {{1,2,3},{5,6,7},{8,9,10},{11,12,13}}
-\end{verbatim}
-We can also use the \textit{Table} function to construct lists. Here we construct the same lists using Table.
-\begin{verbatim}
-threes = Table[3,{4}]
-alist = Table[i,{i,1,7}
-alolon = Table[ 3*(i - 1) + j, {i, 4}, {j, 3}]
-\end{verbatim}
+Unless otherwise specified, complexity classifications are based on the \textsc{worst case} resource needs of the procedure. The worst and best case are often generated by a very specific variation of the input and it's easier to be concrete about their resource needs. For example, the basic search procedure's best case is when the item we're looking for is the first item we look at and it's worst case is when it's the last. The average case is much less specific; it's when the item we're looking for is neither the first nor the last.  Given a choice between best case and worst case thinking, we err on the side of worst case.  Knowing that your program needs at most some amount of time means that on average we can can expect that efficiency or better.  This \textsc{upper bound} on the resource needs is ultimately more useful to the programmer than the \textit{lower bound} offered by the best case. 
 
-We select list items using double square brackets in much the same way that we select elements from vectors and strings in C++. The big difference is that the first element of a list is at index 1, not index 0. When selecting from multi-dimensional lists use commas to separate dimensional coordinates.
-\begin{verbatim}
-alist[[3]]
-alolon[[4,2]]
-\end{verbatim}  
-The really wonderful thing is that we can select more than one element at once by passing a list of indexes rather than a single index and that the order of the data is the order in which we list the indexes. 
-\begin{verbatim}
-alist[[{1, 3, 5}]]
-alist[[{3, 5, 1}]]
-{4, 52, 3, 6}[[Table[2, {10}]]]
-\end{verbatim}
-We can also use a Span to select a sequence of elements. With spans we can also specify the step size which in turn lets us do reverse spans. 
-\begin{verbatim}
-blist = Table[20 - i, {i, 1, 20}]
-blist[[1 ;; 5]]
-blist[[6 ;;]]
-blist[[;;10]]
-blist[[;;]]
-blist[[20 ;; 1 ;; -1]]
-blist[[1 ;; 20 ;; 3]]
-\end{verbatim}
+Complexity theory is carried out in a machine and language agnostic fashion. We measure time by counting basic operations, not by the clock. We measure space sometimes by bits and bytes but sometimes by abstract, discrete units of data. By classifying procedures in this way we are able to rule out the language used and the machine executing the code and instead focus on some underlying abstract model of computation. In doing so, the assessment of a procedure's complexity becomes an assessment of the underlying \textit{algorithm} and not the actual implementation. As a discipline of study, complexity theory is smack dab at the intersection of mathematics and computer science\sidenote{The work itself is done in mathematics where the objects of study are those of computer science. The distinction between the two disciplines gets awful blurry in this realm}. For our purposes, we simply with to apply the basic principles, broad categorization of program efficiency based on the the expected worst case performance of the procedures, to program design and evaluation. 
 
-We'll be mostly concerned with 2D lists, so we need to be sure we know how to select rows,
-\begin{verbatim}
-alolon[[2]]
-\end{verbatim}
-columns,
-\begin{verbatim}
-alolon[[;;,1]]
-\end{verbatim}
-or parts of rows and columns
-\begin{verbatim}
-alolon[[;;2,{1,3}]]	
-\end{verbatim}
+\section{ Big-O }
 
+There is a precise mathematical tool call \textsc{Big-O notation} that we can use to express the relationship we're looking for when expressing procedure complexity. 
+\begin{define}
+Let the functions $f$ and $g$ be functions for positive integers.  Then the function $f$ is \textit{on the order of} $g$ if there exists constants $n_0 \geq 0 $ and $\alpha$ such that for all $n 	\geq n_0$ 
+\[
+f(n) \leq \alpha g(n)
+\]
+We write this as $f(n) = O(g(n))$, or sometimes just $f = O(g)$,\sidenote{O is uppercase letter o, not the number zero} and often say ``$f$ is Big-O of $g$'' as opposed to ``$f$ is on the order of $g$''.
+\label{def:bigO}
+\end{define}
 
-
-\subsection{Making Tables}
-
-We're looking at tabular data sets. Let's see how we can build a pretty table from a list of lists. First lets make up a fake, table-like data set. 
-\begin{verbatim}
-mytab = Table[10*i+j,{i,0,20},{j,0,10}]
-\end{verbatim}
-
-We might like to view this in an organized table format with TableForm. 
-\begin{verbatim}
-TableForm[mytab]
-\end{verbatim}
-TableForm has several useful options. Perhaps the most important are for specifying headers.
-\begin{verbatim}
-mytab,TableForm[mytab, TableHeadings ->
-  {Table[i, {i, 20}], {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"}}]
-\end{verbatim}
-
-To put captions or labels on graphics, like a table, we use the Labeled function. I find the default spacing to be too tight and tend to add some space between the label and the graphic. It's also convenient to name the finished graphic.
-\begin{verbatim}
-tabview = 
- Labeled[TableForm[mytab, TableHeadings ->
-    {Table[i, {i, 20}], {"a", "b", "c", "d", "e", "f", "g", "h", "i", 
-      "j"}}],
-  "Table 1: Some data showing some relationship", 
-  Spacings -> {Automatic, 2}]
-\end{verbatim}
-
-Now that we have pretty table, we probably want to save it as an image file. The \textit{Export} procedure makes this super easy. 
-\begin{verbatim}
-Export["TimesTable.svg",tabview]
-\end{verbatim}
-Mathematica will determine the file format based on the extension you give in the file name. In this case, I'm exporting as Scalable Vector Graphic\sidenote{svg \url{https://en.wikipedia.org/wiki/Scalable\_Vector\_Graphics}} because it tends to scale up in size better than formats like png or jpg. 
-
-\subsection{Importing csv Data}
-
-Importing a csv is as easy as exporting and image.  
-\begin{verbatim}
-datatab = Import["mydata.csv"]
-\end{verbatim}
-The Import function determines the file format from the extension. For csv files, it will read the data as a 2D list where each line is a row. Here we're saving the resultant list of lists as the variable \textit{datatab}. 
-
-\section{Basic Statistics} 
-
-
-We concerned with tables of data, so let's make some fake data and use it to explore some basic statistical gathering and data manipulation. Here we'll make a 20 row by 10 column table of random numbers. 
-\begin{verbatim}
-randtab = RandomVariate[NormalDistribution[],{20,10}]
-\end{verbatim}
-
-The first thing we might like to do is compute some basic statistics like minimum, maximum, and average. The functions Min and Max will give you the relevant values for the whole table. 
-\begin{verbatim}
-Min[randtab]
-Max[randtab]
-\end{verbatim}
-If we'd like to get the Min/Max by row, then we can use Map. The Map function applies a function to each element of a list. In this case, we'll apply Min/Max to each row.
-\begin{verbatim}
-Map[Min,randtab]
-Map[Max,randtab]
-\end{verbatim}
-To get the Min/Max for a column we can first Transpose the table. This turns rows into columns and columns into rows. Thus, the Min of the each row in the transpose is the Min of the columns in the original.
-\begin{verbatim}
-Map[Min,Transpose[randtab]]
-Map[Max,Transpose[randtab]]
-\end{verbatim}
-
-The function Mean gives you the average for each column.  If you want row averages, then Transpose is once again your friend.
-\begin{verbatim}
-Mean[randtab]
-Mean[Transpose[randtab]]
-\end{verbatim}
-
-\section{Plotting Points}
-
-Mathematica and do a lot of different visualizations. We'll focus solely on plotting points in 2D space with \textit{ListPlot} and work with \textit{randtab} from the previous section. There are three ways to use ListPlot. If you give it a list of values, then it treats those values as the y-coordinates and assigns each value's location as it's x-coordinate. You see this when you plot a row of the table.
-\begin{verbatim}
-ListPlot[randtab[[1]]]
-\end{verbatim}
-Plotting the table causes ListPlot to treat each sub-list\sidenote{row} as a set of points for that list's location in the main list. So row 1 is treated as a set of points for $x$ equal to 1. 
-\begin{verbatim}
-ListPlot[randtab]
-\end{verbatim}
-When your data is set out incrementally such that list position is the x-coordinate you want, then this is great. If, however, the position in the list is not the x-coordinate, then you need ListPlot  option 3-- plotting a list of $\{x,y\}$ pairs. The trick is we'll have to build this pairs. 
-
-Let's start with a simple case. Our table has 10 columns. Let's say column $i$ corresponds to an $x$ coordinate of $10i$ rather than just plain $i$\sidenote{row 1 is 10, 2 is 20, and so forth}. First we need a list of our y-coordinates.
-\begin{verbatim}
-xs = Table[10*i,{i,10}]
-\end{verbatim}
-Now all we need to do is ``zip'' these lists together such that the $i$th element of \textit{ys} matches up with the $i$th element of the row. There is no Zip function in Mathematica, but in this case we can use Transpose yet again. If we build a list with the first row as our x data and the second as our y data, then the Transpose of that list is our x-y pairs.
-\begin{verbatim}
-Transpose[{xs,randtab[[1]]}]
-\end{verbatim} 
-
-It might be nice to have a defined function called Zip so that we can say something like \textit{Zip[xs,ys]} rather than use Transpose directly. If anything, it's a good excuse to see how we write functions in Mathematica.  So, here's the definition for Zip!
-\begin{verbatim}
-Zip[xs_,ys_] := 
-  Transpose[{xs,ys}];
-\end{verbatim}
-The first line is the function header. We same the name followed by the parameter list. Each parameter name is followed by an underscore. The header is separated from the body by $:=$. The body is then just the Mathematica expression that carries out the intended function. We can now zip our row to the y-coordinates using Zip.
-\begin{verbatim}
-points = Zip[xs,randtab[[2]]];
-ListPlot[points]
-\end{verbatim} 
-
-Now another case\sidenote{the case you encounter in project 2}. What if each row is a set of points for an x-coordinate that is not the row's index? Our table has 20 rows. Let's say the row x-coordinates correspond to the first 20 squares:
-\begin{verbatim}
-rowxs = Table[i^2 , {i,20}]
-\end{verbatim}
-Now we want to zip row $i$ of our data table with row $i$ of our x-coordinate table. We can solve this problem with Map.  While we're at it. Let's make a function called \textit{MakePoints} that takes the list of x-coordinates and the table and maps out the x-coordinates to each row. Let's look at the complete definition for MakePoints then pick it apart.
-\begin{verbatim}
-MakePoints[xs_, ytab_] :=
-  Map[Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] &, 	
-  Table[i,{i,Length[ytab]}]]	
-\end{verbatim}
-
-First we note that we're mapping this Function\sidenote{It \textit{has} to be a function if it satisfies the Map signature}, 
-\begin{verbatim}
-Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] &
-\end{verbatim}
-over the list of \textit{ytabs} index values.
-\begin{verbatim}
-Table[i,{i,Length[ytab]}]
-\end{verbatim}
-This is actually reminiscent of our vector loops in C++ as we're mapping over index values rather than the table itself. 
-
-The odd part here is the function:
-\begin{verbatim}
-Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] &
-\end{verbatim}
-This is what's often called a \textsc{lambda expression}. It's an anonymous function or a function literal. In Mathematica we can write these using the \& symbol. Everything to the left of \& is the function body. The symbol \# is used for the argument. In this case it's a one argument function. If you want to do multi-argument functions, then we just add the argument number after the \#\sidenote{\#1 is the first argument, \# the second, and so on} symbol. We can tell from the context that the argument of our unnamed function must be an index number. We use it to select an element from \textit{xs} and a row from \textit{ytab}.  Let's put this together and state in English what we're seeing.
-\begin{quote}
-The expression \begin{verbatim} Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] & \end{verbatim} is the function that takes Zips a list of the same length as the \#th row of \textit{ytab} containing only the \#th element of \textit{xs} with the \#th row of \textit{ytab}. 
+Let's pick this apart so that we understand what saying $f = O(g)$ really means. First notice it's clearly an upperbound relationship. The value $\alpha g(n)$ is at least as big as $f(n)$. The $\alpha$ term is allowing us to focus not on the specific value of $g(n)$ as our bound but nearly any multiple of $g(n)$.  We're more or less saying that ``$f(n)$ is no larger than some multiple of $g(n)$''.  Finally, by throwing in $n_0$ we're emphasizing ``larger'' values of $n$ for whatever large means to us. Putting this all together we see that $f = O(g)$ really means:
+\begin{quote} 
+For all $n$ past some point\sidenote{$n_0$}, we can draw some multiple\sidenote{$\alpha$} of $g$ on or above $f$
 \end{quote}
+The notion of Big-O gives us the right mixture of specificity and flexibility for capturing complexity and complexity classes.   
 
-If you don't like this shorthand, then you can use the \textit{Function} function for specifying anonymous functions.
-\begin{verbatim}
-Function[i, Zip[Table[xs[[i]], {i, Length[ytab[[i]]]}], ytab[[i]] ]
-\end{verbatim}
-Either way, the Map+Anonymous Function combo is extremely powerful. It can save you the trouble of defining and naming every little function you wish to map on a data set. 
+In future courses you'll explore this formalism in more depth. Right now we want to learn some basic rules and relationships that follow such that we understand how Big-O communicates complexity classes. There are three basic consequences of definition \ref{def:bigO} that are essential to working with Big-O in both a formal and informal manner. I'll state them formally and then provide some insight as to why they are so essential to complexity analysis.
 
-Now that we can tag each row with its x-coordinate, we can create and plot our list of points\sidenote{technically list of lists, but Mathematica doesn't care}.
-\begin{verbatim}
-morepoints = MakePoints[Table[i^2,{i,Length[randtab]}],randtab];
-ListPlot[morepoints]
-\end{verbatim}
+The order of a sum is the sum of the orders. 
+\begin{theorem}
+Let $f$ and $g$ be functions over the positive integers. Then,
+\[
+O(f + g) = O(f) + O(g)
+\]
+\label{th:sum}
+\end{theorem}
+All procedures can be broken down into a series of steps. This theorem (\ref{th:sum}) tells us that it is enough to know the order of each step. This let's us greatly simplify complexity analysis by doing it piecewise rather than on the whole. 
 
-\subsection{ListPlot Spruce Up}
+We have two properties that deal with produces and Big-O. The order of a product is the product of the orders.
+\begin{theorem}
+Let $f$ and $g$ be functions over the positive integers. Then,
+\[
+O(fg) = O(f)O(g)
+\]
+\label{th:mult}
+\end{theorem}
+The order of a function is invariant under multiplication by a constant.
+\begin{theorem}
+Let $f$ and $g$ be functions over the positive integers. Then for all real-values $\alpha$,
+\[
+O(\alpha g) = O(g)
+\]
+\label{th:constmult}
+\end{theorem}
+A great number of procedures involve repetition and repetition induces a product.\sidenote{Repeating $k$ operators $t$ times takes $tk$ operations in total}. When the repetition is done a fixed number of times, then theorem (\ref{th:constmult}) tells us that the order of the repetition is the same as the the order of the thing being repeated. Similarly, if we repeat some fixed, constant amount of work, some function of our input size number of times, then theorem (\ref{th:constmult}) tells us that the order of the repetition is the order of them number of function that determines the number of repetitions. If, however, the repetition and the work are both functions of our input size, then theorem (\ref{th:mult}) tells us that we can at least analyze the order of the repetition and the order of the repeated work in parts but cannot really simplify to one order or the other. 
 
-The default options for ListPlot are usually pretty good, but there are a few essentials we need to look at to ensure good plots. 
-\begin{itemize}
-\item \textit{AxesLabel} To add labels to the axes
-\item PlotRange \textit{To specify the min/max y-coordinates displayed}
-\end{itemize}
 
-AxisLabel is pretty self-explanatory. PlotRange lets you give exact values or you can use \textit{All} or \textit{Automatic} to let Mathematica figure it out.  Automatic is the default and will on occasion lead to cutting off some max values. In which case, All is a good alternative.  Explicit values are nice when you need to fit things to a critical range. Here's a few examples.
-\begin{verbatim}
-morepoints = MakePoints[Table[i^2,{i,Length[randtab]}],randtab];
-ListPlot[morepoints,AxesLabel -> {"Size","Time"},PlotRange -> All]
-ListPlot[morepoints,AxesLabel -> {None,"Time"},PlotRange -> {-4,4}]
-\end{verbatim}
+Using Big-O we can establish a strict ordering of some functions. This will be true of the functions on which we'll base our complexity classes. It turns out that larger orders dominate smaller orders. 
+\begin{theorem}
+For functions $f$ and $g$. If $O(f) < O(g)$, then
+\[
+O(f) + O(g) = O(g)
+\]
+\label{th:order}
+\end{theorem}
+Once again, sums arise from the discrete steps of a computation. When one step requires an order of magnitude more computation than another step, then that step dominates the total running time of the computation to the point that the whole computation behaves as if it were only of that larger complexity class. What theorem \ref{th:order} lets us do is focus solely on thethe critical step(s) that account for most of the work.\sidenote{I tend to think of this rule in terms of spending money. If you're paying thousands of dollars for something, then adding on tens of dollars doesn't really change the big picture-- you're paying thousands of dollars for something.If you're paying \$5000, then you'll probably also pay $5050$}. 
 
-We can then use the Labeled function to add a caption and Export to produce an image file. 
-\begin{verbatim}
-mypoints = 
-	Labeled[ ListPlot[morepoints,AxesLabel -> {"Size","Time"},PlotRange -> All],
-	  "Figure 2: Size and Time...",Spacings -> {Automatic,2}]
+Hopefully you're picking up on the fact that these rules have close ties to the constructs of programs. The step-wise nature of induces sums in our time complexity functions and those sums can be more easily managed using theorem (\ref{th:sum}). Repetition induces products in our time complexity functions and those produces can be managed with theorem (\ref{th:mult}) and (\ref{th:constmult}). The analysis of conditionals is simplified by the fact that we're only concerned with the worst case. If we know which branch has the highest order, then we can focus on that branch. 
 
-Export["datapoints.svg",mypoints]
-\end{verbatim}
+\section{Some Complexity Classes}
+
+Remember our intended use for Big-O notation is the classification of the (time) complexity of procedures in order to address the questions like whether or not one procedure is more or less complex than another or if a given procedure is too complex to be usable in practice. A large majority of the procedures we encounter have a time function which is on the order of one of the following functions. These functions, in turn, establish a clear ordering of classes.
+
+\begin{enumerate}
+\item \textsc{Constant} \\
+ If the complexity function $f$ is constant, i.e. $f(n) = c$ for some fixed value $c$,  then we say $f = O(1)$.
+
+\item \textsc{Logarithmic} \\
+ If the complexity function $f$ is  logarithmic, i.e. $f(n) = \log_b n$, then we say $f = O(\log n)$. Notice that we leave off the base of the logarithm. It can be shown that the base of the logarithm actually doesn't matter in Big-O notation\sidenote{$O(\log_a n) = O(\log_b n)$ for all $a$ and $b$} so we typically use 2. You'll often see $\log_2$ written as $lg$ 
+
+\item \textsc{Linear} \\
+ If the complexity function $f$ is linear, i.e. $f(n) = n$, then we say $f = O(n)$. 
+
+\item \textsc{Linearithmic}\sidenote{a blend of linear and logarithmic} \\
+ If the complexity function $f$ is the product of linear and logarithmic function, i.e. $f(n) = n\log n$, then we say $f = O(n\log n)$.
+
+\item \textsc{Quadratic} \\
+ If the complexity function $f$ is a quadratic function, i.e. $f(n) = n^2$, then we say $f = O(n^2)$.
+
+\item \textsc{Cubic} \\ 
+If the complexity function $f$ is a cubic function, i.e. $f(n) = n^3$, then we say $f = O(n^3)$.	
+
+\item \textsc{Exponential} \\
+If the complexity function $f$ is a exponential for some constant $c>1$, i.e. $f(n) = c^n$. We express this as  $f = O(c^n)$.
+
+\item \textsc{Factorial} \\
+If the complexity function $f$ is the factorial, i.e. $f(n) = n!$, then we say $f = O(n!)$.
+\end{enumerate}
+
+Within each class there is an awful lot of nuance. For example, pick any time function where $\mathcal{f}(n)= an + b$, then $f = O(n)$. As you may remember from math class, the larger the value of $a$ the greater the slope of the line and the faster it grows. Big-O notation completely ignores this reality and instead groups all lines together. That's ok, the point of Big-O and complexity classes are not specific, nuanced details, but big picture, order of magnitude details.
+
+The complexity classes we use are represented by basic, well understood functions for which there is a strict least to greatest growth rate order.
+\[
+O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^3) < O(c^n) < O(n!)
+\]
+If you have two different procedures that solve the same problem and one has work $O(n)$ and the other has work $O(n \log n)$, then you know the first, the linear work option, is \textit{a whole order of magnitude better} than the later. This is what we get from Big-O and complexity classes. We get the ability to partition the infinite world of procedures into simple efficiency complexity classes that allow us to quickly and easily identify order of magnitude differences.  
+
+On the practical side of things, we can also quickly identify when a procedure will be impractical. Computer science has drawn a line in the sand at \textsc{Polynomial complexity} such that any complexity class that is a polynomial or better is theoretically efficient. This includes everything on our list but $O(2^n)$ and $O(n!)$. It turns out that this somewhat arbitrary choice works pretty well in practice. However, cubic and quadratic functions do grow pretty quickly and can easily be impractical for even modest $n$.  Superlinear or better is almost always practical, even for very large $n$.  You'll get a very real sense of this in your final project, but let's look at some numbers to get you thinking. 
+
+
+First lets look at how each function grows as $n$ grows.
+\begin{figure}
+\includegraphics[scale=0.45]{nvals.png}
+\caption{The value of key complexity class functions for increasing values of $n$}
+\end{figure}
+
+Now imagine you have a computer that performs 1 operation every nanoseconds\sidenote{also known as a 1 Gigaflop GFLOP computerThis is actually fairly modest by today's standards. Your average laptop can probably do two to five times better than this.} Then, we can attach some time amounts to these complexity classes.
+\begin{figure}
+\includegraphics[scale=0.45]{timevals.png}
+\caption{The time needed to compute key complexity class functions at 1GFLOP}
+\end{figure}
+
+
+
+
 
 \end{document}
