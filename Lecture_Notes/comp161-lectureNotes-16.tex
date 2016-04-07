@@ -1,34 +1,30 @@
 \documentclass[]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm}
 
-\title{COMP 161 - Lecture Notes 14 - Efficiency and Complexity}
+\title{COMP 161 - Lecture Notes 16 - Profiling and Complexity}
 \date{}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at the basic ideas of program and algorithm efficiency.
+In these notes we look at measuring performance in the real-world as the experimental counterpart to complexity analysis.
 \end{abstract}
 
 
-\subsection{Efficiency in the Wild}
+\section{Efficiency in the Wild}
 
 Complexity theory and its tools tame the complicated world of efficient computation. It has proven itself to be an invaluable tool for understanding and discussing efficient computation. Efficient programs are designed to minimize complexity.  However, minimizing complexity is only the first step.  Within the realm of minimal complexity is a whole host of fine-grained details that drive actual performance. Let's return to the car comparison. Best practices might let you guarantee a car with 20-25 miles per gallon fuel efficiency, but the actual nuts and bolts of how you put that car together are likely going to be the difference between a real world performance of 20 and 25. The same is true with programming. We must first choose efficient algorithms\sidenote{low complexity}, and then efficiently implement them on systems\sidenote{platforms and languages} that can achieve optimal performance. It's nearly impossible to build efficient programs with clever implementation of high complexity solutions. On the other hand, it's easy to achieve poor efficiency of low complexity solutions by making bad implementation choices. 
 
-When we assess the complexity of our programs we're analyzing the algorithms. When we assess the real-world efficiency of our program we're often \textsc{profiling} its performance. Profiling is concrete and from the scientific perspective it is the empirical verification of the underlying theory.   Profiling is also appealing because it deals in real world measures. Time is measured by the clock and space by the byte. 
-
-
+When we assess the complexity of our programs we're analyzing the algorithms. When we assess the real-world efficiency of our program we're often \textsc{profiling} its performance. Profiling is concrete and from the scientific perspective it is the empirical verification of the underlying (complexity) theory. Profiling is also appealing because it deals in real world measures. Time is measured by the clock and space by the byte. 
 
 \section{Profiling}
 
-Our previous efforts at profiling code did not require any changes to the code that we wished to profile. All tAt most, we'd write some contrived \textit{main} procedures to make specific calls to the target code.  Profiling without modifying existing library code allows us to profile a program in context. Often this lets you get a good idea of what's going on under the hood. On the other hand, it produces data about a lot of code we're not concerned with and can prevent us from getting the kind of detailed data we're looking for.
+Powerful profiling tools exist that for measuring real-world performance of programs. For programs written in C++ two candidates are \textit{gprof} or \textit{valgrind}. These tools collect profiling data about the program by taking measurements as the program runs.  In this scenario you're attempting to see how the program, as a whole, behaves on typical data. 
 
-Sometimes we're not worried about code within a specific application, but instead we're focused on detailed experimentation. For example, to get a good picture of the behavior of a specific vector procedure we're likely to want to run the procedure on a large number of inputs and gather individualized data about each execution. 
+If, however, you're attempting to experimentally verify the efficiency of a specific procedure, then it's often better to write programs specifically designed to measure performance. Here we get to choose a specific range of data that covers the whole spectrum of inputs from best to worst case.  Our primary concern is understanding how much time it takes procedures to run. 
 
-When optimizing a program, it's often better to use dedicated profiling tools such as \textit{gprof} or \textit{valgrind}. These tools collect profiling data about the program by gathering data as it runs.  In this scenario you're attempting to see how the program behaves on typical data.  If, however, you're attempting to experimentally verify the efficiency of a specific procedure, then it's often better to write programs specifically designed to measure performance. Here we get to choose a specific range of data that covers the whole spectrum of inputs from best to worst case. 
-
-\section{Getting Execution time with \textit{chrono}}
+\subsection{Getting Execution time with \textit{chrono}}
 
 The general pattern for timing code is to check the time prior to code execution and then again after code execution. You then subtract the start time from the end time to get the elapsed duration. The C++11 library \textit{chrono} provides several classes that can be used to time the execution of code. There is a complete example for getting the execution time of a line of code in the example for the \textit{now} function, which gets the current time\sidenote{\url{http://www.cplusplus.com/reference/chrono/high\_resolution\_clock/now/}}
 

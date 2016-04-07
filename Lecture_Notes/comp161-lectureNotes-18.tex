@@ -5,354 +5,292 @@
 \usepackage{framed}
 \usepackage[pdftex]{graphicx}
 
-\newtheorem{define}{Definition}
-\newtheorem{theorem}{Theorem}
+  
+\title{COMP 161 - Lecture Notes - 18 - Randomized Procedures}
 
-
-\title{COMP 161 - Lecture Notes - 18 - Sorting in Quadratic Time}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at two quadratic sorting algorithms: insertion sort and selection sort.
+In these notes we discuss issues with designing procedures that utilize randomized data.
 \end{abstract}
 
-\section{Sorting in the C++ STL}
 
-The C++ standard template library provides an optimized version of what we'll come to know as \textit{quicksort}\sidenote{\url{http://www.cplusplus.com/reference/algorithm/sort/}}. It's a mutator procedure that modifies the vector in place. By default it sorts from least to greatest order. For vector $v$, the following will sort $v$:
+\section{Randomness in Computing}
+
+Early on in the history of modern computing, people figured out that there was often some advantage to utilizing randomness as resource in the design of procedures.  Monte Carlo methods\sidenote{\url{http://en.wikipedia.org/wiki/Monte_Carlo_method}} work by repeating a computation of a large sample of randomly generated inputs. Optimization algorithms often use randomness to escape a local minimum or maximum.  In cryptography, randomness lends itself to stronger guarantees of security.  
+
+Of course even if there weren't some computational advantage to the use of randomness, we'd still like computers to have access to randomness as lots of real world problems and applications rely on randomness. Games that use dice or cards often require randomness. Random processes exist in nature and we might wish to simulate or emulate these processes.  Sometimes we're not concerned with randomness as much as we are uncertainty. We can use probability to quantify uncertainty, but to simulate this uncertainty we'd need some level of randomness. 
+
+Whether it's a problem solving device or a part of a problem, we often need randomness in our programs. What we'd like is for our computer to have a fair coin. If it did, then any time we needed some randomness we could simply instruct the computer to flip the coin.  Just like we've constructed a wealth of data from raw binary numbers, we can construct a whole host of interesting random phenomenon  from a single coin. If you want a random \textit{int} value, you could simply flip the coin 32 times. A random \textit{char} would need 8 flips.  In practice, we don't deal in random bits, but instead in random numbers\sidenote{Typically random unsigned integers}.  So when we want randomness in our programs we look for libraries that provide access to a random number generator.  Unfortunately, computers don't \textit{really} have a built in random number generator.
+
+The hardware on which modern computers are build is deterministic and therefore has no way to produce randomness\sidenote{no coins in there}. We've found some clever means of harvesting the apparent randomness in nature, but these are often slow or hard to implement for general use\sidenote{\url{http://en.wikipedia.org/wiki/Random_number_generation\#Generation_methods}}. Historically, people would employ tables of randomly generated numbers such that whenever a new number was needed they'd just grab the next one from the table. This practice of fetching a predetermined random value lends some intuition to the most common source of randomness in modern computers, the \textsc{Psuedo Random Number Generator}
+
+
+\section{Psuedo Random Number Generation}
+
+Imagine a giant book full of tables of seemingly random sequences of numbers. The book has a clear table of contents such that you can flip to any one table easily. To the owner of the book there's nothing really random going on here. The $i$th entry of the $j$th table is always the same.  From this perspective this book is totally deterministic. We could simply write it to a computer chip and have the same data accessible in the same way we it was in the book. 
+
+Now consider the outside observer that does not have access to the book. Let's say they know the book's owner will read off one number from the book. Well there's no way to know what that number will be and given that the tables themselves contain random sequences, there's no way to predict the next number having heard one or more already. That is given the $i$th entry from a table, there's no way to predict the $(i+1)$th entry.  In a perfect world we'd like there to be no way to predict any one entry given any number of of the other entries from the table. 
+
+Now lets put a computational spin on this. The combination of the book's owner and the book is one system such that the table number $j$ and the current entry on the table $i$ defines the \textit{state} of the system. We can modify the state by choosing a different table or by reading off a number from the current table. Numbers are read in order, so when we read number $i$ the next number to be read is $i+1$. In the event that we run out of numbers on the current table, we'll simply start over again and begin reading numbers from the beginning of the same table. This repetition is only a problem if our table size is smaller or near in size to the number of random numbers we expect to need\sidenote{repeating the table causes a pattern to form. patterns are antithesis of random}. Notice that given this book, we have a totally deterministic means of generating random numbers. 
+
+The problem is that for the book metaphor to work, we'd need to set aside a large amount of space for the tables. What we really want is some mathematical function that computes the tables. We need some $\mathcal{f}$ such that $\mathcal{f}(j,i)$ returned the $i$th number from the $j$th table. It's not the least bit obvious that we should even attempt to find such a function. It would seem like the ability to calculate the tables via some formula would imply a pattern in the numbers. Our imagined tables are random. They should have no pattern.  Yet by the 40s people had discovered easy to compute functions that when given a \textsc{seed} value produced a stream of numbers that generally appear to be random to the outside observer. Given the same seed value, they'll continue to produce the same sequence, just like our tables. We call these functions \textsc{pseudo random number generators}, or PRNGs.  A PRNG does not provide true randomness. Certain PRNGs do a much better job at obfuscating the underlying pattern than others.  So, when simulating true randomness matters, then you'll need to known a bit more about the landscape of PRNGs available to you. For the things we're doing in this class, we're OK with whatever default PRNG the system provides and the level of randomness that PRNG offers to us.
+
+Given a PRNG we have access to as many sequences of random numbers as there are possible seed values for the PRNG. This is great, except that we often  don't want the exact numbers given to us by our PRNG and we have no way to directly modify the possible values our PRNG computes. To get around this we typically turn to statistics, which provides us with a whole vocabulary for describing the form and function of randomness in terms of \textsc{distributions}. So, the other thing we look for libraries to provide is a way of turning PRNG output into numbers from a specific statistical distribution. So, before we translate all of this over to C++, I want to plug your local Probability and Statistics course.  Out best means of understanding and quantifying randomness is through probability and statistics. Making good use of randomness is becoming increasingly common in computing. It's well worth your time to familiarize yourself with the basic principles of probability and statistics. 
+
+\section{PRNGs in C++}
+
+The changes to C++ brought about by the new C++11 standard included a new library called \textit{random}. This library provides several different PRNGs and a set of procedures for converting PRNG output to well studied probability distributions, including uniform distributions. Prior to C++11 people used the C standard library PRNG and either wrote their own methods transforming its output to a specific distribution or sought out non-standard C++ libraries. Let's see how to use this library to get uniformly distributed random integers and doubles.    
+
+All PRNGs are represented as random number engine objects. To get an instance of one of these objects we declare a variable of type \textit{std::default\_random\_engine}\sidenote{Other generator types are available, but this will work OK for our purposes}. Like all variables, we'd like to initialize generator. To initializing a PRNG means passing it a seed value. The basic way to seed a PRNG\sidenote{and the only way we'll explore} is to give it an unsigned integer. We can either do this when we declare the variable or after the fact.  Here you see both options.
+
 \begin{verbatim}
-std::sort(std::begin(v),std::end(v))
+std::default_random_engine generator; //default seed
+generator.seed(5); //seed with 5
+
+std::default_random_engine gen(0);  //seed value 0 
 \end{verbatim}
-You can do greatest to least order using the same mechanism that we specified the sort order for \textit{std::binary\_search}.
 
-\section{Sorts}
-
-The sorts we're studying utilize key strategies in algorithm design and are representative of complexity classes above linear.  By having more than one example from each class, we hope to better understand the nuance and variation within each class. 
-
-\begin{tabular}{ll}
-Sort & Complexity \\
-Insertion & $O(n^2)$\\
-Selection & $O(n^2)$\\ 
-Mergesort & $O(n\log{n})$\\
-Quicksort & $O(n\log{n})$
-\end{tabular}
-
-Quicksort technically has a worst case of $O(n^2)$ but we can avoid it the vast, vast majority of the time by utilizing randomness. So, for all intents and purposes, it's $O(n\log{n})$. 
-
-Insertion sort is what you'd expect to get by applying the basic iterative/recursive strategy. Selection sort is what you'd get if you apply a new variation on that strategy in which we effectively rearrange the data prior to proceeding to the next iteration. The authors of HtDP refer to this as \textsc{Generative Recursion}\sidenote{\url{http://www.ccs.neu.edu/home/matthias/HtDP2e/part_five.html}}. We'll see it in its iterative form.
-
-Mergesort is what you'd expect to get by applying the basic divide and conquer strategy to the problem of sorting. Quicksort combines a generative version of divide and conquer recursion along with randomization. 
-
-\section{Insertion Sort}
-
-As is now our practice, we'll begin with the complete set of code needed for insertion sort and then proceed with the analysis and design. This implementation of insertion sort uses a helper \textit{insert\_last}.  Often you'll see this written as an inner-loop within \textit{insertionsort} itself. 
+The \textit{min} and \textit{max} methods allow you to determine the minimum and maximum value possible with the PRNG.
 \begin{verbatim}
-  /**
-   * Sort the contents of data in least to greatest order
-   * @param data vector of integers
-   * @return none
-   * @pre none
-   * @post contents of data have been sorted in least to greatest order
-   */
-  void insertsort(std::vector<int>& data);
+std::default_random_engine gen(0);  
 
-  /**
-   * Move data[lst] into sorted region data[fst..lst-1] such that 
-   * the whole region is sorted. 
-   * @param data vector of integers
-   * @param fst lowest index of region for insertion
-   * @param lst the location of the item to be inserted. Also
-   *  one more than the last of the insertion region
-   * @pre fst < lst. data[fst .. lst-1] is sorted in 
-   *  least to greatest order
-   * @post data[fst..lst] is sorted in least to greatest order
-   */
-  void insert_last(std::vector<int>& data, 
-		   unsigned int fst, unsigned int lst);
+cout << "The default PRNG produces integers from [" << gen.min() << "," 
+     << gen.max() <<"]\n";
+\end{verbatim}
 
-  TEST(insert_last,all){
-    
-    std::vector<int> testme({3,2});
-    insert_last(testme,0,1);
-    EXPECT_EQ(std::vector<int>({2,3}),
-	      testme);
+To extract a random number from the PRNG object we do something we've never done before- \textit{we use the object as if it were a procedure}. Let's get and print 15 numbers, 5 per line.
+\begin{verbatim}
+std::default_random_engine gen(0);  
 
-    testme = std::vector<int>({2,4,5,7,2,4});
-    insert_last(testme,0,4);
-    EXPECT_EQ(std::vector<int>({2,2,4,5,7,4}),testme);
-    
-  }
+for(int i{0} ; i < 15 ; ++i)
 
-  TEST(insertsort,all){
-    
-    std::vector<int> sortme;
-
-    insertsort(sortme);
-    EXPECT_EQ(std::vector<int>({}),
-	      sortme);
-
-    sortme = std::vector<int>({1});
-    insertsort(sortme);
-    EXPECT_EQ(std::vector<int>({1}),
-	      sortme);
-
-    sortme = std::vector<int>({7,4});
-    insertsort(sortme);
-    EXPECT_EQ(std::vector<int>({4,7}),
-	      sortme);
-
-    std::vector<int> data{8,7,6,5,4,3,2,1};
-    insertsort(data);
-    EXPECT_EQ(std::vector<int>({1,2,3,4,5,6,7,8}),
-	      data);
-
-  }
+  cout << gen();
   
-    void insertsort(std::vector<int>& data){
-    
-    for(unsigned int i{1}; i < data.size(); i++){
-      insert_last(data,0,i);
-    }
-    return;
+  if( i % 5 == 4 ){
+    cout << '\n';
+  } 
+  else{
+    cout << ' ';
   }
+}
+\end{verbatim}
+Here we see the expression \textit{gen()} being used to extract random numbers from our PRNG \textit{gen}. This is weird for two reasons. First we expect the thing before a set of parenthesis to be a procedure name or control structure keyword\sidenote{if, while, for}. In this case its the name of a variable. The second source of weirdness is the fact that the ``procedure'' takes no inputs.
 
-  void insert_last(std::vector<int>& data, 
-		   unsigned int fst, unsigned int lst){
-    
-    for(unsigned int i{lst-1}; i >= fst && data.size(); i--){
-      if( data[i+1] < data[i] ){
-     	std::swap(data[i],data[i+1]);
-      }
-      else{
-    	return;
-      }
-    }
-    return;
-  }
+We can use our PRNG object as a procedure because C++ gives us the ability to treat parenthesis as operators\sidenote{operator() in the documentation}. We call this operator the \textsc{application operator}.  Object classes with a defined application operator are typically called \textsc{functors}. Functors can be a bit confusing at first. They blur the line between data and procedures by virtue of functioning in both worlds. We'll get our feet wet with functors with the random library. Later we'll learn to write our own functors.
 
+No argument procedures seem a bit strange coming from a purely functional world. However, considering what we know about PRNGs and our PRNG gen, we can start to piece together why this is a perfect case for a no argument procedure. When we constructed \textit{gen} we seeded the PRNG.  The user of \textit{gen()} simply wants a random number. In terms of our book metaphor, it makes no sense to force them to choose a table\sidenote{seed} and entry number from that table. In fact, if they did, the process would cease to be random because they'd simply be selecting entry $i$ from table $j$ and table which is always the same.  So, in the end, the seed and the ``location'' of the next entry should be hidden away from the user in order to ensure the interface we wanted all along-give me a random number. 
+
+Of course, we deterministically selected the seed value for or PRNG.  This is a bit problematic. Every time we run our code to print 15 random values we'll get the same 15 values- the first 15 value in the sequence generated by seed 0. What would be great was if we generated a random seed, but that causes a bit of a paradox. Instead, we could settle for a different seed every time we run the program. You could keep the previous seed value in a file\sidenote{Files are the only way to save program state from one execution to the next} and then when the program runs it reads that value from the file and then adds one to it. This would let you count through seeds. This approach is a bit cumbersome however. A better source for numbers that are different every time you run your program is time itself.
+
+The standard approach to generating unique seeds across program executions is to use the system time. Computers tend to see time as the number of milliseconds that have passed since some fixed point in time called the \textsc{epoch}\sidenote{\url{http://en.wikipedia.org/wiki/Unix_time}}.  What we want to do is get this number and use it as our seed. This means that unless we call our program more than once in the same millisecond, we'll have a different seed every time we run it. 
+
+To get the time since the Epoch in C++ we can use the C++11 \textit{chrono} library. By chaining together a few method calls we can get time since the epoch measured in milliseconds\sidenote{we'll trace through these method calls in class. It's a great exercise in reading library documentation}.
+\begin{verbatim}
+// ms since epoch
+unsigned int seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+
+// use time as seed
+std::default_random_engine gen(seed1);    
+
+// do some random stuff
+\end{verbatim}
+We did not use the curly braces for initialization because we're actually converting between \textit{long int} and \textit{unsigned int}. In this case, if the conversion changes the number, we don't particularly care.  The actual time isn't important, just the fact that it's different than the last time we ran the program. If you use the curly braces you'll get a narrowing conversion warning\sidenote{go try it!}. 
+
+Getting the current time in milliseconds and initializing a variable with it is a bit cumbersome, we could break it up. While doing so, we could make use of the C++11 \textit{auto} feature. This lets the compiler determine variable types for us. This is a good place for \textit{auto} because the whole statement is pretty much boilerplate whenever we want to seed a PRNG and so the types are not essential to the problem. When using \textit{auto}, it's typical to use assignment based initialization rather than curly braces. 
+
+\begin{verbatim}
+// get the time 
+auto clk = std::chrono::system_clock::now();
+auto now_in_ms = clk.time_since_epoch().count();
+
+// create and seed the PRNG
+std::default_random_engine gen(now_in_ms);    
 \end{verbatim}
 
-\subsection{Insertion Sort Complexity}
+Using the current time gets us a pretty good approximation to a random seed and we'll use it for most applications. However, it's important to note the fact that we can pass an explicit seed value and get a specific sequence of numbers.  We'll see that this is extremely helpful when it comes to testing code involving randomness. 
 
-We begin by analyzing \textit{insertsort} in the same fashion as we did our searches.  The the analysis strategy we'll use is to set aside the analysis of the helper procedure \textit{insert\_last} until we've completely analyzed insertsort. Much in the same way worked around the loop repetition in the searches, we'll work around the helper procedures used by the sorts. 
+\section{Uniformly Distributed Randomness in C++11}
 
-The \textit{insertsort} procedure is made up entirely of an obviously linear loop\sidenote{that was easy}. Each iteration of the loop invokes the \textit{insert\_last} helper so for a vector of size $n$, we'll invoke \textit{insert\_last} $n$ times. Thus we expect the total complexity of \textit{insertsort} to be $O(n)$ for the loop plus $n*O(f)$ for $n$ invocations of \textit{insert\_last} where $O(f)$ is the complexity of \textit{insert\_last}. 
+When people tend to think of randomness they think of the \textsc{uniform distribution}. A single flip of a coin and the roll of a die are classic examples of discrete, uniform randomness. You're just as likely to get heads as you are tails. On a six sided die, all six sides are equally likely. In terms of a PRNG, we're talking about getting some integer from the interval $[a,b]$ where all possible outcomes are equally likely. We can imagine something similar for doubles.  The key difference is that there are, in theory, an infinite number of possible numbers in the interval $[0,1]$.  Setting that issue aside, what we really want is no favoritism between possible outcomes. In more formal terms, the probability of each possible outcome is the same, or uniform\sidenote{Probability is exactly what we're distributing when we talk about statistical distributions}.  This is the essence of uniformly distributed possibilities and what most people probably associated with randomness. 
 
-The helper procedure \textit{insert\_last} loops over what is clearly $O(1)$ work\sidenote{it's all elementary operations plus an $O(1)$ procedure, std::swap}. The worst case occurs when \textit{data[i+1] $<$ data[i]} is always  false for all $i$ in \textit{[fst,lst)}. Put another way, if the vector data is sorted from greatest to least order for the index range \textit{[fst,lst]}. The loop itself counts down from \textit{lst-1} to \textit{fst}. Check against \textit{data.size()} protects against the overflow of unsigned integers. If $i$ is $0$, then $--i$ sets $i$ to $2^32$, which is presumably larger than the vector's size\sidenote{perhaps this is a precondition?}. So, the loop repeats as many times as there are numbers in the interval \textit{[fst,lst-1]}. This is just $lst-fst$\sidenote{$|[a,b]| = b-a+1$}.  We could say that \textit{insert\_last} is \textit{O(lst-fst)}, which is just another way of saying \textit{insert\_last} is \textit{linear in the size of region of the vector upon which its operating}\sidenote{\textit{[fst,lst]}}. 
-
-We no return to \textit{insertsort} to finish the analysis. Informally, we can probably guess that repeating a linear complexity procedure, \textit{insert\_last} a linear number of times is probably quadratic. It would be obviously quadratic if we invoked \textit{insert\_last(data,0,data.size()-1)} every time. That invocation of \textit{insert\_last} does $O(data.size())$ work.  However, every time we invoke \textit{insert\_last} the size of the region of data upon which it's working is different. More specifically, we invoke \textit{insert\_last(data,0,i)} for all values of $i$ from $1$ to $data.size()-1$. 
-
-For a vector size of $n$, the sum total of the work carried out by all of our calls to \textit{insert\_last} is the sum of $O(n-1)+O(n-2)+ \ldots + O(2)+O(1) = O(1+2+\ldots+(n-2)+(n-1))$. This sum, the sum of all the integers from $1$ to some integer $k$ has a name, the \textsc{arithmetic series}.It also has a more compact notation. 
-\[
-1+2+ \ldots + (k-1)+ k = \sum\limits_{i=1}^{k} i 
-\]
-
-Let's do a little formal math, just for fun.
-\begin{theorem}
-\[
-\sum\limits_{i=1}^{n} i = O(n^2) 
-\]
-\begin{proof}
-We'll prove this theorem by directly finding the closed form solution to the series. This form is a quadratic form and is thereby $O(n^2)$. Let $\mathit{S} = \sum\limits_{i=1}^{n} i$. Then, we can show that $2*S = n(n+1)$ as follows:
-\[
-\begin{array}{cccccccccc}
-  & 1 & + & 2 & + & \ldots & + & (n-1) & + &n \\
-+ & n & + & (n-1) & + & \ldots & + & 2 & + & 1 \\ \hline
- & (n+1) & + & (n+1) & + & \ldots & + & (n+1) & + & (n+1) 
-\end{array}
-\]
-It's then follows that  $\mathit{S} = \dfrac{n(n+1)}{2} = \dfrac{1}{2}(n^2+n) = O)(n^2)$. 
-\end{proof}
-\label{th:arithser}
-\end{theorem}
-
-Returning back to \textit{insertsort}, we know know that for our vector of size $n$ the sum total of work carried out by all of our calls to \textit{insert\_last} is $\sum\limits_{i=1}^{n-1} i = O((n-1)^2) = O(n^2)$. To complete the analysis we notice that this quadratic complexity of all the \textit{insert\_last} calls dominates the linear complexity of the loop that generated them and that \textit{insertsort} has a complexity of $O(n^2)$.
-
-\subsection{The Design of Insertion Sort}
-
-Insertion sort is what you're likely to come up with if you follow the basic iterative design pattern. Let's imagine a vector with the following contents:
+Distributions in the C++ library work by first declaring a distribution object with the parameters of that distribution. Then, given a source of randomness\sidenote{a PRNG}, we can use that distribution object as a functor for retrieving random values from that distribution. In the case of uniformly distributed numbers from a set range, we first declare the distribution and supply the min and max value of the range. Here we see distributions for integers and real values. 
 \begin{verbatim}
-{3,5,1,7,4,9,2}
+// simulating a six sided die 
+std::uniform_int_distribution<int> distribution{1,6};
+
+// getting random reals in [0,1]
+std::uniform_real_distribution<double> distribution{0.0,1.0};
 \end{verbatim}
-Now if we're thinking in terms of iterative mutation in order to sort the data, then after four iterations we should have modified the first four locations such that they're sorted.  Let's show that by breaking the vector into the three pieces, the stuff we sorted\sidenote{accumulated} so far, the current element to be sorted, and everything that's left.
-\begin{verbatim}
-{1,3,5,7} 4 {9,2}
-\end{verbatim}
-Now the question is what do we do with $4$ in order to have sorted the first four elements after this, the fourth iteration?  From the high-level perspective, we need to be able to \textit{insert $4$ into the already sorted data such that the result is still sorted}.  This is exactly what \textit{insert\_last} accomplishes. By following the basic iterative structure we arrived at insertion sort. Before we move on to \textit{insert\_last}, let's settle on the base case for our iterative insertion. The classic is the empty case. We start having changed nothing. The picture looks like this:
-\begin{verbatim}
-{} 3 {5,1,7,4,9}
-\end{verbatim}
-This will work fine as long as \textit{insert\_last} can handle the ``insert into an empty space'' case. However, this seems like some largely wasted work.  The result we expect to get is really just this:
-\begin{verbatim}
-{3} 5 {1,7,4,9}
-\end{verbatim}
-It doesn't matter what the first number was, it always ends up in spot zero.  So why not start by inserting the second number into the the space of the first.  This is what you see in our implementation. Let's start with a trivially sorted space, the space of just one item, and build up from there rather than start with going from trivial case, empty spaces are sorted, to trivial case, one number is sorted. 
+These types utilize \textsc{templates}.  This is another new and extremely useful feature of C++ that the random library exposes us to. 
 
-Now that we've identified the helper procedure and it's specifications, we can turn our attention to its implementation. Once again, basic iterative design should do the trick. The catch this time is that we're not working a full vector, just \textit{[fst,lst]}, and that we need to traverse the vector not from \textit{fst} to \textit{lst} but lst to first. We begin with a picture like this:
-\begin{verbatim}
-{1,3,5,7} 4 
-\end{verbatim}
-We then proceed using iterative swaps and early termination once we no longer need to swap. 
-\begin{verbatim}
-{1,3,5} 4 {7} 
-{1,3} 4 {5,7} 
-{1,3,4,5,7}
-\end{verbatim}
+Recall that C++ allows us to use many different types for mathematical integers. The standard is the \textit{int} but we could also use \textit{long}, \textit{short}, and \textit{byte}.  All of these also have \textit{unsigned} versions as well. For real valued\sidenote{things you write with a decimal} numbers, we typically use \textit{double}, but we could also use the less precise \textit{float}.  This means that if we want random integers, we must also choose the type C++ uses to represent these integers and similarly for reals. This is what templates do for you. The type \textit{std::uniform\_int\_distribution$<$int$>$} provides uniformly distributed integers as \textit{int} values where \textit{std::uniform\_int\_distribution$<$short$>$} would provide them as short integers. Similarly \textit{std::uniform\_real\_distribution$<$double$>$} provides real values as doubles as opposed to some other type. The sub-type\sidenote{int in \textit{std::uniform\_int\_distribution$<$int$>$}} is called the \textsc{template arguments}. The definition for the distribution has a \textsc{template parameter} that acts as a type variable. What we're seeing is writing definitions with variable types and not just variable values. 
 
-\subsection{Iteration and Quadratic Complexity}
 
-Theorem (\ref{th:arithser}) is exceedingly useful in complexity analysis. A great many procedures make use of a structure similar to that of insertsort. If we tease out the pattern from insertsort, then we see a nested loop structure. The outer loop is classically linear, the inner loop is linear but \textit{dependent on the current state of the outer loop}. Like this:
+We can now produce PRNGs and distributions. All that's left is to put the two together. In order to do this we use the distribution as a functor that takes a single argument, a PRNG.  Let's generate and print 30 random numbers from 1 to 6\sidenote{30 rolls of a six sided die} with 6 numbers per line.
 \begin{verbatim}
-for( int i{0}; i < n ; ++i){
-  for(int j{0}; j < i ; ++j){
-   ...
+// Setup the PRNG
+auto clk = std::chrono::system_clock::now();
+auto now_in_ms = clk.time_since_epoch().count();
+std::default_random_engine gen{now_in_ms};    
+
+// Declare and initialize 
+std::uniform_int_distribution<int> dist{1,6};
+
+
+for(int i{0} ; i < 30 ; ++i ){
+  // dist(gen) produces a uniformly distributed random int from [1,6]	
+  cout << dist(gen);
+
+  if( i % 6 == 5 ){
+    cout << '\n';
+  } 
+  else{
+    cout << ' ';
   }
 }
 \end{verbatim}
 
-The \textit{total} cost of the inner loop here is exactly what we saw with insertsort: $\sum\limits_{j=0}^{n-1} j = O(n^2)$. This quadratic cost dominates the linear cost of the loop that drives it. With \textit{insertsort} that inner loop was hidden within a helper procedure. 
-
-A more overt form of quadratic looping can sometimes occur:
+If the look of \textit{dist(gen)} bothers you, then the documentation for the random class points you in the direction of some more mysterious\sidenote{for now} code that lets you hide passing of the PRNG and replace \sidenote{dist(gen)} with something that looks like the no argument PRNG call we saw in the previous section.  The procedure \textit{std::bind} is in the \textit{functional} library.
 \begin{verbatim}
-for( int i{0}; i < n ; ++i){
-  for(int j{0}; j < n; ++j){
-   ...
-  }
+auto clk = std::chrono::system_clock::now();
+auto now_in_ms = clk.time_since_epoch().count();
+std::default_random_engine gen{now_in_ms};    
+std::uniform_int_distribution<int> dist{1,6};
+
+// dice now acts like dist(gen)
+auto dice = std::bind ( dist, gen );
+
+// roll 3D6 for your wisdom stat
+int wisdom = dice()+dice()+dice();
+\end{verbatim}
+Binding your PRNG to the distribution is certainly optional, but it is nice to hide the PRNG away. It also allows us to establish a uniform signature\sidenote{void $\rightarrow$ number} for sources of randomness that we can later exploit for designing randomized procedures.
+
+\section{Random Permutations and std::shuffle}
+
+Sometimes we don't want a sequence of random numbers, but instead we just want some set of data in a random order. The mathematical term for this is a \textsc{random permutation}. Since C++11, the library \textit{algorithm} provides the procedure \textit{std::shuffle} that, given a source of randomness\sidenote{i.e. a seeded PRNG}, will reorder data in a collection. 
+
+The std::shuffle algorithm is a mutator.  Like many algorithm library procedures, it makes use of \textsc{iterator} objects, a type of object that acts as an abstract pointer to an element in the collection. We're currently working with strings and have been using the integer value of character indexes to ``point'' to specific locations in the string. Iterators to those locations do the same thing but do it with respect to the specific string in question. Things may make a bit more sense after seeing a few examples. For the following examples, you can assume that \textit{gen} is a default PRNG.
+
+The first argument to std::shuffle is an iterator to the first item to be shuffled. The second argument is an iterator to the item after the last item to be shuffled. So if \textit{first} is the first argument and \textit{last} is the second argument, then std::shuffle will shuffle everything in \textit{[first,last)}. The third argument to std::shuffle is a PRNG, or some source of uniform randomness.
+
+We can use the procedure \textit{begin} to get an iterator to the first item in a string\sidenote{or any C++ collection} and \textit{end} to get an iterator to just off the end such that the following call to std::shuffle sorts the whole string.
+\begin{verbatim}
+
+std::string str{"hello world!"};
+
+// shuffle all of str using gen as our source of randomness	
+std::shuffle(begin(str),end(str),gen);
+\end{verbatim}
+If $begin(str)$ and $end(str)$ were integer indexes they'd be $0$ and $str.length()$.
+
+
+To shuffle part of a string we can add and subtract from our iterators to step forward and backward, respectively, from the start and end of our string.  
+\begin{verbatim}
+std::string str{"hello world!"};
+
+// shuffle all but the first and last 3 characters
+std::shuffle(begin(str)+3,end(str)-3,gen);
+\end{verbatim}
+
+\section{Randomized Procedure Design}
+
+The std::shuffle procedure and the use of the application operator\sidenote{operator()} with distribution objects\sidenote{dist(gen)} gives us a good design cue for how to design a randomized procedure in C++. Both procedures use an external source of randomness passed as an argument to the procedure. The highly stateful nature of PRNGs is also a good indicator that our random number generating argument is passed by reference. This makes the design of randomized procedures similar to that of I/O procedures. Both designs utilize another resource in the system that is initialized outside of the procedure and then passed by reference to the procedure. 
+
+There is another important advantage to passing the PRNG as an argument to the procedure: testing. If the PRNG is local to our randomized procedure, then we're most likely going to want to use something like the system time to seed it. This is fine for the actual application when we want the outward appearance of randomness.  It also means the the randomness of the PRNG and the logic of what we're doing with random values are inseparable. If, instead, we initialize and seed the PRNG externally, then we can use a seed value for which we know the behavior. We can save the first $n$ values produced by the PRNG and evaluate the expected behavior of the procedure with respect to those values.  Put another way, we can remove randomness from the equation and test the expected results in a completely deterministic way.
+
+Let's look at the following procedure.
+\begin{verbatim}
+  /*
+    Simulate rolling n m-sided dice and get the 
+    total of all n dice.
+    @param n number of dice
+    @param m number of sides per dice
+    @param prng instance of the system's uniform random number generator
+    @return total from rolling n m-sided dice
+    @pre prng has been seeded. m > 0. 
+    @post prng produced n new random numbers
+   */
+  unsigned int ndm(unsigned int n, unsigned int,
+		   std::default_random_engine& prng);
+\end{verbatim}
+
+To test this we'll pick a seed value, in this case 1, and generate some tables relative to this seed\sidenote{The program RandTabMaker.cpp was used for this purpose and the data is in randData.txt}.
+\begin{verbatim}
+First 20 numbers from seed 1:
+16807       282475249   1622650073  984943658   1144108930  
+470211272   101027544   1457850878  1458777923  2007237709  
+823564440   1115438165  1784484492  74243042    114807987   
+1137522503  1441282327  16531729    823378840   143542612   
+
+First 20 numbers from [1,4] with seed 1:
+1  1  4  2  3  1  1  3  3  4  2  3  4  1  1  3  3  1  2  1  
+
+First 20 numbers from [1,6] with seed 1:
+1  1  5  3  4  2  1  5  5  6  3  4  5  1  1  4  5  1  3  1  
+
+First 20 numbers from [1,8] with seed 1:
+1  2  7  4  5  2  1  6  6  8  4  5  7  1  1  5  6  1  4  1  
+
+First 20 numbers from [1,10] with seed 1:
+1  2  8  5  6  3  1  7  7  10 4  6  9  1  1  6  7  1  4  1  
+
+First 20 numbers from [1,12] with seed 1:
+1   2   10  6   7   3   1   9   9   12  5   7   10  1   1   7   9   
+1   5   1   
+
+First 20 numbers from [1,20] with seed 1:
+1   3   16  10  11  5   1   14  14  19  8   11  17  1   2   11  14  
+1   8   2   
+\end{verbatim}
+
+Now that we know what numbers the PRNG will spit out we can predict exactly what would happen with our procedure with a freshly seeded PRNG.  
+\begin{verbatim}
+std::default_random_engine prng;
+
+prng.seed(1);
+EXPECT_EQ(0,ln12::ndm(0,6,prng));
+
+prng.seed(1);
+EXPECT_EQ(1,ln12::ndm(1,1,prng));
+
+prng.seed(1);
+EXPECT_EQ(5,ln12::ndm(5,1,prng));
+
+prng.seed(1);    
+EXPECT_EQ(1,ln12::ndm(1,4,prng));
+
+prng.seed(1);
+EXPECT_EQ(2,ln12::ndm(2,4,prng));
+
+prng.seed(1);
+EXPECT_EQ(11,ln12::ndm(5,4,prng));
+
+prng.seed(1);
+EXPECT_EQ(1,ln12::ndm(1,12,prng));
+
+prng.seed(1);
+EXPECT_EQ(60,ln12::ndm(10,12,prng));
+\end{verbatim}
+
+
+We can no work out the design for the procedure itself.  We'll go with iteration and accumulate the total as we ``roll'' the dice.
+\begin{verbatim}
+unsigned int ndm(unsigned int n, unsigned int m,
+	std::default_random_engine& prng){
+  
+    std::uniform_int_distribution<unsigned int> d{1,m};
+
+    unsigned int total{0};
+    for( unsigned int i{0}; i < n ; ++i){
+      total += d(prng);
+    }
+
+    return total;
 }
 \end{verbatim}
-Here the inner-loop does $O(n)$ work regardless of the value of $i$. So, when we repeat it $n$ times, the total work is obviously $O(n^2)$. 
-
-Finally, we should notice that, once again, varying the step size of either loop in either case will not impact the overall complexity. It simply reduces the actual work by some fixed fraction. This falls inline with the general intuition that both of the nested loops shown here are loops of linear complexity and $O(n*n)=O(n^2)$.
-
-\section{Selection Sort}
-
-Like \textit{insertsort}, \textit{selectsort} utilizes the iteration of a helper procedure. Take a moment to look at the the two procedures and the big picture and then we'll proceed with the analysis and the design.
- 
-\begin{verbatim}
-  /**
-   * Sort the contents of data in least to greatest order
-   * @param data a vector of integers
-   * @return none
-   * @pre none
-   * @post data has been sorted in least to greatest order
-   */
-  void selectsort(std::vector<int>& data);  
-
-  /**
-   * Compute the index of the smallest item in data from index
-   * range [fst,lst).
-   * @param data vector of integers 
-   * @param fst the first index in the search range
-   * @param lst the index after the last index in the search range
-   * @return the index from [fst,lst) where the min value for that range
-   *   in data can be found
-   * @pre fst < lst (i.e. data is at least size 1)
-   * @post none
-   */
-  unsigned int min_idx(const std::vector<int>& data,
-		       unsigned int fst,unsigned int lst);
-	
-		       
-  TEST(min_idx,all){
-    
-    std::vector<int> data{2,3,394,1,9,8,5,7,9};
-
-    EXPECT_EQ(0,min_idx(data,0,1));
-    EXPECT_EQ(0,min_idx(data,0,3));
-    EXPECT_EQ(6,min_idx(data,4,data.size()));
-    EXPECT_EQ(3,min_idx(data,0,data.size()));    
-  
-  }
-
-  TEST(selectsort,all){
-    
-    std::vector<int> sortme;
-
-    selectsort(sortme);
-    EXPECT_EQ(std::vector<int>({}),
-	      sortme);
-
-    sortme = std::vector<int>({1});
-    selectsort(sortme);
-    EXPECT_EQ(std::vector<int>({1}),
-	      sortme);
-
-    sortme = std::vector<int>({7,4});
-    selectsort(sortme);
-    EXPECT_EQ(std::vector<int>({4,7}),
-	      sortme);
-
-    std::vector<int> data{8,7,6,5,4,3,2,1};
-    selectsort(data);
-    EXPECT_EQ(std::vector<int>({1,2,3,4,5,6,7,8}),
-	      data);
-
-  }
-  
-  void selectsort(std::vector<int>& data){
-    
-    for(unsigned int i{0}; i < data.size() ; i++){
-      unsigned int next_min_idx = min_idx(data,i,data.size());
-      std::swap(data[i],data[next_min_idx]);
-    }
-  }
-  
-  unsigned int min_idx(const std::vector<int>& data,
-		       unsigned int fst,unsigned int lst){
-    
-    unsigned int curr_idx = fst;
-    for(unsigned int i{fst+1} ; i < lst ; i++ ){
-      if( data[curr_idx]  > data[i] ){
-     	curr_idx = i;
-      }
-    }
-    return curr_idx;
-  }
-		       
-\end{verbatim}
-
-\subsection{Selection Sort Complexity}
-
-The main procedure, \textit{selectsort} utilizes the now very familiar linear complexity loop to manage the iteration. The operations within the loop are an $O(1)$ swap and the call to the helper \textit{max\_idx}. Right away we notice that \textit{max\_idx} is called with each $i$ in \textit{[0,data.size() )}. Without even getting into the \textit{min\_idx} analysis, we might guess that the exact same quadtratic pattern we saw in \textit{insertsort} was going on\sidenote{we'd be right}.  Let's look to be sure.
-
-The helper procedure \textit{min\_idx} has a loop that's doing $O(1)$ work per iteration. The loop counts from \textit{fst+1} to \textit{lst-1} in steps of one. This should be familiar from \textit{insert\_last}. The loop is linear in the size of the interval \textit{[fst+1,lst-1]}\sidenote{\textit{lst-fst-2}}. This means that by repeatedly calling it with a vector of size $n$ and with $i$ taking on the values in $[0,n)$ generates the following series:
-\[
-\sum\limits_{i=0}^{(n-2)} i = O((n-2)^2) = O(n^2-4n+4)=O(n^2)
-\]
-
-\subsection{The Design of Selection Sort}
-
-The underlying principle behind selection sort is \textsc{generative recursion}. We're just implementing it iteratively\sidenote{Generative Iteration}. With this strategy we don't restrict ourselves to only the data we've encountered as we traverse the vector, instead we rearrange the vector at each step so that the problem is simplified at the next iteration. 
-
-The underlying picture of selection sort is similar to insertion sort.  On the $k$th step of iteration the first $k-1$ items should be in sorted order and the rest have yet to be sorted. The $k$th step will then sort one more item. The difference is that we don't need to sort item $k$ nor are the first $k-1$ items the original first $k-1$ items in the original vector.  
-
-The strategy selection sort uses to \textit{select} the smallest item in the $k-1$ unsorted items and put that item at location $k$. We do this by simply swapping that item with whatever is at location $k$. The procedure \textit{min\_idx} finds the minimum value of a region of the vector and returns the index at which it can be found. Let's look at what happens. With this original vector
-\begin{verbatim}
-{3,5,1,7,4,9,2}
-\end{verbatim}
-First we find the global min and swap it with whatever is at location zero, then the next min goes to location one, and so forth. We begin with no accumulated change. The element at the location being sorted is pulled out, but notice that we're not sorting it, we're just swapping it with the next min.
-\begin{verbatim}
-{} 3 {5,1,7,4,9,2}
-{1} 5 {3,7,4,9,2}
-{1,2} 3 {7,4,9,5}
-{1,2,3} 7 {4,9,5}
-{1,2,3,4} 7 {9,5}
-{1,2,3,4,5} 9 {7}
-{1,2,3,4,5,7}  9
-{1,2,3,4,5,7,9} 
-\end{verbatim}
-
-The generative strategy is less formulaic than standard iteration because we must discover a way to rearrange around the current item in our vector. Selection sort replaces the item with what should be in that location in the final solution-- the next smallest item in the unsorted data.  
-
-\section{Insertion vs. Selection}
-
-Despite using two very different design strategies, both insertion sort and selection sort belong to the quadratic complexity class. The culprit is stepwise iteration. Both the main sort procedures and the iterated helpers utilize linear loops. If we wish to break out of this pattern, we need one or both of the loops to have sub-linear complexity. Binary search gives us a clue as to how this can be achieved-- divide and conquer. 
-
-Before we dive into new sorts, let's consider how selection and insertion differ and which might exhibit better performance in practice. The outer loops in both procedures are effectively identical. They traverse the entire length of the vector and do not terminate early. The inner loop of selection sort also traverses the complete part of the vector it's searching for the min in and never terminates early. Insertion sort's inner loop, on the other hand, will stop early when the item being inserted gets to the right spot. This implies that insertion sort is capable of doing less work if we're only concerned about the loops. In fact, it's not too hard to see that if the vector is already sorted, then insertion sort requires on $O(n)$ work where selection sort is always, without fail, $O(n^2)$. 
-
-The last thing to consider is that for each item sorted, selection sort will perform one and only one swap. Insertion sort must swap the item being sorted with each of the currently sorted items greater than it. In the worst case this means a linear number of swaps and that the total work done by insertion sort is more than selection sort. So, if we're expecting to sort data that's nearly sorted but in the reverse order from what we want, insertion sort is not a good choice relative to selection sort. On the other hand, if the data is nearly sorted, insertion sort stands a chance of exhibiting near linear time behavior. In the end, choosing the right algorithm is a function of knowing the actual data you'll be working with as well as knowing the performance characteristics of your algorithm choices on that data. 
-
 
 
 \end{document}

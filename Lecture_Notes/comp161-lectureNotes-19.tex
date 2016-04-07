@@ -1,400 +1,245 @@
 \documentclass[]{tufte-handout}
-\usepackage{amsmath,amssymb,amsthm,color}
-\usepackage{multirow}
-\usepackage{booktabs}
-\usepackage{framed}
-\usepackage[pdftex]{graphicx}
+\usepackage{amsmath,amssymb,amsthm}
 
-
-\title{COMP 161 - Lecture Notes - 19 - Sorting in $O(n\log n)$ Time}
-
+\title{COMP 161 - Lecture Notes - 19 - Some Mathematica}
+\date{}
 
 \begin{document} 
 \maketitle
 
 \begin{abstract}
-In these notes we look at the divide and conquer driven sorts mergesort and quicksort. Mergesort is in $O(n\log n)$ time and the randomized version of quicksort discussed here is .
+In these notes we take a quick side-step from C++ to look at the basic Mathematica we need for Project 2.
 \end{abstract}
 
-\section{Mergesort}
+\section{Mathematica}
 
-Mergesort uses recursive divide and conquer to break sorting of out of the $O(n^2)$ complexity class. We cannot select sub-sections of a vector in constant time so we use the strategy of recursing over the index interval rather than the vector itself.  The procedure \textit{mergesort} is overloaded so that a single argument version that sorts the entire vector is available\sidenote{this is the expected interface to sorting} and can make use of the index-based recursive procedure. For our purposes, we're assuming we only ever call the single argument \textit{mergesort} directly and that it then calls the three argument variant as a helper. This is illustrated in the tests.
+Mathematica is a powerful system for all things mathematics\sidenote{\url{https://www.wolfram.com/language/fast-introduction-for-programmers/}}. We'll be using it to work with execution time data gathered by C++ programs and written to csv files. The typical way to work with Mathematica is through a \textsc{notebook}. With notebooks we can input one or more statements from the Wolfram Language\sidenote{\url{https://www.wolfram.com/language/fast-introduction-for-programmers/}} in a single notebook \textsc{cell} and then evaluate them right there. Notebooks have the advantages of interactive environments like Dr.Rackets interaction window and the physicality of source documents.  
 
+In the notes that follow I'll give you statements in Mathematica that you can and show enter into a Notebook. To evaluate a \textit{cell} hit \textit{Shift-Enter}. You can also Evaluate an entire notebook through the Evaluate drop-down menu. When you evaluate a cell, the results are printed within that cell. If you wish to suppress the output of a statement, then end the statement with a semi-colon. I do not recommend putting all your code in a single cell. Use cells like procedures and put little logical chunks of code that carry out clear distinct tasks in a single cell. Just be aware  that when you write variables and definition in one cell and use them in another they must first be evaluated before their used. 
+
+As functions are introduced you should look them up in the Documentation which is accessible on the web and through the Help drop-down menu. Any text surrounded by (* and *) is a comment and will not be evaluated when the cell is evaluated. You'll soon notice that when calling functions we put arguments in square brackets rather than the parenthesis we're used to from C++ and Racket.
+
+\section{Lists}
+
+When we read our csv data into a notebook we'll end up with a list of lists. You can more or less think of this as a table. Each row corresponds to a line from the file and the elements of the row are the values delineated by commas. Task number one is to learn how to manipulate and work with lists\sidenote{\url{https://reference.wolfram.com/language/guide/ListManipulation.html}}. 
+
+Let's start by specifying a few lists by hand before we get to the lists that result from reading our csv files. List literals are written by comma separated values surrounded by curly braces. Here we define a few variables with list values.
 \begin{verbatim}
+threes = {3,3,3,3}
+alist = {1,2,3,4,5,6,7}
+alolon = {{1,2,3},{5,6,7},{8,9,10},{11,12,13}}
+\end{verbatim}
+We can also use the \textit{Table} function to construct lists. Here we construct the same lists using Table.
+\begin{verbatim}
+threes = Table[3,{4}]
+alist = Table[i,{i,1,7}
+alolon = Table[ 3*(i - 1) + j, {i, 4}, {j, 3}]
+\end{verbatim}
 
-  /**
-   * Sort the contents of data in least to greatest order
-   * @param data vector of integers to be sorted
-   * @return none
-   * @pre none
-   * @post data now contains the same numbers but sorted
-   */
-  void mergesort(std::vector<int>& data);
+We select list items using double square brackets in much the same way that we select elements from vectors and strings in C++. The big difference is that the first element of a list is at index 1, not index 0. When selecting from multi-dimensional lists use commas to separate dimensional coordinates.
+\begin{verbatim}
+alist[[3]]
+alolon[[4,2]]
+\end{verbatim}  
+The really wonderful thing is that we can select more than one element at once by passing a list of indexes rather than a single index and that the order of the data is the order in which we list the indexes. 
+\begin{verbatim}
+alist[[{1, 3, 5}]]
+alist[[{3, 5, 1}]]
+{4, 52, 3, 6}[[Table[2, {10}]]]
+\end{verbatim}
+We can also use a Span to select a sequence of elements. With spans we can also specify the step size which in turn lets us do reverse spans. 
+\begin{verbatim}
+blist = Table[20 - i, {i, 1, 20}]
+blist[[1 ;; 5]]
+blist[[6 ;;]]
+blist[[;;10]]
+blist[[;;]]
+blist[[20 ;; 1 ;; -1]]
+blist[[1 ;; 20 ;; 3]]
+\end{verbatim}
 
-  /**
-   * Sort the contents of data in the index range [first,last] in 
-   * least to greatest order
-   * @param data vector of integers to be sorted
-   * @param fst least index of the region to be sorted
-   * @param lst greatest index of the region to be sorted
-   * @return none
-   * @pre fst,lst < data.size()
-   * @post data from fst to lst now contains the same numbers but sorted
-   */
-  void mergesort(std::vector<int>& data,unsigned int fst, unsigned int lst);
-
-  /**
-   *
-   *@param data vector containing portions to be merged
-   *@param lfst least index of left region
-   *@param llst greatest index of the left region
-   *@param rfst least index of right region
-   *@param rlst greatest index of the right region
-   *@return none
-   *@pre lfst<=llst rfst<=llst llst == rfst-1. data from [lfst,llst] and 
-   *  [rfst,rlst] are sorted
-   *@post data from lfst to rlst is sorted
-   */
-  void merge(std::vector<int>& data, int lfst, int llst, int rfst, int rlst);
-
-   
-   TEST(mergesort,all){
-    
-    std::vector<int> sortme;
-
-    mergesort(sortme);
-    EXPECT_EQ(std::vector<int>({}),
-	      sortme);
-
-    sortme = std::vector<int>({1});
-    mergesort(sortme);
-    EXPECT_EQ(std::vector<int>({1}),
-	      sortme);
-
-    sortme = std::vector<int>({7,4});
-    mergesort(sortme);
-    EXPECT_EQ(std::vector<int>({4,7}),
-	      sortme);
-
-    std::vector<int> data{8,7,6,5,4,3,2,1};
-    mergesort(data);
-    EXPECT_EQ(std::vector<int>({1,2,3,4,5,6,7,8}),
-	      data);
-    
-  }
-
-    void mergesort(std::vector<int>& data){
-    if( data.size() > 1 ){
-      mergesort(data,0,data.size()-1);
-    }
-    return;
-  }
-
-  void mergesort(std::vector<int>& data,unsigned int fst, unsigned int lst){
-    if( fst >= lst ){
-      return;
-    }
-    
-    int mid = (lst+fst)/2;
-    mergesort(data,fst,mid);
-    mergesort(data,mid+1,lst);
-    merge(data,fst,mid,mid+1,lst);
-    
-    return;
-  }
-
-  void merge(std::vector<int>& data, int lfst, int llst, int rfst, int rlst){
-
-    if( data[llst] <= data[rfst] ){
-      //already sorted. no merge needed
-      return;
-    }
-
-    int lcurr{lfst};
-    int rcurr{rfst};
-    std::vector<int> merged(rlst-lfst+1);
-    unsigned int mcurr{0};
-
-    // get values from both
-    while(lcurr <= llst && rcurr <= rlst  ){
-      if( data[lcurr] <= data[rcurr] ){
-	merged[mcurr] = data[lcurr];
-	++lcurr;
-      }
-      else{
-	merged[mcurr] = data[rcurr];
-	++rcurr;
-      }
-      ++mcurr;
-    }
-
-    //finish out left
-    while( lcurr <= llst ){
-	merged[mcurr] = data[lcurr];
-	++lcurr;
-	++mcurr;
-    }
-
-    //finish out right
-    while( rcurr <= rlst ){
-	merged[mcurr] = data[rcurr];
-	++rcurr;
-	++mcurr;
-    }
-
-    //copy merged to data
-    for(unsigned int i{0}; i < merged.size(); ++i){
-      data[lfst+i] = merged[i];
-    }
-    
-    return;
-  }
-
+We'll be mostly concerned with 2D lists, so we need to be sure we know how to select rows,
+\begin{verbatim}
+alolon[[2]]
+\end{verbatim}
+columns,
+\begin{verbatim}
+alolon[[;;,1]]
+\end{verbatim}
+or parts of rows and columns
+\begin{verbatim}
+alolon[[;;2,{1,3}]]	
 \end{verbatim}
 
 
-\subsection{Complexity Analysis of Mergesort}
 
-We're concerned with the complexity of the mergesort procedure that takes a single argument as it's the intended call to make in order to sort an entire vector of integers. However, it's quite clear that the complexity of this procedure is equivalent to the complexity of calling \textit{mergesort(data,0,data.size()-1)} as the remainder of the procedure is constant time work. 
+\subsection{Making Tables}
 
-Everything we've analyzed thus far has used loops for repetition. Mergesort uses recursion. The essential task is the same. Analyze the complexity of the work being repeated, determine the amount of repetition, and analyze the product.  Before moving forward it's helpful to establish our vector size $n$ in terms of the procedure's arguments. Working with a single size variable is easier than the implied size we're given with \textit{fst} and \textit{lst}. We've seen this before. Given \textit{fst} and \textit{lst} we can compute the size $n$ of the interval \textit{[fst,lst]}as \textit{lst-fst+1}. Now when we say $n$ what we mean is \textit{lst-fst+1}.  
-
-The recursive \textit{mergesort} does a little bit of $O(1)$ work, makes two recursive calls to mergesort, and one call to the helper \textit{merge}. The recursive calls sort the data from \textit{[fst,mid]} and \textit{[mid+1,lst]}, respectively, where \textit{mid} is the middle index of \textit{[fst,list]}. In plain english, the two recursive calls sort the lower and upper halves of the vector. The helper \textit{merge} acts on the same $n$ elements of the vector that the \textit{mergesort} calling it is sorting.  It might seem like we know very little, bu t that doesn't stop us from saying something very concrete.Let's say the time complexity function\sidenote{number of operations as a function of vector size} for \textit{mergesort} is $f$ and for \textit{merge} is $g$. Then we know the form of $f$ exactly.
-\[
-f(n) = 2*f(\dfrac{n}{2}) + g(n)
-\]
-We also can tell that $f(0)=f(1)=0$. It shouldn't be surprising that the time complexity function for a recursive procedure can be specified with yet another recursive function.  The recursive specification of a mathematical function is called a \textsc{recurrence relation}. In future classes you'll learn some techniques for solving them, which in this context means finding an equivalent function that doesn't use recursion. For now, we'll just do some careful analysis to figure out what's going on with this recurrence. 
-
-Let's pick a nice, manageable $n$ and trace this recurrence to completion to see what happens. 
-\[
-\begin{array}{rcl}
-f(8) &=& 2*f(4) + g(8) \\ \\ 
-&=& 2*(2*f(2) + g(4)) + g(8)  \\ \\
-&=& 4f(2) + 2g(4) + g(8) \\ \\ 
-&=& 4(2*f(1)+g(2)) + 2g(4) + g(8) \\ \\ 
-&=& 8f(1) + 4g(2) + 2g(4) + g(8) \\ \\ 
-&=& 4g(2) + 2g(4) + g(8) 
-\end{array}
-\]
-First that's note that the recursive calls to $f$ eventually hit the base case and become zero.  Along the way, we leave a trail of calls to $g$. What does this tell us about \textit{mergesort}?  Well, it's really all about \textit{merge}, which requires $O(g(n))$ work, and that \textit{mergesort} itself really just lays out a sequence of \textit{merge} calls that eventually sorts the vector. It also tells us that to understand the complexity of \textit{mergesort} we just need to understand how many times \textit{merge} gets called and what the complexity, $g$, of merge sort happens to be. Let's do something different. Let's figure out how often mergesort calls merge and with what sizes. Let's analyze the repetition before we analyze the work being repeated. 
-
-Going back to the mergesort recurrence we can see that $n$ decreases by half at each ``layer''\sidenote{with each substitution of a new $f$} until it eventually hits 1 or 0. We know this pattern.  When $n$ is a power of $2$, then here will be $\log_2(n)$ layers until we hit the base cases $f(1)$.  At layer $k$ we seem to be adding in a new term with the following pattern $2^k*g(\dfrac{n}{2^k})$. We can actually express this whole thing with summation notation.
-\[
-\sum\limits_{k=0}^{\log_2{n}-1}2^kg(\dfrac{n}{2^k})
-\]
-This looks terrible because of those exponential, but we have to remember that this sum has only $\log{n}$ terms to it. We know mergesort is $O(n\log{n})$, so we can now \textit{guess} what the complexity of merge is. If $g(n) = O(n)$, then every term of this sum becomes $n$ because the exponential terms cancel out. 
-\[
-\sum\limits_{k=0}^{\log_2{n}-1} 2^k\dfrac{n}{2^k}
-\]
-This leaves us with a sum of $O(\log{n})$ terms each with the value $n$ for a grand total of $n \log{n}$.
-
-If we think of merge as creating a vector of size $n$ form two vectors of size $\dfrac{n}{2}$ then the analysis is a little easier to tease out. Merge first creates a vector into which the data is merged. Once the merging is done the data is copied back to the original vector. The copy clearly has $O(n)$ complexity. What's less clear is that the merging takes $O(n)$ as well. A good way to see that it must is to look at \textit{mcurr}. This variable tracks the current location to put data in the vector \textit{merged} and rightfully starts at $0$. Each iteration of all three while looks increments this variable by $1$ exactly once. If this merges the $\dfrac{n}{2}$ data form the left half with the $\dfrac{n}{2}$ data from the right into the $n$ locations in \textit{mereged}, then the total number of iterations performed by all three while loops \textit{must} be $n$. Everything else we see is $O(1)$ work with the exception of the construction of merge, which requires another $O(n)$ work\sidenote{\url{http://www.cplusplus.com/reference/vector/vector/vector/}}. Thus the total work done by \textit{merge} is three linear operations, construction, merging, copying giving us $O(3n)+O(1) = O(n)$ . 
-
-
-\subsection{The Design of Mergesort}
-
-The basis of the mergesort design is to view the vector recursively as either empty, size one, or a a left and right half vector. The base cases are trivially sorted. When the vector has at least two elements in it, then we recursively sort the left and right sub-vectors. This creates a new problem: putting two sorted vectors together inorder to create one single sorted vector. That is the exact problem we design \textit{merge} to solve.  
-
-Merge is really just basic iteration. We accumulate a sub-solution with the data we've traversed so far. However, rather than iterating on a single vector, we're iterating over two vectors in parallel.\sidenote{Those two vectors also happen to be two contiguous regions of the same vector.} Usually we iterating by counting through the input vector. This gets hairy given that we have two input vectors and we need to conditionally step through each selecting the minimum between the two options. The version you see above manages This by a series of loops. The first works as long as there is data from each vector available. It selects one item at a time, so one vector counter advances and one does not. As soon as one vector is exhausted, then the loop terminates. The remaining two loops then move all the data from the remaining vector into our accumulator vector. One of these loops is guaranteed to not do any iterations. 
-
-There's an alternative that is probably a bit easier to understand but that will require more actual work\sidenote{as in same complexity but more work per vector element} than the three loop version.  Rather than work in terms of index values for the input vector, we can iterate over each index of the accumulator. Think, ``for each spot in the accumulator, find the right data from the two sorted vectors''. Here's how we might manage that with a for loop. 
+We're looking at tabular data sets. Let's see how we can build a pretty table from a list of lists. First lets make up a fake, table-like data set. 
 \begin{verbatim}
-  for(unsigned int i{0}; i < merged.size(); ++i){
-      if( lcurr <= llst && rcurr <= rlst ){
-	     if( data[lcurr] <= data[rcurr] ){
-	        merged[i] = data[lcurr];
-	       ++lcurr;
-	     }
-      	 else{
-	        merged[i] = data[rcurr];
-	       ++rcurr;
-       	}
-     }
-     else if( lcurr <= llst ){
-	    merged[i] = data[lcurr];
-     	++lcurr;
-      }
-     else{
-	      merged[i] = data[rcurr];
-    	++rcurr;
-     }
-    }
-\end{verbatim}
-Thinking in terms of the output rather than the input(s) is often really helpful for simplifying logic. In this case, it let's us work out of a very, very basic \textit{for} loop rather than three separate loops. A really good exercise  would be to view the first version as an optimized version of the loop shown above and to pick through them until you see what work is minimized and how it's minimized.
-
-\section{Quicksort}
-
-Like \textit{mergesort}, \textit{quicksort} is overloaded\sidenote{multiple signatures} to allow a ``natural'' signature as well as the signature we need to efficiently make recursive calls to sort sub-sections of the vector. 
-
-\begin{verbatim}
-/**
-   * Sort data in least to greatest order
-   * @param data the vector to be sorted
-   * @param prng random number generator used in sorting
-   * @return none
-   * @pre prng has been seeded
-   * @post data is sorted and prng has produced O(log(data.size())) numbers
-   */
-  void quicksort(std::vector<int>& data, std::default_random_engine& prng);
-
-  /**
-   * Sort data from fst to least in least to greatest order
-   * @param data the vector to be sorted
-   * @param fst the least index of the region to sort
-   * @param lst the greatest index of the region to sort
-   * @param prng random number generator used in sorting
-   * @return none
-   * @pre prng has been seeded. fst <= lst < data.size()
-   * @post data from fst to lst is sorted and prng has produced O(log(|[fst,lst]|) numbers
-   */
-  void quicksort(std::vector<int>& data, 
-		 unsigned int fst, unsigned int lst, 
-		 std::default_random_engine& prng);
-
-  /**
-   * Move the numbers in data from fst to lst such that there exists a pivot element where
-   * all the items to its left are less than or equal to it and all items to the right are
-   * greater than it. The pivot index is returned.
-   * @param data vector of integers to be partitioned
-   * @param fst least index of the partition space
-   * @param lst greatest index of the partition space
-   * @param prng random number generated used in pivot selection
-   * @return the pivot index
-   * @pre fst < lst < data.size()
-   * @post for pivot index p, data[fst..p-1] <= data[p] < data[p+1..lst]. One number produced by prng.
-   */
-  unsigned int partition(std::vector<int>& data, 
-			 unsigned int fst, unsigned int lst, 
-			 std::default_random_engine& prng);  
-			 
-TEST(quicksort,all){
-    
-    std::vector<int> sortme;
-    std::default_random_engine prng{1};
-
-    quicksort(sortme,prng);
-    EXPECT_EQ(std::vector<int>({}),
-	      sortme);
-
-    sortme = std::vector<int>({1});
-    quicksort(sortme,prng);
-    EXPECT_EQ(std::vector<int>({1}),
-	      sortme);
-
-    sortme = std::vector<int>({7,4});
-    quicksort(sortme,prng);
-    EXPECT_EQ(std::vector<int>({4,7}),
-	      sortme);
-
-    std::vector<int> data{8,7,6,5,4,3,2,1};
-    quicksort(data,prng);
-    EXPECT_EQ(std::vector<int>({1,2,3,4,5,6,7,8}),
-	      data);
-
-
-  void quicksort(std::vector<int>& data, std::default_random_engine& prng){
-
-    if( data.size() > 1 ){
-      quicksort(data,0,data.size()-1,prng);
-    }
-    return;
-  }
-
-  void quicksort(std::vector<int>& data, unsigned int fst, unsigned int lst, 
-		 std::default_random_engine& prng){
-    
-    if( fst >= lst || fst >= data.size() || lst >= data.size() ){
-      return;
-    }
-
-    unsigned int pidx = partition(data,fst,lst,prng);
-    quicksort(data,fst,pidx-1,prng);
-    quicksort(data,pidx+1,lst,prng);
-    return;
-  }
-  
-  unsigned int partition(std::vector<int>& data, 
-			 unsigned int fst, unsigned int lst, 
-			 std::default_random_engine& prng){
-
-    
-    if( fst+1 == lst ){
-      // 2 items
-      if(data[fst] > data[lst] ){
-	// out of order. swap
-	std::swap(data[fst],data[lst]);
-      }
-      // let the pivot be fst
-      return fst;
-    }
-
-    // 3+ items
-    // choose random item for pivot. move to fst
-    std::uniform_int_distribution<unsigned int> gen{fst,lst};
-    std::swap(data[fst],data[gen(prng)]);
-
-    // set region pointers
-    unsigned int last_s1{fst};
-
-    for(unsigned int i{fst+1};i<=lst;++i){
-      if( data[i] <= data[fst] ){
-
-	if( last_s1 < (i-1) ){
-	  std::swap(data[i],data[last_s1+1]);
-	}
-	last_s1++;
-      }
-    }
-    
-    if( last_s1 != fst ){
-      std::swap(data[last_s1],data[fst]);
-    }
-    return last_s1;
-  }  
-} //end namespace searchsort
-
-	
+mytab = Table[10*i+j,{i,0,20},{j,0,10}]
 \end{verbatim}
 
-\subsection{Complexity Analysis of Quicksort}
-
-Understanding the complexity of \textit{quicksort} is complicated by the fact that the workhorse, \textit{partition}, is randomize. However, knowing what we know from analyzing mergesort we can start to tease out some possibilities. First we notice that, like \textit{mergesort}, quicksort makes two recursive calls on subsections of the vector. In this case we're recursing on \textit{data[fst..pidx-1]} and \textit{data[pidx+1..lst]} for some pivot index \textit{pidx} that comes from the interval \textit{[fst,lst]}. Each call makes a single call to \textit{partition} on the entire region \textit{data[fst..lst]}. 
-
-If that pivot is the middle of the region that we're doing the exact same divide and conquer pattern we did with merge sort. We make two recursive calls to regions roughly half the size of the original and a call to \textit{partition}. For a vector of size $n$ it will take  $O(\log n)$ steps to chop the vector down to empty or singleton\sidenote{size 1} regions. If \textit{partition} has linear complexity then we already know that the complexity of \textit{quicksort} (if the subsections are half the size of the original \textit{always}) is $O(n\log n)$. 
-
-The pivot won't always be the exact middle. Let's see what happens if it's always the first\sidenote{The same logic will apply if the pivot is always the last of the region}. If the pivot \textit{pidx} is \textit{fst}, then the sub-vector \textit{data[fst..(fst-1)]} is effectively the empty vector. This is a base case for \textit{quicksort} and requires $O(1)$ work to sort out. However, the other region, \textit{data[fst+1..lst]} is exactly one element smaller than the original vector. If we continue end up with the first item as the pivot, then we'll need $O(n)$ recursive calls to chop the ``left'' region down to the base case and we'll call \textit{partition} on vector If \textit{partition} has complexity $O(g(n))$ then we'll end up call partition on with all the sizes from $n$ down to 1 or 2. We've seen this before - 
-\[	
-\sum\limits_{i=1}^{n} g(i)
-\]
-When the function $g$ is linear then we end with with a complexity of $O(n^2)$. Linear seems like a pretty fair assumption for \textit{partition}\sidenote{if we can partition with simple iteration then it will be $O(n)$}, so this implies a worst case complexity for \textit{quicksort} of $O(n)$.  
-
-Notice now that we've covered the two extremes of \textit{quicksort}. The further our split gets from half and half, the closer we get to the none and all but one split that leads to quadratic complexity. If we could always choose the median value\sidenote{the middle value} then we'd be set, but we can't know that a priori so it'll take some non-constant work to find that\sidenote{for fun you should develop some procedures for finding the median and then go research the optimal algorithm}. If we always choose a value at a specific location, then we can always find an original vector state that trips the worst case.  That is to say, there's always a chance the the location we choose is always occupied with the min or max value.  For example, if you always let the first element of the sub-vector serve as the pivot value, then sorted vectors will trip the worst case $O(n^2)$ complexity. 
-
-What we need is to \textit{randomly choose one of the values to be the pivot value}. This works because we can show that when you do this you have a fifty-fifty chance of getting a value that's ``in the middle'' versus one that's close to the min/max.  So, you might get some pivots that trigger worst case like performance, but you'll also get some that give you best case performance. In the end, we get a good enough mix that the result is more $O(n \log n)$ than it is $O(n^2)$. You're about as likely to get $O(n^2)$ performance as you are to get $n$ heads in a row when flipping a fair coin\sidenote{remember we're talking \textit{large} $n$}. 
-
-
-\subsection{The Design of Quicksort}
-
-We arrived at selection sort by using the generative strategy with basic iteration.  The core of this idea is to not work with the data as it comes but work with it in a way that respects the problem at hand.  The end result is usually that you modify the data that gets processed next so that what comes next is easier.  Quicksort applies this principle to divide and conquer recursion. 
-
-In mergesort we cut the data in half, sorted whatever was in each half, then merged the result. In sorting each half we're likely to move a lot of data that then later gets moved again in the merge.  For example, if the max value is in the left sub-section of the vector, then we'll move it around a bunch to get it into the last place of the left sub-half, then move it again when we merge it with the right sub-half.  
-
-To avoid this we need re-organize the data before we split it into two chunks. The split we want is to put the smallest values\sidenote{in statistics speak we mean the first and second quartile} in the left half and the largest\sidenote{the third and fourth quartile} in the right half. If we can do that, then we never have to move these items from those regions. Sorting those two-halves would mean the entire vector is sorted. 
-
-Getting this \textit{partition}\sidenote{yes, this is what our helper does for us} perfect would require knowing the median value so that we can move data with respect to that value.  It is not possible to do this in a time that doesn't overwhelm the gains we'd get from using divide and conquer. So we'll half to settle for a less than perfect partition. So rather than give up, we can try a less than perfect split. This is what you see with \textit{partition}. 
-
-Partition's goal is to pick a value from the vector at random. That value acts as the pivot. To simplify the partitioning, we swap that value with the first value. Our goal now is to partition everything else into the two halves: those less than or equal to the pivot and those greater.  To do this we use basic iteration. Traverse the data, if the current item is in the smaller group, then swap it with the first item in the larger group. If it's in the larger group, then we don't need to move it. When we're done, we can swap the pivot with the last of the smaller half.Watch this play out. We'll leave the pivot to the right of the ``vector'' and we'll use separate logical vectors for the two halves. 
+We might like to view this in an organized table format with TableForm. 
 \begin{verbatim}
-5 {} {} {3,4,7,8,2,9}
-5 {3} {} {4,7,8,2,9}
-5 {3,4} {} {7,8,2,9}
-5 {3,4} {7} {8,2,9}
-5 {3,4} {7,8} {2,9}
-5 {3,4,2} {8,7} {9}
-5 {3,4,2} {8,7,9}
-{2,3,4} 5 {8,7,9}
+TableForm[mytab]
 \end{verbatim}
-Using swaps, as opposed to shifting data, saves a lot of work. It's made possible by the fact the do not care about the order of the two regions, just that they're smaller and larger than the pivot, respectively. 
+TableForm has several useful options. Perhaps the most important are for specifying headers.
+\begin{verbatim}
+mytab,TableForm[mytab, TableHeadings ->
+  {Table[i, {i, 20}], {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"}}]
+\end{verbatim}
 
+To put captions or labels on graphics, like a table, we use the Labeled function. I find the default spacing to be too tight and tend to add some space between the label and the graphic. It's also convenient to name the finished graphic.
+\begin{verbatim}
+tabview = 
+ Labeled[TableForm[mytab, TableHeadings ->
+    {Table[i, {i, 20}], {"a", "b", "c", "d", "e", "f", "g", "h", "i", 
+      "j"}}],
+  "Table 1: Some data showing some relationship", 
+  Spacings -> {Automatic, 2}]
+\end{verbatim}
+
+Now that we have pretty table, we probably want to save it as an image file. The \textit{Export} procedure makes this super easy. 
+\begin{verbatim}
+Export["TimesTable.svg",tabview]
+\end{verbatim}
+Mathematica will determine the file format based on the extension you give in the file name. In this case, I'm exporting as Scalable Vector Graphic\sidenote{svg \url{https://en.wikipedia.org/wiki/Scalable\_Vector\_Graphics}} because it tends to scale up in size better than formats like png or jpg. 
+
+\subsection{Importing csv Data}
+
+Importing a csv is as easy as exporting and image.  
+\begin{verbatim}
+datatab = Import["mydata.csv"]
+\end{verbatim}
+The Import function determines the file format from the extension. For csv files, it will read the data as a 2D list where each line is a row. Here we're saving the resultant list of lists as the variable \textit{datatab}. 
+
+\section{Basic Statistics} 
+
+
+We concerned with tables of data, so let's make some fake data and use it to explore some basic statistical gathering and data manipulation. Here we'll make a 20 row by 10 column table of random numbers. 
+\begin{verbatim}
+randtab = RandomVariate[NormalDistribution[],{20,10}]
+\end{verbatim}
+
+The first thing we might like to do is compute some basic statistics like minimum, maximum, and average. The functions Min and Max will give you the relevant values for the whole table. 
+\begin{verbatim}
+Min[randtab]
+Max[randtab]
+\end{verbatim}
+If we'd like to get the Min/Max by row, then we can use Map. The Map function applies a function to each element of a list. In this case, we'll apply Min/Max to each row.
+\begin{verbatim}
+Map[Min,randtab]
+Map[Max,randtab]
+\end{verbatim}
+To get the Min/Max for a column we can first Transpose the table. This turns rows into columns and columns into rows. Thus, the Min of the each row in the transpose is the Min of the columns in the original.
+\begin{verbatim}
+Map[Min,Transpose[randtab]]
+Map[Max,Transpose[randtab]]
+\end{verbatim}
+
+The function Mean gives you the average for each column.  If you want row averages, then Transpose is once again your friend.
+\begin{verbatim}
+Mean[randtab]
+Mean[Transpose[randtab]]
+\end{verbatim}
+
+\section{Plotting Points}
+
+Mathematica and do a lot of different visualizations. We'll focus solely on plotting points in 2D space with \textit{ListPlot} and work with \textit{randtab} from the previous section. There are three ways to use ListPlot. If you give it a list of values, then it treats those values as the y-coordinates and assigns each value's location as it's x-coordinate. You see this when you plot a row of the table.
+\begin{verbatim}
+ListPlot[randtab[[1]]]
+\end{verbatim}
+Plotting the table causes ListPlot to treat each sub-list\sidenote{row} as a set of points for that list's location in the main list. So row 1 is treated as a set of points for $x$ equal to 1. 
+\begin{verbatim}
+ListPlot[randtab]
+\end{verbatim}
+When your data is set out incrementally such that list position is the x-coordinate you want, then this is great. If, however, the position in the list is not the x-coordinate, then you need ListPlot  option 3-- plotting a list of $\{x,y\}$ pairs. The trick is we'll have to build this pairs. 
+
+Let's start with a simple case. Our table has 10 columns. Let's say column $i$ corresponds to an $x$ coordinate of $10i$ rather than just plain $i$\sidenote{row 1 is 10, 2 is 20, and so forth}. First we need a list of our y-coordinates.
+\begin{verbatim}
+xs = Table[10*i,{i,10}]
+\end{verbatim}
+Now all we need to do is ``zip'' these lists together such that the $i$th element of \textit{ys} matches up with the $i$th element of the row. There is no Zip function in Mathematica, but in this case we can use Transpose yet again. If we build a list with the first row as our x data and the second as our y data, then the Transpose of that list is our x-y pairs.
+\begin{verbatim}
+Transpose[{xs,randtab[[1]]}]
+\end{verbatim} 
+
+It might be nice to have a defined function called Zip so that we can say something like \textit{Zip[xs,ys]} rather than use Transpose directly. If anything, it's a good excuse to see how we write functions in Mathematica.  So, here's the definition for Zip!
+\begin{verbatim}
+Zip[xs_,ys_] := 
+  Transpose[{xs,ys}];
+\end{verbatim}
+The first line is the function header. We same the name followed by the parameter list. Each parameter name is followed by an underscore. The header is separated from the body by $:=$. The body is then just the Mathematica expression that carries out the intended function. We can now zip our row to the y-coordinates using Zip.
+\begin{verbatim}
+points = Zip[xs,randtab[[2]]];
+ListPlot[points]
+\end{verbatim} 
+
+Now another case\sidenote{the case you encounter in project 2}. What if each row is a set of points for an x-coordinate that is not the row's index? Our table has 20 rows. Let's say the row x-coordinates correspond to the first 20 squares:
+\begin{verbatim}
+rowxs = Table[i^2 , {i,20}]
+\end{verbatim}
+Now we want to zip row $i$ of our data table with row $i$ of our x-coordinate table. We can solve this problem with Map.  While we're at it. Let's make a function called \textit{MakePoints} that takes the list of x-coordinates and the table and maps out the x-coordinates to each row. Let's look at the complete definition for MakePoints then pick it apart.
+\begin{verbatim}
+MakePoints[xs_, ytab_] :=
+  Map[Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] &, 	
+  Table[i,{i,Length[ytab]}]]	
+\end{verbatim}
+
+First we note that we're mapping this Function\sidenote{It \textit{has} to be a function if it satisfies the Map signature}, 
+\begin{verbatim}
+Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] &
+\end{verbatim}
+over the list of \textit{ytabs} index values.
+\begin{verbatim}
+Table[i,{i,Length[ytab]}]
+\end{verbatim}
+This is actually reminiscent of our vector loops in C++ as we're mapping over index values rather than the table itself. 
+
+The odd part here is the function:
+\begin{verbatim}
+Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] &
+\end{verbatim}
+This is what's often called a \textsc{lambda expression}. It's an anonymous function or a function literal. In Mathematica we can write these using the \& symbol. Everything to the left of \& is the function body. The symbol \# is used for the argument. In this case it's a one argument function. If you want to do multi-argument functions, then we just add the argument number after the \#\sidenote{\#1 is the first argument, \# the second, and so on} symbol. We can tell from the context that the argument of our unnamed function must be an index number. We use it to select an element from \textit{xs} and a row from \textit{ytab}.  Let's put this together and state in English what we're seeing.
+\begin{quote}
+The expression \begin{verbatim} Zip[Table[xs[[#]], {i, Length[ytab[[#]]]}], ytab[[#]] ] & \end{verbatim} is the function that takes Zips a list of the same length as the \#th row of \textit{ytab} containing only the \#th element of \textit{xs} with the \#th row of \textit{ytab}. 
+\end{quote}
+
+If you don't like this shorthand, then you can use the \textit{Function} function for specifying anonymous functions.
+\begin{verbatim}
+Function[i, Zip[Table[xs[[i]], {i, Length[ytab[[i]]]}], ytab[[i]] ]
+\end{verbatim}
+Either way, the Map+Anonymous Function combo is extremely powerful. It can save you the trouble of defining and naming every little function you wish to map on a data set. 
+
+Now that we can tag each row with its x-coordinate, we can create and plot our list of points\sidenote{technically list of lists, but Mathematica doesn't care}.
+\begin{verbatim}
+morepoints = MakePoints[Table[i^2,{i,Length[randtab]}],randtab];
+ListPlot[morepoints]
+\end{verbatim}
+
+\subsection{ListPlot Spruce Up}
+
+The default options for ListPlot are usually pretty good, but there are a few essentials we need to look at to ensure good plots. 
+\begin{itemize}
+\item \textit{AxesLabel} To add labels to the axes
+\item PlotRange \textit{To specify the min/max y-coordinates displayed}
+\end{itemize}
+
+AxisLabel is pretty self-explanatory. PlotRange lets you give exact values or you can use \textit{All} or \textit{Automatic} to let Mathematica figure it out.  Automatic is the default and will on occasion lead to cutting off some max values. In which case, All is a good alternative.  Explicit values are nice when you need to fit things to a critical range. Here's a few examples.
+\begin{verbatim}
+morepoints = MakePoints[Table[i^2,{i,Length[randtab]}],randtab];
+ListPlot[morepoints,AxesLabel -> {"Size","Time"},PlotRange -> All]
+ListPlot[morepoints,AxesLabel -> {None,"Time"},PlotRange -> {-4,4}]
+\end{verbatim}
+
+We can then use the Labeled function to add a caption and Export to produce an image file. 
+\begin{verbatim}
+mypoints = 
+	Labeled[ ListPlot[morepoints,AxesLabel -> {"Size","Time"},PlotRange -> All],
+	  "Figure 2: Size and Time...",Spacings -> {Automatic,2}]
+
+Export["datapoints.svg",mypoints]
+\end{verbatim}
 
 \end{document}

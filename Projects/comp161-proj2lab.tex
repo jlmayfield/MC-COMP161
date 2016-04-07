@@ -4,7 +4,7 @@
 
 \title{COMP161 - Pre-Project 2 Lab}
 \author{}
-\date{Spring 2015}
+\date{Spring 2016}
 
 \begin{document}
 \maketitle
@@ -15,11 +15,11 @@ For this lab you'll start thinking about some procedures that we should find use
 
 \section{ Library Procedures }
 
-In \textit{/home/comp161/sp15} you'll find the file \textit{labp2-starter.zip}. This zip file contains a starter for today's lab. Your first task is to implement the library found in this starter. The procedures have already been documented in \textit{labp2.h} and tests have been written in \textit{labp2\_tests.cpp}. You simply need to implement the procedures in the file \textit{labp2.cpp} based on the specification outlined by the documentation and tests.  The procedures \textit{sorted\_ints} and \textit{write\_times} will give you some more practice with iterative design and loops. The procedure \textit{rand\_ints} let's you work with std::shuffle in a new context\sidenote{no loops needed}.
+In \textit{/home/comp161/sp16} you'll find the file \textit{labp2-starter.zip}. This zip file contains a starter for today's lab. Your first task is to implement the library found in this starter. The procedures have already been documented in \textit{labp2.h} and tests have been written in \textit{labp2\_tests.cpp}. You simply need to implement the procedures in the file \textit{labp2.cpp} based on the specification outlined by the documentation and tests.  The procedures \textit{sorted\_ints} and \textit{write\_times} will give you some more practice with iterative design and loops. The procedure \textit{rand\_ints} let's you work with std::shuffle in a new context\sidenote{no loops needed}.
 
 \section{ Profile std::find }
 
-Once you have the library implemented you can use it\sidenote{really just sorted\_ints and write\_times} to write a \textit{main} procedure that records the running time of all $501$ cases of \textit{std::find} with a vector of integers of size $500$\sidenote{the case analysis of this problem is covered in LN14}. Your times should be written as comma separated values to a file called \textit{labp2.csv}.  
+Once you have the library implemented you can use it\sidenote{really just sorted\_ints and write\_times} to write a \textit{main} procedure that records the running time of all $501$ cases\sidenote{the key is at each of the 500 locations and the key isn't found} of \textit{std::find} with a vector of integers of size $500$. Your times should be written as comma separated values to a file called \textit{labp2.csv}.  
 
 \section{Looking Ahead}
 
