@@ -111,8 +111,56 @@ int search(const std::vector<int>& data,int fst, int lst, int key){
 \caption{Search: Recursive Implementation} 
 \end{figure}
 
+Analyzing the recursion itself requires a combination of knowing how to handle the use of helper procedures and knowing how a recursive process is carried out by the computer. The top level \textit{search} function makes a call to the more general, recursive search.  While we can't know the exact complexity of the process carried out by this search without knowing how the recursive helper behaves, we can fully understand the work done by the top-level search and not a part of the recursion. Before the recursive call is made we determine the size of the vector data, that's it. This means the two argument, top-level search does a constant, $O(1)$, amount of work \textit{plus} whatever the recursive call with will do given its parameters. That's it.  
 
+In general, it's important to be able to say something definitive about a procedure's complexity in the face of uncertainty about helper complexity. As the search example demonstrates, it's simply a matter of identifying the work done outside the helper. We can actually go further with this search. If the recursive search is anything other than constant complexity, then we know that the work done by that recursion will dominate the $O(1)$ work done outside the recursion.\sidenote{the sum of two different classes is the max of the classes} If the recursion itself is constant, then the sum total is constant\sidenote{the basic sum rule of Big-O}. This means that the top level search complexity will be as complex as the recursive helper, no more no less.
+
+Now we must manage the recursive version of search. Let's begin with the exact strategy we used for the top-level function and identify the complexity of all the work done outside of the recursive call. Under what circumstances is this work maximized? To answer this we need to look carefully at the conditional. The more conditions that fail, the more work done by the conditional because every test must be carried out.  So the conditional itself will do the maximum amount of work with the \textit{if} and \textit{else if} condition are false. In that case each comparison requires $O(1)$ work\sidenote{so in complexity terms best and worst are the same $O(1)$}. The body of the \textit{else} then requires another addition before the recursion, so we're still looking at some constant, $O(1)$, work. All told, each time search is called in the course of the recursion, it will perform $O(1)$ work.  Figuring this out leaves us with one question: how many times does this procedure call itself?\sidenote{notice the overall strategy here is the same as the loops: separate work repeated from repetition then combine that information}
+
+At this point we need to be clear about the mechanics of recursion. On one hand, it behaves no differently than any other procedure call, but on the other hand the procedure is calling itself and managing this sameness and otherness can take practice.  Let's say we start with a vector containing $\{3,1,7,5\}$ and we're searching for the key $2$. This is an example of the worst case where the search key will not be found. The first call to the recursive search has $fst=0$ and $lst=4$. This instance of search makes a call with $fst=1$ and $lst=4$, that instance make call with $fst=2$ and $lst=4$, and so on until finally the base case is reached where$fst=lst=4$. At this point each search returns -1 to the search in which it was called until finally the first instance returns -1 and the recursive chain is done as seen in figure \ref{fig:rectrace}.
+
+\begin{figure*}[!htbp]
+\begin{tabular}{ccccc}
+search(data,2,0,4) & & & &  \\
+$\hookrightarrow$ & search(data,2,1,4) & & & \\
+& $\hookrightarrow$ & search(data,2,2,4) & & \\
+&  &  $\hookrightarrow$ & search(data,2,3,4) & \\
+& &  &  $\hookrightarrow$ & search(data,2,4,4) \\
+& &  & search(data,2,3,4) & $\leftarrow$ -1  $\hookleftarrow$ \\
+&  & search(data,2,2,4) & $\leftarrow$ -1  $\hookleftarrow$ & \\
+& search(data,2,1,4) & $\leftarrow$ -1  $\hookleftarrow$ & & \\
+search(data,2,0,4) &$\leftarrow$ -1  $\hookleftarrow$ & & & \\
+$\leftarrow$ -1 $\hookleftarrow$ & & & & 
+\end{tabular}
+\caption{An example sequence of recursive search calls for $data=\{3,1,7,5\}$ }
+\label{fig:rectrace}
+\end{figure*}
+
+The important thing to notice here is that for any value of $fst > lst$, search will call itself recursively while increasing $fst$ by one such that $fst$ will reach $lst$ eventually and cause the procedure to begin returning back to the original call to search. If each call adds one to $fst$ then $n$ calls adds $n$ and we need to determine when $fst+n=lst$ because at that point the recursion stops. It's clear that $n=lst-fst$. This is exactly the size of the region being searched. We now know that in the worst case, recursive search calls itself once for every element in the search region. For each of those calls a constant amount of work will be done. For a search region of size $n$\sidenote{again: $n=lst-fst$}, search will do a total of $O(n)*O(1)=O(n)$ work. So, to search the entire vector for the key we first do $O(1)$ work then call the recursive search which does linear in the size of the vector work. Recursive search is no more or less complex than iterative search. 
+
+\subsection*{Recurrence Relations (OPTIONAL)}
+
+To determine the complexity of the recursive search we analyzed the recursion in the same way that we analyzed loops: determine the work done per repetition, determine the amount of repetition, then combine the results as a product. There is a formal way of managing the analysis of recursive procedures using recursive mathematical functions. You'll learn this in Discrete Math and use it more advanced CS courses but I'll give you a quick taste of it here.
+
+Let's say that $T$ is the time function of our search procedure such that for searching a vector region size $n=lst-fst$, $T(n)$ is the time complexity of search. The base case occurs when $n=0$ and in that case we find that search does a constant amount of work, or $T(0) = O(1)$. For $n>0$, we see that the procedure does a constant amount of work then makes a recursive call to search a vector region of size $n-1$. We express this with the \textsc{recurrence relation}
+\[
+T(n) = T(n-1) + O(1)
+\]
+Our goal now is to solve this equation in such a way as to remove the recursion of $T$ on the right hand side. One way to do this is simply to unwind the recursion in order to discover the pattern.
+\begin{equation*}
+\begin{array}{rcl}
+T(n) &= & T(n-1) + O(1) \\
+ &=& (T(n-2) + O(1)) + O(1) = T(n-2) + 2(O(1)) \\  
+ &=& (T(n-3) + O(1)) + 2*O(1) = T(n-3) + 3(O(1)) \\
+ &=& (T(n-4) + O(1)) + 3*O(1) = T(n-4) + 4(O(1)) \\
+ &=& \ldots \\
+ &=& T(n-k) + k*O(1)
+\end{array}
+\end{equation*}
+At this point we see that after $k$ recursive calls we've accumulated $k$ units of constant work. When $k=n$ then we reach $T(0)$ and find that $T(n) = T(0)+O(n)=O(n)$ work is done. Many techniques exist for solving recurrence relations. The one demonstrated here is really just a more formalized version of the analysis that we did when analyzing recursive search.
 
 \section{Insertion Sort is Quadratic Time}
+
+
 
 \end{document}
