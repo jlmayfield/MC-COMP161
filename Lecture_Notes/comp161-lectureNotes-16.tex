@@ -165,8 +165,78 @@ Given that we're utilizing the same techniques to solve sort that we did to solv
 
 \subsection{Iterative Insertion Sort}
 
+Take a look at figure \ref{code:isortiter} and reacquaint yourself with the iterative implementations of both sort and insert.
+\begin{figure}
+\begin{lstlisting}
+void iter::sort(std::vector<int>& data){
+
+    for(unsigned int i{1}; i < data.size(); i++){
+      iter::insert(data,0,i);
+    }
+    return;
+}
+
+void iter::insert(std::vector<int>& data,
+		   unsigned int fst, unsigned int lst){
+
+    for(unsigned int i{lst-1}; i >= fst && i < data.size(); i--){
+      if( data[i+1] < data[i] ){
+		std::swap(data[i],data[i+1]);
+      }
+      else{
+		return;
+      }
+    }
+    return;
+}
+\label{code:isortiter}
+\caption{Sort \& Insert: Iterative Implementations}
+\end{lstlisting}
+\end{figure}
+
+The analysis of the sort procedure itself is pretty strait-forward if we set aside the work done by insert. The only work that is local to sort is the loop and that loop is a now familiar linear time loop. In this case there is no possibility of returning prior to violating the loop continuation condition, so a vector of size $n$, this loop will always produce a solid $O(n)$ work. Put another way, there is only a single case for sort: call insert $n-1$ times. As a whole, this means sort has complexity no better than linear in the size of the vector because it takes at least that to drive the loop for insert. 
+
+The insert procedure works by systematically inserting the element that begins at \textit{data[lst]} into the region of data running from \textit{fst} to \textit{lst-1} by swapping down from \textit{lst-1} to \textit{fst}. The loop and the procedure can stop early if \textit{data[i+1]}, the item originally at \textit{data[lst]}, is greater than or equal to \textit{data[i]}. Otherwise the loop goes to completion and traverses the entire insertion region. This means that the worst case occurs whenever the loop goes to completion which happens when the element being inserted is less than all the values in the insertion region. We can simplify the discussion of the complexity of insert by recognizing that the total work here is driven by the size of the insertion region which is $n=lst-fst+1$\sidenote{the +1 this time is due to the inclusion of \textit{lst}}.
+
+When the worst case of insert occurs, the loop traverses the entire insertion region of size $n=lst-fst+1=O(lst-fst)=O(n)$ time. We know this because it's the now all to familiar traversal by steps of size one loop that we've used time and time again\sidenote{Notice the continuation condition of this loops is more expensive than usual but only by a constant amount, which washes out in Big-O}. The work on the inside of the loop will, in the worst case, require the comparison of two vector elements, $O(1)$ work, and a swap of those two elements. A quick check of the C++ reference tells us that this form of \textit{std::swap} requires constant time\sidenote{temp = a; a = b; b = temp;}. Thus, the total work done on each iteration of the loop is $O(1)$, the loop does $O(n)$ iterations, and the total work needed by insert is linear in the size of the insertion region.
+
+We now know that insert does work that is linear in the size of the insertion region and that sort calls insert once for all but one of the vector elements. The real trick here is that each time sort calls insert the region of insertion grows by one. The work done by insert is dependent on the value of 
+
 \subsection{Recursive Insertion Sort}
 
+\begin{figure}
+\begin{lstlisting}
+void recur::sort(std::vector<int>& data){
+   recur::sort(data,0,data.size());
+   return;
+}
+
+void recur::sort(std::vector<int>& data,int fst, int lst){
+   if( fst >= lst-1 ){
+      return;
+    }
+
+    recur::sort(data,fst+1,lst);
+    recur::insert(data,fst,lst-1);
+    return;
+}
+
+void recur::insert(std::vector<int>& data,
+		     unsigned int fst, unsigned int lst){
+    if( fst >= lst ){
+      return;
+    }
+
+    if( data[fst] > data[fst+1] ){
+      std::swap(data[fst],data[fst+1]);
+      recur::insert(data,fst+1,lst);
+    }
+    
+}
+\label{code:isortrec}
+\caption{Sort \& Insert: Recursive Implementations}
+\end{lstlisting}
+\end{figure}
 
 
 
