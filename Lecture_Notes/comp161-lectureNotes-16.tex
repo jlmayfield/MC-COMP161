@@ -194,16 +194,59 @@ void iter::insert(std::vector<int>& data,
 \end{lstlisting}
 \end{figure}
 
-The analysis of the sort procedure itself is pretty strait-forward if we set aside the work done by insert. The only work that is local to sort is the loop and that loop is a now familiar linear time loop. In this case there is no possibility of returning prior to violating the loop continuation condition, so a vector of size $n$, this loop will always produce a solid $O(n)$ work. Put another way, there is only a single case for sort: call insert $n-1$ times. As a whole, this means sort has complexity no better than linear in the size of the vector because it takes at least that to drive the loop for insert. 
+The analysis of the sort procedure itself is pretty strait-forward if we set aside the work done by insert. The only work that is local to sort is the loop and that loop is a now familiar linear time loop. In this case there is no possibility of returning prior to violating the loop continuation condition, so for a vector of size $n$, this loop will always produce a $O(n)$ work. Put another way, there is only a single case for sort: call insert $n-1$ times. As a whole, this means sort has complexity no better than linear in the size of the vector because it takes at least that to drive the loop for insert. 
 
 The insert procedure works by systematically inserting the element that begins at \textit{data[lst]} into the region of data running from \textit{fst} to \textit{lst-1} by swapping down from \textit{lst-1} to \textit{fst}. The loop and the procedure can stop early if \textit{data[i+1]}, the item originally at \textit{data[lst]}, is greater than or equal to \textit{data[i]}. Otherwise the loop goes to completion and traverses the entire insertion region. This means that the worst case occurs whenever the loop goes to completion which happens when the element being inserted is less than all the values in the insertion region. We can simplify the discussion of the complexity of insert by recognizing that the total work here is driven by the size of the insertion region which is $n=lst-fst+1$\sidenote{the +1 this time is due to the inclusion of \textit{lst}}.
 
 When the worst case of insert occurs, the loop traverses the entire insertion region of size $n=lst-fst+1=O(lst-fst)=O(n)$ time. We know this because it's the now all to familiar traversal by steps of size one loop that we've used time and time again\sidenote{Notice the continuation condition of this loops is more expensive than usual but only by a constant amount, which washes out in Big-O}. The work on the inside of the loop will, in the worst case, require the comparison of two vector elements, $O(1)$ work, and a swap of those two elements. A quick check of the C++ reference tells us that this form of \textit{std::swap} requires constant time\sidenote{temp = a; a = b; b = temp;}. Thus, the total work done on each iteration of the loop is $O(1)$, the loop does $O(n)$ iterations, and the total work needed by insert is linear in the size of the insertion region.
 
-We now know that insert does work that is linear in the size of the insertion region and that sort calls insert once for all but one of the vector elements. The real trick here is that each time sort calls insert the region of insertion grows by one. The work done by insert is dependent on the value of 
+We now know that insert does work that is linear in the size of the insertion region and that sort calls insert once for all but one of the vector elements. The real trick here is that each time sort calls insert the region of insertion grows by one. The work done by insert is dependent on the value of sort's loop counter variable $i$. At this point we need to look for a pattern in the work done by \textit{insert} and use it to determine the total work done by all the inserts. The key observation is that the size of the insertion region grows by $1$ each time. It starts a size $1$ and stops after inserting into a region of size $n-1$ for a vector of size $n$. The total work done by every call to insert will then be sum of a series of insertions with an incrementally increasing work load, namely:
+
+\[
+O(1) + O(2) + \ldots + O(n-2) + O(n-1) = O(1+2+\ldots+(n-2)+(n-1))
+\]
+
+We must now be very careful as this isn't like the other sums we've dealt with while doing complexity analysis. The number of terms in this sum varies with $n$, and, in fact, it has exactly $n-1$ terms to it. 
+
+This kind of increasing sum is incredibly common in complexity analysis and in mathematics generally. It's what's called an \textsc{arithmetic series}. In mathematics it can be written very compactly using \textsc{summation notation} as shown in equation \ref{eq:arith}.
+\begin{equation}
+\sum\limits_{i=0}^{n} i = 0 + 1 + \ldots +(n-1) + n
+\label{eq:arith}
+\end{equation}
+The problem we currently have is that the series we're dealing with is open expression\sidenote{variable number of terms} and we don't know it's exact value. What we need is a \textsc{closed-from expression}\sidenote{fixed number of terms} for this series that would let us calculate it's exact value and order. 
+
+Before we go about solving for the closed form of this expression, we can intuit our way to an upper and lower bound.  We know that we're dealing with a series of $n-1$ terms with the minimum of $1$ and a maximum of $n-1$. What if each of them were just $1$? Well then we'd just have a very long winded expression for $(n-1)$\sidenote{$(n-1)$ 1's added together is $(n-1)$} which is $O(n)$. So certainly our series is no better than linear. Maybe we already figured that was the case. What if each term were $(n-1)$? Then we'd have $(n-1)$ occurrences of $(n-1)$ or $n^2-2n+1$ which is $O(n^2)$. So this series is no worse than quadratic. This worst case, quadratic upper-bound logic actually gives a real clue as to the exact nature of the series. 
+
+Imagine an $(n-1)$ by $(n-1)$ square. This square represents the sum of $(n-1)$ terms each equal to $(n-1)$ where each column is a term and the height of the column is the term's value. The area of this square \textit{is} the total of the sum. Now, what would our series look like? It'd be a triangle where the first column is height 1, the second is $2$ and on to the $(n-1)^{th}$ column of height $n-1$. Once again, the area of this triangle is the total of our sum. This triangle just so happens to be the right triangle that comprises half of our $(n-1)\times(n-1)$ square. It's area is, therefore, $\dfrac{n^2-2n+1}{2}$ which is $O(n^2)$. Returning back to our sort, we now know that the total work done by all the calls to insert is $O(n^2)$, quadratic, for a vector of size $n$. Adding this to the linear work done by the loop that drives the inserts, we find that our iterative insertion sort is quadratic in the size of the vector.
+
+Before we move on let's go back to that series and see if we can't tease out a closed form using something similar to our triangle logic. Let's say we take the basic series that sums from $0$ up to $n$. It has $n+1$ terms.  We don't know what the exact value of the sum is but let's call it $\mathcal{S}$. What happens if we add it to itself. Obviously we have $2\mathcal{S}$, but there is something interesting we can see about $2\mathcal{S}$ if we flip one of the series around. As we see in figure \ref{ex:2s}, each term is equal to $n$ and the total must then be $n(n+1)$.
+\begin{figure*}[!htpb]
+\[
+\begin{array}{ccccccccccccccccc}
+  &(& 0 & + & 1     & + & 2    & + & \ldots & + & (n-2) & + & (n-1) & + & n & ) & \\
++ &(& n & + & (n-1) & + & (n-2)& + & \ldots & + & 2     & + & 1     & + & 0 & ) & \\ \hline
+  &(& n & + & n     & + & n    & + & \ldots & + & n     & + & n     & + & n & ) & = n(n+1)
+\end{array}
+\]
+\caption{Adding $\mathcal{S}$ to itself}
+\label{ex:2s}
+\end{figure*}
+
+Of course, this $n(n+1)$ is twice as much as we want so we simply divide by two and get $\mathcal{S}$. We now have a closed form for the series as well as the Big-O of the series as shown in equation \ref{eq:arith2}.
+\begin{equation}
+\sum\limits_{i=0}^{n} i = 0 + 1 + \ldots +(n-1) + n = \dfrac{n(n+1)}{2} = O(n^2)
+\label{eq:arith2}
+\end{equation}
+For insertion sort we had an initial value of $1$, not $0$, and a terminal value of $n-1$, not $n$. Not including $0$ doesn't really change anything and we can simply plug $n-1$ in for $n$.
+\[
+\sum\limits_{i=1}^{n-1} i = \dfrac{n(n-1)}{2} = O(n^2)
+\]
+We got this result another way, but now that we know the closed form for arithmetic series we can use it whenever we encounter it in complexity analysis.
+
 
 \subsection{Recursive Insertion Sort}
 
+Figure \ref{code:isortrec} lists all the code for the recursive implementation of insertion sort. 
 \begin{figure}
 \begin{lstlisting}
 void recur::sort(std::vector<int>& data){
@@ -233,11 +276,16 @@ void recur::insert(std::vector<int>& data,
     }
     
 }
+\end{lstlisting}
 \label{code:isortrec}
 \caption{Sort \& Insert: Recursive Implementations}
-\end{lstlisting}
 \end{figure}
 
+This analysis is based entirely on ideas we've encountered before. The top-level sort does a small constant amount of work. The recursive sort will do a constant amount of work per recursive call and will call itself recursively $n-1$ times for a vector of size $n$. We can tell because the recursive call increments $fst$ by 1 and recursion terminates when $fst = lst-1$. The initial values for fst and lst were 0 and the size of the vector respectively. Just like with recursive search, this means one recursive call to sort per element in the vector\sidenote{this is the intent of basic recursion after all, to manage/sort one element at a time}. This means that all the work done by sort but excluding the work done by insert must be linear in the size of the vector. 
+
+Insert exhibits the same kind of linear recursive pattern we saw from sort. In the worst case, it will call itself once per element in the insertion region by incrementing fst by one with each call and pushing it towards lst. With each call to insert a constant amount of work is done. Thus we see that recursive insert is, like it's iterative counterpart, linear in the size of the insertion range. 
+
+Finally, we must account for all the work done by all the calls to insert. Each of the $n$ calls is done on regions of decreasing\sidenote{or increase if you're thinking about the actual order in which they get called as opposed to the order in which sort gets called} size. The first insert has a region of size $n-1$ and the last has a region of size $1$. We know this pattern. We just solved this pattern. It's the arithmetic series and it's $O(n^2)$. So, just like the iterative insertion sort, recursive insertion sort requires work that is quadratic in the size of the vector. 
 
 
 \end{document}
