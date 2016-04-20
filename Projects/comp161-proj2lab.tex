@@ -10,16 +10,17 @@
 \maketitle
 
 \begin{abstract}
-For this lab you'll start thinking about some procedures that we should find useful for the experimental algorithm analysis we'll be carrying out in project 2. You'll also start playing with the use of the \textit{chrono} library for running time profiling of procedures. At the end of lab, submit your work as \textit{labp2} using \textit{handin}. 
+For this lab you'll start working with some code that you should find useful for the experimental algorithm analysis you'll be carrying out in project 2. You'll also start playing with the use of the \textit{chrono} library for running time profiling of procedures. Overall, your goal is to move towards profiling some cases of std::find. At the end of lab, submit your work as \textit{labp2} using \textit{handin}. 
 \end{abstract}
 
 \section{ Library Procedures }
 
-In \textit{/home/comp161/sp16} you'll find the file \textit{labp2-starter.zip}. This zip file contains a starter for today's lab. Your first task is to implement the library found in this starter. The procedures have already been documented in \textit{labp2.h} and tests have been written in \textit{labp2\_tests.cpp}. You simply need to implement the procedures in the file \textit{labp2.cpp} based on the specification outlined by the documentation and tests.  The procedures \textit{sorted\_ints} and \textit{write\_times} will give you some more practice with iterative design and loops. The procedure \textit{rand\_ints} let's you work with std::shuffle in a new context\sidenote{no loops needed}.
+In \textit{/home/comp161/sp16} you'll find the file \textit{labp2-starter.zip}. This zip file contains some starter code for today's lab. Your first task is to implement the library found in this starter. The procedures have already been documented in \textit{labp2.h} and tests have been written in \textit{labp2\_tests.cpp}. You simply need to implement the procedures in the file \textit{labp2.cpp} based on the specification outlined by the documentation and tests.  The procedures \textit{sorted\_ints} and \textit{write\_times} will give you some more practice with iterative design and loops. The procedure \textit{rand\_ints} let's you work with the library procedure \textit{std::shuffle} in a new context\sidenote{no loops needed. See lecture notes 18.}. 
 
 \section{ Profile std::find }
 
-Once you have the library implemented you can use it\sidenote{really just sorted\_ints and write\_times} to write a \textit{main} procedure that records the running time of all $501$ cases\sidenote{the key is at each of the 500 locations and the key isn't found} of \textit{std::find} with a vector of integers of size $500$. Your times should be written as comma separated values to a file called \textit{labp2.csv}.  
+Once you have the library implemented you can use it\sidenote{really just sorted\_ints and write\_times} to write a \textit{main} procedure\sidenote{see the code for ln17} that records the running time of all $501$ cases\sidenote{the key is at each of the 500 locations and the key isn't found} of \textit{std::find} with a vector of integers of size $500$. Your times should be written as comma separated values to a file called \textit{labp2.csv}.  
+
 
 \section{Looking Ahead}
 
@@ -28,7 +29,7 @@ This section is not technically part of the lab, but for if you want to get ahea
 \item Use psftp\sidenote{or just sftp in linux/max} or pscp\sidenote{scp in linux/max} to copy your data file to your machine or a lab computer. I recommend the psftp/sftp option. 
 \newline
 See \url{https://www.digitalocean.com/community/tutorials/how-to-use-sftp-to-securely-transfer-files-with-a-remote-server}
-\item Use Mathematica to import and plot the data.  We'll look at things like Histograms, Box and Whisker's plots, and histograms. It's also useful to find statistics like the min,max,mean,median, and standard deviation.  
+\item Use Mathematica to import and plot the data.  We'll look at things like Histograms, Box and Whisker's plots, and histograms. It's also useful to find statistics like the min,max,mean,median, and standard deviation.   Lecture notes 19 covers the core Mathematica that you need for the project. On the server you'll find a Mathematica package called \textit{proj2helpers.m} that contains several helper functions needed for the project as well. 
 \end{itemize}
 We'll look at all of this in class and in future notes. But visualizing execution times is essentially what your final project is all about. 
 
