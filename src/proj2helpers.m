@@ -24,6 +24,15 @@ MakePoints[xs_,ys_] :=
 Map[Zip[Table[xs[[#]],{Length[ys[[#]]]}],ys[[#]]]& ,Range[Length[xs]]];
 
 
+TestReport[{VerificationTest[	
+			With[{x={1,2,3,4},y={5,6,7,8}},Zip[x,y]],
+			{{1,5},{2,6},{3,7},{4,8}}],	     
+			VerificationTest[With[{x={0,1},y = {{1,2,3,4},{5,6,7,8}}},MakePoints[x,y]],
+						 {{{0,1},{0,2},{0,3},{0,4}},{{1,5},{1,6},{1,7},{1,8}}}]}]
+
+
+
+
 (*
 	Compute a table of nanoseconds from a a table numbers that 
 	are assumed to be seconds
