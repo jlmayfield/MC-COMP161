@@ -1,41 +1,41 @@
-\documentclass[]{tufte-handout}
+\documentclass[nobib]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm,color}
 \usepackage[pdftex]{graphicx}
 
- 
-\title{COMP 161 - Lecture Notes - 02 - Shells and Remote Access}
+
+\title{COMP 161 \\ Lecture Notes 02 \\ Shells and Remote Access}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Shotts' tutorial introduces the shell\sidenote{\url{http://linuxcommand.org/lc3_lts0010.php}} but discusses how to access it as if you're accessing the shell of the computer in front of you.  In this class, we'll be accessing the shell of a the departmental server named church\sidenote{After Alonzo Church} on the second floor of the CSB remotely using a Secure Shell\sidenote{SSH} client. We'll also briefly discuss some common patterns in shell commands, the command that you'll use to submit most of your assignments, and some strategies for moving files to and from the remote system. 
+Shotts' tutorial introduces the shell\sidenote{\url{http://linuxcommand.org/lc3_lts0010.php}} but discusses how to access it as if you're accessing the shell of the computer in front of you.  In this class, we'll be accessing the shell of a the departmental server named church\sidenote{After mathematician Alonzo Church} on the second floor of the CSB remotely using a Secure Shell\sidenote{SSH} client. We'll also briefly discuss some common patterns in shell commands, the command that you'll use to submit most of your assignments, and some strategies for moving files to and from the remote system.
 \end{abstract}
 
 \section{The Shell}
 
-As Shotts explains quite well, the \textit{shell} is your command line interface with the operating system\sidenote{which is the software interface to the hardware}.  We're using \textit{bash}\sidenote{run the command \textit{echo \$SHELL} to see which shell you're running}, but there are many other shells you could check out\sidenote{ksh,tcsh, and zsh}.  These shells are all available for any Linux or Mac OS-X based system. If you want to explore a similar shell system for Windows, then you can check out Microsoft's PowerShell\sidenote{\url{http://msdn.microsoft.com/en-us/library/dd835506(v=vs.85).aspx}}.    
+As Shotts explains quite well, the \textit{shell} is your command line interface with the operating system\sidenote{which is the software interface to the hardware}.  We're using \textit{bash}\sidenote{run the command \textit{echo \$SHELL} to see which shell you're running}, but there are many other shells you could check out\sidenote{ksh,tcsh, and zsh}.  These shells are all available for any Linux or Mac OS-X based system. If you want to explore a similar shell system for Windows, then you can check out Microsoft's PowerShell\sidenote{\url{http://msdn.microsoft.com/en-us/library/dd835506(v=vs.85).aspx}}.
 
-The shell functions in much the same way as Dr. Racket's interaction window does. You're presented with a prompt at which you type some code or a command. The system then \textit{reads} that code, \textit{evaluates} that code, and typically \textit{prints} the result or some related message. This process then repeats as long as your session continues. This interaction pattern is called the \textit{Read, Evaluate and Print Loop} or \textit{REPL}. You'll write some basic REPLs in C++ very soon. 
+The shell functions in much the same way as Dr.\ Racket's interaction window does. You're presented with a prompt at which you type some code or a command. The system then \textit{reads} that code, \textit{evaluates} that code, and typically \textit{prints} the result or some related message. This process then repeats as long as your session continues. This interaction pattern is called the \textit{Read, Evaluate and Print Loop} or \textit{REPL}. You'll write some basic REPLs in C++ very soon.
 
-The real power of shells comes from the fact that they are \textit{programming languages}\sidenote{or scripting languages}.  More specifically, they are languages designed to let you write programs involving the activities carried out with the shell\sidenote{typically called \textit{scripts}}.  This means that using your shell language, you can likely automate most of the repetitive tasks you carry out on a regular basis.  For example, I used a bash script I wrote in order to create all of your accounts, generate random initial passwords for them, and be sure other account related settings were where they needed to be.  Without this script I would have needed to type something like five commands per account. For a class of $n$ students that $5n$ commands.  So, even for modest sized classes, that script saves me from a lot of repetitive typing. Perhaps more importantly, it prevents me from making typos and inadvertently messing something up\sidenote{The value of this is huge. We all make mistakes.}. 
+The real power of shells comes from the fact that they are \textit{programming languages}\sidenote{or scripting languages}.  More specifically, they are languages designed to let you write programs involving the activities carried out with the shell\sidenote{typically called \textit{scripts}}.  This means that using your shell language, you can likely automate most of the repetitive tasks you carry out on a regular basis.  For example, I used a bash script I wrote in order to create all of your accounts, generate random initial passwords for them, and be sure other account related settings were where they needed to be.  Without this script I would have needed to type something like five commands per account. For a class of $n$ students that $5n$ commands.  So, even for modest sized classes, that script saves me from a lot of repetitive typing. Perhaps more importantly, it prevents me from making typos and inadvertently messing something up\sidenote{The value of this is huge. We all make mistakes.}.
 
-We're not going to get into shell scripts, but Shotts has a wonderful tutorial on them\sidenote{\url{http://linuxcommand.org/lc3_writing_shell_scripts.php}}. I highly recommend you check it out.  If that leaves you wanting more, there are an insane number of \textit{bash scripting} tutorials out there\sidenote{Look around \url{http://tldp.org} for starters}.  You can also get involved with the Linux lab and help develop and administer a small network here in the CSB.  Doing this is likely to significantly up your contact time, and ability, with Linux, the CLI, and system administration.
+We're not going to get into shell scripts, but Shotts has a wonderful tutorial on them\sidenote{\url{http://linuxcommand.org/lc3_writing_shell_scripts.php}}. I highly recommend you check it out.  If that leaves you wanting more, there are an insane number of \textit{bash scripting} tutorials out there\sidenote{Look around \url{http://tldp.org} for starters}.  You can also get involved with the Linux lab and help develop and administer a small network here in the CSB\@.  Doing this is likely to significantly up your contact time, and ability, with Linux, the CLI, and system administration.
 
-\section{Secure, Remote Access} 
+\section{Secure, Remote Access}
 
-It is very common to need or want remote access to the shell of one computer from another computer across a network. Smart users want to do so in a way that ensures nobody can easily snoop on what they're doing. Thus, a \textit{secure shell} is needed. The defacto way to accomplish secure remote access to the shell is through an SSH client-server setup\sidenote{\url{http://www.openssh.com/}}.  The computer to which you want access\sidenote{the server} must be running an SSH server program, and the computer with which you're connecting\sidenote{the client} needs an SSH client program.  
+It is very common to need or want remote access to the shell of one computer from another computer across a network. Smart users want to do so in a way that ensures nobody can easily snoop on what they're doing. Thus, a \textit{secure shell} is needed. The defacto way to accomplish secure remote access to the shell is through an SSH client-server setup\sidenote{\url{http://www.openssh.com/}}.  The computer to which you want access\sidenote{the server} must be running an SSH server program, and the computer with which you're connecting\sidenote{the client} needs an SSH client program.
 
-If your client is running Linux or OS X, then you're in luck. You already have an ssh client available through your terminal.  If you're running Windows\sidenote{like all our computer labs do}, then you need to get a client. Thankfully, there is a wonderful, free SSH client for Windows called PuTTy\sidenote{\url{http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html}}.  The PuTTy ssh client is available on all campus computers\sidenote{W:$\backslash$Apps$\backslash$mathcs$\backslash$putty$\backslash$PUTTY.EXE. I'd make a shortcut to it on your desktop if I were you.}. 
+If your client is running Linux or OS X, then you're in luck. You already have an ssh client available through your terminal.  If you're running Windows\sidenote{like all our computer labs do}, then you need to get a client. Thankfully, there is a wonderful, free SSH client for Windows called PuTTy\sidenote{\url{http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html}}.  The PuTTy ssh client is available on all campus computers\sidenote{W:$\backslash$Apps$\backslash$mathcs$\backslash$putty$\backslash$PUTTY\@.EXE\@. I'd make a shortcut to it on your desktop if I were you.}.
 
 Let's break down the process of logging in to a computer's shell with SSH using a CLI client and PuTTy.  First, I want to point a few thing you'll experience the first time you log in so that you'll be ready for them. Once you know what's different the first time, we'll talk about what's going to happen every other time.
 
 \subsection{The first time you log in from a computer}
 
-Two things out of the ordinary happen the first time you log in from a specific computer.  
+Two things out of the ordinary happen the first time you log in from a specific computer.
 \begin{itemize}
 \item The first time a client and server communicate, they must establish trust.
-\item On our servers, the first time you've ever used the account, you'll need to reset your password to a password that only you know. 
+\item On our servers, the first time you've ever used the account, you'll need to reset your password to a password that only you know.
 \end{itemize}
 
 A big part of security is trust. So the first time an ssh client logs in to an ssh server it must establish trust.  This means your client will ask you if you know the server that you're logging in to and if it should really connect to that server. A server is identified not by it's name or address but by a unique \textit{key}\sidenote{very big number}. So, your job is to tell your client that connections to the server with that key are trusted.  Here's what that looks like in linux:
@@ -72,11 +72,11 @@ Linux and OS X both come with a command-line SSH client installed.  In order to 
 \end{center}
 \vspace{.1in}
 
-As you can see, once you enter the command, you'll connect to the server and be asked for the password for the given username. Once you're done with your shell session, use the command \textit{exit} to log out. 
+As you can see, once you enter the command, you'll connect to the server and be asked for the password for the given username. Once you're done with your shell session, use the command \textit{exit} to log out.
 
 \subsection{PuTTy (Windows)}
 
-PuTTy is  GUI based SSH client.  On the surface it is very easy to get logged in, but it does have one little quirk you'll want to deal with. By default, PuTTy reads the letters coming from the server using a European standard encoding.  The result is that some of the letters get garbled\sidenote{you'll probably see it first when you run the compiler for C++}. So, to fix this we need to tell PuTTy to use the UTF-8 character encoding, the standard used by the server.  You can either set this every time you launch PuTTy\sidenote{and waste a minute} or set it once and save your PuTTy settings. I'll show you how to do the later, and get logged in.  
+PuTTy is  GUI based SSH client.  On the surface it is very easy to get logged in, but it does have one little quirk you'll want to deal with. By default, PuTTy reads the letters coming from the server using a European standard encoding.  The result is that some of the letters get garbled\sidenote{you'll probably see it first when you run the compiler for C++}. So, to fix this we need to tell PuTTy to use the UTF-8 character encoding, the standard used by the server.  You can either set this every time you launch PuTTy\sidenote{and waste a minute} or set it once and save your PuTTy settings. I'll show you how to do the later, and get logged in.
 
 To set the encoding to UTF-8 you need to navigate the settings to \textit{Window$>$Translation} and select \textit{UTF-8} as the Remove character set.
 
@@ -94,7 +94,7 @@ Once you've done that, navigate back to the session options, fill in the \textit
 \end{center}
 \vspace{.1in}
 
-With the right encoding and server information saved, you can now load your settings and open the connection\sidenote{this is what you should be doing all but the first time you log in unless you like to waste a minute per login with a task that is easily automated...}. Highlight the saved session name, hit \textit{Load}, then hit \textit{Open}. 
+With the right encoding and server information saved, you can now load your settings and open the connection\sidenote{this is what you should be doing all but the first time you log in unless you like to waste a minute per login with a task that is easily automated\ldots}. Highlight the saved session name, hit \textit{Load}, then hit \textit{Open}.
 
 \vspace{.1in}
 \begin{center}
@@ -102,7 +102,7 @@ With the right encoding and server information saved, you can now load your sett
 \end{center}
 \vspace{.1in}
 
-You'll now be prompted for your username and password. 
+You'll now be prompted for your username and password.
 
 \vspace{.1in}
 \begin{center}
@@ -110,18 +110,18 @@ You'll now be prompted for your username and password.
 \end{center}
 \vspace{.1in}
 
-When you're all done with the shell, the command \textit{exit} will log you out of the server.  
+When you're all done with the shell, the command \textit{exit} will log you out of the server.
 
 
 \section{Moving files}
 
-You'll never really need to move files to and from the server for this course.  However, students regularly want to do this so I'll discuss a few options.  The traditional method is to piggy back on the SSH connection using \textit{secure file transfer protocol}\sidenote{sftp}. I personally use the cloud storage service Dropbox\sidenote{\url{http://dropbox.com}} which has a command-line client. 
+You'll never really need to move files to and from the server for this course.  However, students regularly want to do this so I'll discuss a few options.  The traditional method is to piggy back on the SSH connection using \textit{secure file transfer protocol}\sidenote{sftp}. I personally use the cloud storage service Dropbox\sidenote{\url{http://dropbox.com}} which has a command-line client.
 
 \subsection{sftp and psftp}
 
 If a computer is running an SSH server, then chances are it can handle sftp connections as well.  An sftp client runs its own little CLI, so once you're logged in, there's a series of commands you'll use to move files. Many of them are the same as the shell commands you're learning, but this time there's a version for your local machine and another for the server\sidenote{run the command \textit{help} from within an sftp session to see the full list of commands}.
 
-In Linux and OS X, there is a command-line client that you launch in pretty much the same way as ssh: \textit{sftp user@server}. 
+In Linux and OS X, there is a command-line client that you launch in pretty much the same way as ssh: \textit{sftp user@server}.
 
 \vspace{.1in}
 \begin{center}
@@ -129,7 +129,7 @@ In Linux and OS X, there is a command-line client that you launch in pretty much
 \end{center}
 \vspace{.1in}
 
-In Windows, you can use the PuTTy SFTP\sidenote{psftp} client, which can be downloaded\sidenote{and found on the campus network} from the same place you got PuTTy. Just launch \textit{psftp.exe} and then follow the prompts to log in to the server. 
+In Windows, you can use the PuTTy SFTP\sidenote{psftp} client, which can be downloaded\sidenote{and found on the campus network} from the same place you got PuTTy. Just launch \textit{psftp.exe} and then follow the prompts to log in to the server.
 
 \vspace{.1in}
 \begin{center}
@@ -137,7 +137,7 @@ In Windows, you can use the PuTTy SFTP\sidenote{psftp} client, which can be down
 \end{center}
 \vspace{.1in}
 
-Once you're logged in, it runs the same as the Linux client. Once again, use the \textit{help} command to see the list of sftp commands. In a nutshell, you direct the local and remote shell to a local and remote directory respectively. You can then \textit{get}\sidenote{download from server} or \textit{put}\sidenote{upload to server} files between those two directories. 
+Once you're logged in, it runs the same as the Linux client. Once again, use the \textit{help} command to see the list of sftp commands. In a nutshell, you direct the local and remote shell to a local and remote directory respectively. You can then \textit{get}\sidenote{download from server} or \textit{put}\sidenote{upload to server} files between those two directories.
 
 \subsection{Dropbox}
 
@@ -147,9 +147,9 @@ If you want to go the dropbox route you'll need a dropbox account. If you need o
 \begin{quote}
 \url{https://db.tt/XOjdfkS}
 \end{quote}
-If you don't want me to get free storage with them, then feel free to sign-up from their website\sidenote{\url{http://dropbox.com}}. 
+If you don't want me to get free storage with them, then feel free to sign-up from their website\sidenote{\url{http://dropbox.com}}.
 
-Once you have an account you need to install the Linux Command-Line client on the server.  
+Once you have an account you need to install the Linux Command-Line client on the server.
 \begin{enumerate}
 \item Login to the server
 \item Follow these \textit{Install Dropbox via the command line} instructions: \url{https://www.dropbox.com/install?os=lnx}
