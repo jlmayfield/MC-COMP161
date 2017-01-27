@@ -3,15 +3,15 @@
 \usepackage{hyperref}
 
 
-\title{COMP161 - Lab 2 \& Homework 2}
+\title{COMP161 \\ Lab 2 \& Homework 2}
 \author{}
-\date{Spring 2016}
+\date{Spring 2017}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-These assignments are designed to get you working with the GNU GCC, C++ compiler \textbf{g++}, the build scripting program \textit{make}, and some features of Emacs that make programming easier. For homework, you'll be directed to ``break'' the code in order to see how the compiler reacts to some common mistakes. 
+These assignments are designed to get you working with the GNU GCC, C++ compiler \textbf{g++}, the build scripting program \textit{make}, and some features of Emacs that make programming easier. For homework, you'll be directed to ``break'' the code in order to see how the compiler reacts to some common mistakes.
 \end{abstract}
 
 \section{Overview}
@@ -20,30 +20,30 @@ You should give Lecture Notes 5 at least a quick scan read prior to starting thi
 
 \subsection{Lab 2}
 
-In lab you're pretty much working through the lecture notes to get practice building and running programs and tests.  A few times you'll be asked to redirect the output of some commands to a text file.  This is meant to give you practice with some more advanced CLI features and to give me evidence of your success and progress. 
+In lab you're pretty much working through the lecture notes to get practice building and running programs and tests.  A few times you'll be asked to redirect the output of some commands to a text file.  This is meant to give you practice with some more advanced CLI features and to give me evidence of your success and progress.
 
 Now, carry out the following tasks\sidenote{Details on each can be found in Lecture Notes 5}:
 \begin{enumerate}
 \item Copy the file \textit{lab2.zip} from \textit{/home/comp161/sp16} to your home directory. Use the command \textit{unzip} to extract the files.\sidenote{use \textit{man unzip} to get the manual for unzip and see if you can figure out how to use it from that}.
 \item Use \textit{g++} to compile each of the cpp files into objects files.
-\item Use \textit{g++} to build the main program executable. Name it \textit{fact\_main}. 
+\item Use \textit{g++} to build the main program executable. Name it \textit{fact\_main}.
 \item Use \textit{g++} to build the test executable. Name it \textit{fact\_tests}.
 \item Run the main program a few times with a few different arguments in order to get comfortable running executables that you yourself built.
-\item Run the test executable with the option to list all the tests. Use the CLI to redirect this output to a file called \textit{lab2-testOutput.txt}. 
-\item Run each of the test \textit{cases} individually. Use the CLI to append the output to the test output file you started in the previous task. 
+\item Run the test executable with the option to list all the tests. Use the CLI to redirect this output to a file called \textit{lab2-testOutput.txt}.
+\item Run each of the test \textit{cases} individually. Use the CLI to append the output to the test output file you started in the previous task.
 \item Run all of the individual tests from one of the cases that has multiple tests. Again, use the CLI to append the output to your test output file.
-\item Write a Makefile for this program. Write it such that running the command \textit{make} without arguments will build both the main and test executable. Do not copy and paste text from the notes. Type it out by hand to get practice working with Emacs. You might consider doing one rule at a time and testing it after each new rule is added. 
+\item Write a Makefile for this program. Write it such that running the command \textit{make} without arguments will build both the main and test executable. Do not copy and paste text from the notes. Type it out by hand to get practice working with Emacs. You might consider doing one rule at a time and testing it after each new rule is added.
 \item Clean out all the objects and executables using make. Then use make to compile only the test executable. Redirect the output of a sucessful, clean make of the test executable to a file called \textit{lab2-builds.txt}.\sidenote{By clean I mean starting with only source code files and no pre-compiled objects or executables}.
 \item Clean your build files up again and do a clean build of just the main executable. Use the CLI to append the output of this make command to your build file started in the previous step.
-\item Do a clean build of the make all rule and append that output to the build file. 
+\item Do a clean build of the make all rule and append that output to the build file.
 \end{enumerate}
 
-You should now have two text files containing redirected CLI output: one from running Google Unit Tests and the other from make. You should also have a Makefile that you created from scratch. Submit these three files and \textit{only these three files} using \textit{handin}. If you submit the C++ code, executables, objects, or anything not one of these files, then you'll lose points for the lab. The assignment is \textit{lab2}. To submit more then one file with handin you simply need to group those files in a single directory and submit that directory. The handin output should report which exact files were submitted. 
+You should now have two text files containing redirected CLI output: one from running Google Unit Tests and the other from make. You should also have a Makefile that you created from scratch. Submit these three files and \textit{only these three files} using \textit{handin}. If you submit the C++ code, executables, objects, or anything not one of these files, then you'll lose points for the lab. The assignment is \textit{lab2}. To submit more then one file with handin you simply need to group those files in a single directory and submit that directory. The handin output should report which exact files were submitted.
 
 \subsection{Homework 2}
 
 \begin{center}
-\textbf{Due by \textit{class} Monday 1/25}
+\textbf{Due by \textit{class} Monday 1/30}
 \end{center}
 
 In this homework you'll be introducing errors to the code and seeing how the compiler reacts. While doing this, you should practice building code from within Emacs.\sidenote{I highly recommend you build code within Emacs at least once while in lab so you can get help if you need it}. For each error you introduce you need to carefully examine the compiler's error report and write a brief statement, a few sentences, of how it seems to relate to the error as you see it.  Write this report up in Emacs\sidenote{Don't forget your name!} and submit it, and only it, via \textit{handin} as assignment \textit{hwk2}.  Some error messages are better than others. When they seem to be totally unrelated, take some time to really examine and analyze them for some clue about the error.
@@ -61,13 +61,13 @@ In \textit{factorial.cpp}, remove the semi-colon at the end of line 17. Any line
 The statement on line 18 of \textit{lab2\_main.cpp} directs the computer to look in the \textit{std} namespace for names it doesn't known. This allows us to more easily call several functions from standard C++ libraries. Remove the code on line 18.
 
 \item \textit{Missing \#include statement} \newline
-In \textit{lab2\_main.cpp}, remove lines 10-13, each individually. Each line includes a different library. By doing each line individually you can see similarities and differences between forgetting to include different libraries.
+In \textit{lab2\_main.cpp}, remove lines 10--13, each individually. Each line includes a different library. By doing each line individually you can see similarities and differences between forgetting to include different libraries.
 
 \item \textit{Missing define guards}. \newline
-In \textit{factorial.h} you should see the define guard code\sidenote{See lecture notes 4} on lines 9, 10, and 75.  Remove all of those lines at once to get rid of the define guard. Now do complete, clean build of the project, i.e. testing and main executable. 
+In \textit{factorial.h} you should see the define guard code\sidenote{See lecture notes 4} on lines 9, 10, and 75.  Remove all of those lines at once to get rid of the define guard. Now do complete, clean build of the project, i.e.\ testing and main executable.
 
 \item \textit{Choose your own adventure} \newline
-Come up with at least two more errors to introduce. You might try searching around the web for common C++ syntax mistakes and see if you can introduce one of those.  Coming from Racket, an obvious thing you could do are missing parenthesis and curly braces. Just like in Racket, C++ makes use of matching opening and closing parenthesis and brackets quite often. When you type a closing bracket/parenthesis in Emacs, it will briefly highlight the opener it is associated with. If you're not sure what brackets go with what, then delete and retype a closer to see what opener it goes with. Try removing an open and a closer. Try different situations; not all brackets are created equal. Some brackets surround definitions where others are used to block statements together to make another statement within a definition. 
+Come up with at least two more errors to introduce. You might try searching around the web for common C++ syntax mistakes and see if you can introduce one of those.  Coming from Racket, an obvious thing you could do are missing parenthesis and curly braces. Just like in Racket, C++ makes use of matching opening and closing parenthesis and brackets quite often. When you type a closing bracket/parenthesis in Emacs, it will briefly highlight the opener it is associated with. If you're not sure what brackets go with what, then delete and retype a closer to see what opener it goes with. Try removing an open and a closer. Try different situations; not all brackets are created equal. Some brackets surround definitions where others are used to block statements together to make another statement within a definition.
 \end{enumerate}
 
 
@@ -76,7 +76,7 @@ Come up with at least two more errors to introduce. You might try searching arou
 
 When introducing errors, I recommend that you comment out code rather than delete it. So when I say remove, I really mean comment out. For more involved errors, it'll be easier to remember to remove comment markers that you introduced than to re-type code that you didn't write and have never written!
 
-There are two ways to comment things out in C++: $//$ and $/* \quad */$. The double forward slash will comment out everything after it until the end of the line; it's a single line comment. The matching $/*$ and $*/$ create a block comment. Everything between them is commented out. You should see examples of both comment styles in the code. 
+There are two ways to comment things out in C++: $//$ and $/* \quad */$. The double forward slash will comment out everything after it until the end of the line; it's a single line comment. The matching $/*$ and $*/$ create a block comment. Everything between them is commented out. You should see examples of both comment styles in the code.
 
 \subsection{Emacs and plain text}
 
