@@ -3,16 +3,16 @@
 \usepackage{hyperref}
 \usepackage{framed}
 
-\title{COMP161 - Lab 4 \& Homework 4}
+\title{COMP161 \\ Lab 4 \& Homework 4}
 \author{}
-\date{Spring 2016}
+\date{Spring 2017}
 
 \begin{document}
 \maketitle
 \thispagestyle{empty}
 
 \begin{abstract}
-This week you'll be building basic interfaces for the functions you developed last week. You're welcome to use the instructor's solutions to last week's lab and homework as a basis for this week's assignments if you need or want to. 
+This week you'll be building basic interfaces for the functions you developed last week. You're welcome to use the instructor's solutions to last week's lab and homework as a basis for this week's assignments if you need or want to.
 \end{abstract}
 
 \section{The Programs}
@@ -20,7 +20,7 @@ This week you'll be building basic interfaces for the functions you developed la
 During lab you'll get started on building the following programs:
 \begin{enumerate}
 \item A program that provides a basic CLI interface to the charge payback function from lab/hwk 3. \\
-The CLI program takes a single command line argument, the charge amount. The executable should be named \textit{payback}. When the user enters a negative charge amount, the program should print an error message and close without reporting a payback amount. Otherwise, the program should behave like this example: 
+The CLI program takes a single command line argument, the charge amount. The executable should be named \textit{payback}. When the user enters a negative charge amount, the program should print an error message and close without reporting a payback amount. Otherwise, the program should behave like this example:
 \begin{verbatim}
 $> ./payback 250.0
 $250.0 will payback $0.625
@@ -29,7 +29,7 @@ $>
 
 
 \item A program that provides a basic REPL interface for some of the distance conversion functions from lab/hwk 3. \\
-The executable program should be named \textit{convert}. The program should prompt the user for three things: the distance to be converted, its units, and the target units. Your program should only allow the conversion to and from inches, centimeters, and feet. Units can be specified by a single letter\sidenote{i.e. a char value}: i for inches, c for centimeters, and f for feet. If the user enters a negative value for the distance or a unit not covered by the program, then the program should write an error message to the standard error and continue to the next loop without attempting a conversion. Otherwise, the program should produce descriptive output. A execution of the program that terminates after a single loop might look like this:
+The executable program should be named \textit{convert}. The program should prompt the user for three things: the distance to be converted, its units, and the target units. Your program should only allow the conversion to and from inches, centimeters, and feet. Units can be specified by a single letter\sidenote{i.e.\ a char value}: i for inches, c for centimeters, and f for feet. If the user enters a negative value for the distance or a unit not covered by the program, then the program should write an error message to the standard error and continue to the next loop without attempting a conversion. Otherwise, the program should produce descriptive output. A execution of the program that terminates after a single loop might look like this:
 \begin{verbatim}
 $> ./convert
 What would you like to convert: 12 i
@@ -43,25 +43,25 @@ $>
 
 \section{Lab 4}
 
-Before you dive into writing the actual implementations for main you should get the basic boilerplate for each program setup and ready to go. 
+Before you dive into writing the actual implementations for main you should get the basic boilerplate for each program setup and ready to go.
 \begin{enumerate}
 \item Stub out two files, one for each \textit{main} //
-This means creating two files, adding the appropriate comments at the top, add the appropriate includes, and stubbing out \textit{main} in each file. 
+This means creating two files, adding the appropriate comments at the top, add the appropriate includes, and stubbing out \textit{main} in each file.
 \item Add rules to your Makefile for building each of the executable programs
 \end{enumerate}
-When these steps are complete you should be able to build three executable programs using your Makefile: the gTest program that runs your tests from last week and two programs that do nothing. Once again, your goal is to quickly get a working foundation upon which you can build your program(s). 
+When these steps are complete you should be able to build three executable programs using your Makefile: the gTest program that runs your tests from last week and two programs that do nothing. Once again, your goal is to quickly get a working foundation upon which you can build your program(s).
 
-Once you've got your stubbed out programs ready to go you should work on both programs incrementally. Write code to do just a little bit, then compile and test that code. Each of these programs is built up from a collection of discrete tasks. Your job is to identify those tasks so that you can complete the programs in an \textsc{iterative} fashion. Rather than write ``all'' the code then debug ``all'' the code, your process should allow you to write some of the code then debug it and repeat until ``all'' the code is done. 
+Once you've got your stubbed out programs ready to go you should try to work on both programs incrementally. Write code to do just a little bit, then compile and test that code. Each of these programs is built up from a collection of discrete tasks. Your job is to identify those tasks so that you can complete the programs in an \textsc{iterative} fashion. Rather than write ``all'' the code then debug ``all'' the code, your process should allow you to write some of the code then debug it and repeat until ``all'' the code is done.
 
-When the lab period is over, submit your source documents and your Makefile as \textit{lab4} using handin\sidenote{Be certain to clean out your working directory of non-source files before submitting}. I'll be looking for evidence of iterative development. I shouldn't see one nearly complete program and one stub of a program but should see two in-progress programs each with a comparable amount of progress. 
-
+When the lab period is over, submit your source documents and your Makefile as \textit{lab4} using handin\sidenote{Be certain to clean out your working directory of non-source files before submitting}.
 \newpage \thispagestyle{empty}
+
 \section{Homework 4}
 
 \begin{center}
-\textbf{Due by 8am on Monday 2/7}
+\textbf{Due by 8am on Monday 2/20}
 \end{center}
 
-Complete both programs described under lab 4. Submit the source code and Makefile as \textit{hwk4} using handin\sidenote{Be certain to clean out your working directory of non-source files before submitting}. 
+Complete both programs described under lab 4. Submit the source code and Makefile as \textit{hwk4} using handin\sidenote{Be certain to clean out your working directory of non-source files before submitting}.
 
 \end{document}
