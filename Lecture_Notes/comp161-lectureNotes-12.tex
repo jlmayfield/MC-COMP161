@@ -90,7 +90,7 @@ If at least one user interaction is required to terminate the loop and thereby t
   \begin{lstlisting}
 
     // This boolean acts as a flag for the state of the loop
-    bool continue{true};
+    bool cont{true};
     do{
 
       // Do Core Repeatable Task
@@ -100,9 +100,9 @@ If at least one user interaction is required to terminate the loop and thereby t
       std::cout << "Continue?(Y or N) ";
       std::cin >> uin;
       // Update Continuation Flag
-      continue = (uin == 'Y') || (uin == 'y');
+      cont = (uin == 'Y') || (uin == 'y');
 
-    }while( continue );
+    }while( cont );
   \end{lstlisting}
   \caption{Example of an Until-Quit \textit{do while} loop}
 \label{loop:untilquit}
@@ -157,6 +157,7 @@ This toy program manages a product of integers as the user adds new numbers to t
     int main(int argc, char* argv[] ){
       int product{1};
       toy::mainloop(std::cout, std::cin, product);
+      std::cout << product << '\n';
       return 1;
     }
   \end{lstlisting}
@@ -171,7 +172,7 @@ The procedure \textit{mainloop} carries out the core loop that repeats until the
     void toy::mainloop(std::ostream& sout, std::istream& sin,
                        int& prod_state){
 
-      bool continue{true};
+      bool cont{false};
       do{
         // Get the next user input. Validate.
         int nextNum{1};
@@ -183,9 +184,8 @@ The procedure \textit{mainloop} carries out the core loop that repeats until the
         prod_state *= nextNum;
 
         // Get Continuation. Validate.
-        char cont{'Y'};
         toy::getValidContVal(sout,sin,cont);
-      }while( continue );
+      }while( cont );
 
       return;
     }
