@@ -1,97 +1,228 @@
-\documentclass[nobib]{tufte-handout}
+\documentclass[]{tufte-handout}
 \usepackage{amsmath,amssymb,amsthm,color}
 \usepackage{multirow}
 \usepackage{booktabs}
+\usepackage{framed}
 \usepackage[pdftex]{graphicx}
 
-  
-\title{COMP 161 - Lecture Notes - 12 - Streaming File I/O}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
 
 
-\begin{document} 
+\title{COMP 161 \\ Lecture Notes 12 \\ UI Loops}
+
+
+\begin{document}
 \maketitle
 
 \begin{abstract}
-In these notes we see how to use the streaming file I/O classes. 
+In these notes we look at some basic user interface loop patterns.
 \end{abstract}
 
-\section{File Streams}
+\section{Loops at the User Interface Level}
 
-The \textit{fstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/}} library provides a set of classes for doing streaming I/O with files in the same general way that we've done with standard in/out and with stringstreams. The input file stream, or \textit{ifstream},\sidenote{\url{http://www.cplusplus.com/reference/fstream/ifstream/}} class lets you establish a file as a streaming input object and thereby lets you read data from a file.  The usage of the \textit{ifstream} is exactly the same as \textit{std::cin}, but, like istringstream, setting up the stream takes a little work. Similarly, the output file stream, or \textit{ofstream}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/}}, class lets you use a file in the same fashion as \textit{std::cout} or an ostringstream.
+The only loops we've looked at so far arose from the need to step through or \textsc{traverse} the characters in a string\sidenote{or more generally the elements of a collection}.  Several situations occur in interactive programs that require the repetition of user interactions:
+\begin{itemize}
+	\item The program repeats a single process until the user hard-quits the program.  This requires an infinite loop.
+	\item An alternative to forcing a hard-quit from the program is prompt the user after each execution of the core task to see if they'd like to quit. Another form of this is to offer a menu of choices with a quit option. In both cases, we're effectively replacing an infinite loop with a loop that terminates on a specific user input. We'll call this the until-quit loop as it will repeat until the users chooses to quit.
+	\item The program requires a specific input from the user, like a number from one to ten, and so it gets a single input, checks or validates it, and if it doesn't meet the criterion, then it reports an error and restarts the process. This is what we'll call a validation loop.
+\end{itemize}
 
-\section{Creating File Streams}
+We'll explore the design of each of these loops below.
 
-To connect a file to a stream we simply need to initialize the stream with the file's path. Path strings can be relative or absolute.
-\begin{verbatim}
-std::ofstream outFile{"newlog.log"};
+\section{Infinite Loop}
 
-std::ifstream inFile{"old/yesterdaylog.log"};
-\end{verbatim}
-The \textit{ofstream} object named \textit{outFile} can be used to write data to the file named \textit{newlog.log}.  That file must be in the current working directory\sidenote{do you see why?}. The \textit{ifstream} object named \textit{inFile} can be used to read data from a file named \textit{yesterdaylog.log} which should be found in the \textit{old} subdirectory of the current working directory. We can also declare uninitialized streams and open a file with them after the fact by using the \textit{open } method.
-\begin{verbatim}
-ofstream outFile;
-ifstream inFile;
+As we've already seen, a simple infinite loops provides the means to developing a basic REPL\sidenote{Read, Evaluate, Print, and Loop} interface. Such an interface lets the user repeat a task over and over.  Either the while loop or the do while loop can be used as seen in Figure~\ref{loop:infWhile} and Figure~\ref{loop:infDoWhile}.
 
-outFile.open("newlog.log");
-infile.open("old/yesterdaylog.log");
-\end{verbatim}
+\begin{figure}
+\begin{lstlisting}
+	while(true){
+		//repeated process here
+	}
+\end{lstlisting}
+\label{loop:infWhile}
+\caption{An infinite \textit{while} loop}
+\end{figure}
 
-There are several quirks with initializing file streams that you need to keep in mind.  Let's start with ofstreams.  If the file you're attempting to stream to does not currently exist, then \textit{the act of writing to it will create that file}.  This is the same behavior we saw on the CLI and it let's you create new files in your C++ programs by simply opening a file and writing to it. 
+\begin{figure}
+  \begin{lstlisting}
+  	do{
+  		//repeated process here
+  	}while(true);
+  \end{lstlisting}
+\caption{An infinite \textit{do while} loop}
+\label{loop:infDoWhile}
+\end{figure}
 
-If the file does exist, then the default behavior is to \textit{overwrite} the current file's contents.  If you want to append to the file, you need to open it differently. If we wanted to append to \textit{newlog.log}, then we'd open it like this:
-\begin{verbatim}
-ofstream outFile{"newlog.log",std::ofstream::app}; 
+We've mostly dealt with simple, state-less tasks in which each repetition is independent of the last. There is no requirement that the repeated process be state-less however.  The simple game from lecture notes 10 used an infinite loop to manage and modify the state of the game.  This allowed us to develop a system in which we continually interact with and modify the program state from one iteration of the loop to the next.
 
-// alternative 
-ofstream outFile;
-outFile.open("newlog.log",std::ofstream::app);
-\end{verbatim}
+The downside of the infinite loop is the fact that it never ends. The only way to terminate such a process is from without. In a Linux command-line environment we use Ctrl-C to kill the currently executing program and return to the shell. That is, we use interrupts at the operating system level to halt the execution of our program. This is usually not ideal. Imagine you wished to save the game state in order to pick up where you left off next time you run the game. Killing the programming does not allow for this. Instead, we need the program to manage its own termination.
 
-The biggest problem you can face when opening an ifstream is attempting to open a file that does not exist.  In this case, your write operations will fail. To get around this, we can check that the open succeeded before attempting to read the file. The \textit{is\_open}\sidenote{\url{http://www.cplusplus.com/reference/fstream/ofstream/is_open/}} class method is a predicate for exactly this state.  The simple strategy we see here is to end the procedure if input file open fails.
-\begin{verbatim}
+\section{Until-Quit Loop}
 
-ifstream inFile("mydata.dat");
+A simple addition to the infinite loop is logic necessary to allow the user to terminate the program directly. This usually means adding a simple I/O sequence asking if they'd like to end the program or conversely if they'd like to quit.
 
-if( !inFile.is_open() ){
-  return ; 
-}
+If at least one user interaction is required to terminate the loop and thereby the program, then a do while loop makes perfect sense as it is designed to repeat one more more times\sidenote{the for and while loops do zero or more repetitions}.  In Figure~\ref{loop:untilquit} we see an example of a basic do while loop for user directed termination. A boolean variable is used to track the state of the loop. If it's true, then the loop should continue, if not, the loop terminates. We'll call these kinds of booleans flags.
 
-// we only reach here if the file opened
-\end{verbatim}
+\begin{figure}
+  \begin{lstlisting}
 
+    // This boolean acts as a flag for the state of the loop
+    bool continue{true};
+    do{
 
-\section{Read and Writing}
+      // Do Core Repeatable Task
 
-Once your stream is open, basic reading and writing proceed in the same fashion as they do with \textit{cout} and \textit{cin}.  The $<<$ operator can be used with output streams to write to files and the $>>$ operator can be used with input streams to read from files. The only difference is the I/O stream object being used.
-\begin{verbatim}
-ofstream outFile{"writeToMe.txt"};
-ifstream inFile{"readFromMe.txt"};
+      // Prompt for Continuation
+      char uin{Y};
+      std::cout << "Continue?(Y or N) ";
+      std::cin >> uin;
+      // Update Continuation Flag
+      continue = (uin == 'Y') || (uin == 'y');
 
-outFile << "This text appears in the file\n";
+    }while( continue );
+  \end{lstlisting}
+  \caption{Example of an Until-Quit \textit{do while} loop}
+\label{loop:untilquit}
+\end{figure}
 
-// get one int
-int x{0};
-inFile >> x;
+Notice that with the addition of the continuation flag, this loop takes on the same fundamental, iterative structure as our counting loops. There is a state variable, continuation, the loop carries out some process, updates the state variable, and terminates when the state variable reaches a particular state. In this case, the state is boolean and updated at the whim of the user. The loop will terminate if and and only if the user enters something that the computer reads as the y character. Counted loops, when written properly, can typically be analyzed such that we know exactly how many repetitions will occur prior to termination.
 
-// get 3 a string token (everything to next whitespace char)
-string t{""}, r{""}, u{""};
-inFile >> t >> r >> u;
+\section{Input Validation}
 
-// get a whole line of text as a string
-string s{""};
-getline(inFile,s);
-\end{verbatim}
+Imagine you're writing a menu-driven program. Users must select one of 10 menu options by entering a number between one and ten. What should we do when they give us something other than one of these numbers?  We can terminate the program with an error, but that's a bad idea from a usability standpoint.  A better, more humane idea is to report the error to the user and prompt them to try again. This UI process is captured by an input validation loop. This loop will get an input from the user, validate the input against some condition, and repeat if the input is invalid.  Figure~\ref{loop:validation} gives an example of such a loop.
 
-Perhaps the biggest gotcha with file output is that all the data you write won't show up in the file on the hard drive until you close the file stream. \textit{The act of closing the file stream causes the changes to the file to be saved to disc}.  To close a our \textit{outFile} stream we simply use the \textit{close} method.
-\begin{verbatim}
-outFile.close();
-\end{verbatim}
+\begin{figure}
+  \begin{lstlisting}
 
+    int uin{0}; //initialize state
+    bool invalid{false}; //initialize validation flag
 
-One thing to keep in mind with file input is a sense of where the read pointer\sidenote{like a cursor} is currently located.  Be default, it starts at the beginning of the file.  Every time you read from the stream, you advance that pointer.  It is possible to use \textit{seekg}\sidenote{\url{http://www.cplusplus.com/reference/istream/istream/seekg/}} to move the read pointer around. The trick is that as far as seekg is concerned, positions are specified in bytes not in logical tokens.  So if you need to read the 10th word in a file where words are separated by whitespace, it's probably easier to read and ignore the first 9 words, then read and keep the 10th.
+    do{
 
-\section{File I/O and Procedures}
+      std::cout << "Enter a Number from 1 to 10: ";
+      std::cin >> uin;
+      invalid = ( uin < 1) || (uin > 10);
+      if( invalid ){
+        std::cout << "Expected a number between 1 and 10 but got "
+                  << uin << '".  Please Try Again.\n";
+      }
+    }while( invalid );
 
-There's not a ton to say about writing file I/O procedures because the way we do I/O procedures in general works for all types of streams.  If you write an output procedure that takes an ostream by reference, then you can pass it an ofstream to write to a file. If you write an input procedure that takes an istream by reference, then you can pass it an ifstream and read from a file.  The catch is that \textit{we cannot open or close the stream within our procedure because those methods are specific to file streams}.  We write our file I/O procedures with just the act of reading or writing in mind. We must then take steps to declare our stream in the procedure's calling space\sidenote{or prior to that and pass it along by reference} and for file output we must do the same with closing the file.
+    // Do something relative to the value of uin.
+  \end{lstlisting}
+  \caption{Example of an Validation \textit{do while} loop}
+\label{loop:validation}
+\end{figure}
 
-\end{document} 
+A key distinction between validation loops and the other loops we've explored is that it's not meant to carry out some repeated core computational task, it's used to guarantee that the task can proceed with its preconditions met. We might, we'll often want to put a second loop around the validation loop to repeatedly get and use valid inputs from the user.
+
+\section{Program Design and UI Loops}
+
+As always, we should generalize the overall processes discussed here as procedures. In this case, the procedure \textit{abstracts} away the loop and allows us to put that process to use in a larger context. A decent rule of thumb is to always place loops inside their own procedure. We shouldn't follow this without some reasoning behind it though.
+
+Let's consider a toy example.
+\begin{quote}
+  A user is repeatedly prompted for a number between one and five. The numbers they enter are multiplied together. After each number entry they are prompted to see if they want to quit. When they quit, the final product is printed out.
+\end{quote}
+
+This problem can clearly makes use of an until-quit style loop to manage repeatedly getting numbers and updating the product. Getting a valid number requires a validation loop. We could just cram all of this in \textit{main}, but we should break it down to basic procedures instead. To do this we must first identify the program's state.
+
+This toy program manages a product of integers as the user adds new numbers to the product. Thus, the state is a single integer. The state of the program provides an anchor to our design.  In the \textit{main} procedure we can declare an initialize state. From there we hand it off to a series of procedures. First, we consider the main loop. What does it do? How to we categorize it's behavior\sidenote{Functional, Mutator, Input, or Output?}? It will create some output, request some input, and modify the program's state. It is therefore a hybrid of all our effects. In Figure~\ref{ex:main} we see how we'd put it to use in as a helper to \textit{main}.
+
+\begin{figure}
+  \begin{lstlisting}
+    int main(int argc, char* argv[] ){
+      int product{1};
+      toy::mainloop(std::cout, std::cin, product);
+      return 1;
+    }
+  \end{lstlisting}
+\caption{The \textit{main} procedure for our product program}
+\label{ex:main}
+\end{figure}
+
+The procedure \textit{mainloop} carries out the core loop that repeats until the user quits. This task requires two more loops: one to get and validate the next number and one to get and validate user input for continuing or terminating the loop. These loops can be tucked away into helpers as well. In Figure~\ref{ex:mainloop} we see one way of organizing this logic.
+
+\begin{figure}
+  \begin{lstlisting}
+    void toy::mainloop(std::ostream& sout, std::istream& sin,
+                       int& prod_state){
+
+      bool continue{true};
+      do{
+        // Get the next user input. Validate.
+        int nextNum{1};
+        toy::getValidNextNum(sout,sin,nextNum);
+
+        // Update the product with the nextNum
+        // Could use Mutator! toy::updateProd(prod,nextNum);
+        // but it's simple enough...
+        prod_state *= nextNum;
+
+        // Get Continuation. Validate.
+        char cont{'Y'};
+        toy::getValidContVal(sout,sin,cont);
+      }while( continue );
+
+      return;
+    }
+  \end{lstlisting}
+\caption{The }
+\label{ex:mainloop}
+\end{figure}
+
+In Figure~\ref{ex:validNum} we see an implementation of the procedure for getting a valid number from the user. We could break this apart into atomic procedural units, but it's pretty straight forward from here so we'll just get right to it. Notice we hold off on updating the state until we've validated the user's input. This is good, safe programming that guarantees that so long as the state was initially valid it will never take on an invalid value.
+
+\begin{figure}
+  \begin{lstlisting}
+    void toy::getValidNextNum(std::ostream& sout, std::istream& sin,
+                              int& next){
+        bool invalid{false};
+        do{
+          sout << "Enter a number between 1 and 5: ";
+          int uin{0};
+          sin >> uin;
+
+          invalid = !(uin >= 1 && uin <= 5);
+          if( invalid ){
+            sout << "Expected a number between 1 and 5. Got "
+                 << uin << ". Please Try Again.\n";
+          }
+          else{
+            // Don't update the state until it's validated
+            next = uin;
+          }
+        }while( invalid );
+        return;
+    }
+  \end{lstlisting}
+  \caption{The procedure toy::getValidNextNum}
+\label{ex:validNum}
+\end{figure}
+
+By organizing the program design around the core state variables we can begin to design the program around the effects related to that state. This can lead to highly effect-driven designs, but as we saw in lecture notes 10, we can often bend effect-driven problems around to functional problems by designing functional procedures that return new state values and strings for output. Input can be made functional by returning the user input rather than setting the variable directly. Experiment with both options. They both have merits and are worthy tools for your program design tool box.
+
+\end{document}

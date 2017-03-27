@@ -1,0 +1,25 @@
+\documentclass[]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 \\ Project 1 Lab \\ UI Loop Practice}
+\author{}
+\date{Spring 2017}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This lab is prep work for your project. In that project you'll need to write several UI loops in the style of lecture notes 12. The program described here is a simple toy problem that lets you focus on the loop logic with a simple problem on the inside. At the end of lab, submit your work as assignment \textit{labp1}.
+\end{abstract}
+
+\section{Problem}
+
+Your program should repeatedly request a letter from the user and append each new letter to a string. When the program is done the string is printed. User input should be validated. If they give you something not a letter, then report an error and prompt them for another character until they give you a letter\sidenote{The cctype library contains a function that tells you if a character is a letter or not}.  After each letter is obtained from the user, give them the option to quit. This problem is essentially the same problem as the example at the end of lecture notes 12.
+
+\section{Requirements}
+
+You could cram all of this in the \textit{main} procedure. However, this gets crowded fast. Instead, use procedures in the style of lecture notes 12. This implies three procedures: one to drive the main loop, one to get and validate letters, and one to get and validate user input for loop continuation. Unlike every other assignment you've had and will have, \textit{you do not need to write unit tests on these procedures}.  I want you to instead focus on top-down implementation. Write main and stubs, then compile and run main. Test it yourself. Implement a stubbed out procedure, then test it yourself. Continue this until you're done. Notice that stubs, testing, and incremental development is still important.
+
+\end{document}

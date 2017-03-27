@@ -3,40 +3,44 @@
 \usepackage{hyperref}
 \usepackage{framed}
 
-\title{COMP161 - Lab 8 \& Homework 8}
+\title{COMP161 \\ Lab 8 \& Homework 8}
 \author{}
-\date{Spring 2016}
+\date{Spring 2017}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-In this lab you'll work on recursive and iterative procedures for strings.
+In this lab you'll work up recursive and iterative procedures for strings.
 \end{abstract}
 
-\section{The Problem: Removing Letters}
+\section{The Problem: Count Vowels}
 
-For this lab you'll work on a functional solution to the problem of removing all the letters from a string. To make them distinct, put them in different namespaces\sidenote{You've seen me do this in a lot of code}.  
+For this lab you'll work on a functional solution to the problem of counting all the vowels in a string. To make them distinct, put them in different namespaces\sidenote{You've seen me do this in a lot of code so check lecture notes and labs for examples if need be.}.
+
+When we take case sensitivity into account there are total of ten vowels\sidenote{excluding y and Y}. This problem definitely begs for a helper predicate, \textit{isVowel}, to abstract away\sidenote{simplify by hiding details} the check to see if a character is a vowel or not.  Add this procedure to your library and place it in the top level namespace.
+
+Putting this all together, you should be setting up three procedures. If we assume the top level namespace is \textit{lab8} with nested, implementation specific namespaces \textit{recur} and \textit{iter}, then we end up with: \textit{lab::isVowel}, \textit{lab8::recur::numVowels}, and \textit{lab8::iter::numVowels}.
 
 \subsection*{Lab 8}
 
-For lab, you should begin by setting up the documentation, stubs, and tests for \textit{two} versions of this procedure: one iterative and one recursive. Submit this code with handin as assignment \textit{lab8}.  
+For lab, you should begin by setting up the documentation, stubs, and tests for the three procedures described above.  To do the recursive procedure efficiently you'll need to add another helper that lets you recurse on the range of index values as opposed to the string itself. For more details see lecture notes 11. Submit this code with handin as assignment \textit{lab8}.
 
 \subsection*{Homework 8}
 
 \begin{center}
-\textbf{Due by class time on Wednesday. Submit as assignment \textit{hwk8}}.
+\textbf{Due by class time on Monday 3/27. Submit as assignment \textit{hwk8}}.
 \end{center}
 
-For homework, complete the implementation of both versions of the function.  
+For homework, complete the implementation of both versions of the function.
 
 \section{Practice Problems}
 
-The following problems are good practice problems for developing your recursive and iterative problem solving skills. 
+The following problems are good practice problems for developing your recursive and iterative problem solving skills.
 \begin{itemize}
-\item Count Vowels
+\item Remove letters
 \item Remove everything but digits
-\item Shift letters up so that A becomes B, B becomes C, etc.  The letter Z should wrap around to A. 
+\item Shift letters up so that A becomes B, B becomes C, etc.  The letter Z should wrap around to A.
 \end{itemize}
 
 
