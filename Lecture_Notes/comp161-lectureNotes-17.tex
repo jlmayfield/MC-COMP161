@@ -14,7 +14,7 @@ In these notes we look at measuring performance in the real-world as the experim
 
 \section{Efficiency in the Wild}
 
-Complexity theory and its tools tame the complicated world of efficient computation. It has proven itself to be an invaluable tool for understanding and discussing efficient computation. Efficient programs are designed to minimize complexity.  However, minimizing complexity is only the first step.  Within the realm of minimal complexity is a whole host of fine-grained details that drive actual performance. Let's return to the car comparison. Best practices might let you guarantee a car with 20-25 miles per gallon fuel efficiency, but the actual nuts and bolts of how you put that car together are likely going to be the difference between a real world performance of 20 and 25. The same is true with programming. We must first choose efficient algorithms\sidenote{low complexity}, and then efficiently implement them on systems\sidenote{platforms and languages} that can achieve optimal performance. It's nearly impossible to build efficient programs with clever implementation of high complexity solutions. On the other hand, it's easy to achieve poor efficiency of low complexity solutions by making bad implementation choices.
+Complexity theory and its tools tame the complicated world of efficient computation. It has proven itself to be an invaluable tool for understanding and discussing efficient computation. Efficient programs are designed to minimize complexity.  However, minimizing complexity is only the first step.  Within the realm of minimal complexity is a whole host of fine-grained details that drive actual performance. Let's return to the car comparison. Best practices might let you guarantee a car with 20--25 miles per gallon fuel efficiency, but the actual nuts and bolts of how you put that car together are likely going to be the difference between a real world performance of 20 and 25. The same is true with programming. We must first choose efficient algorithms\sidenote{low complexity}, and then efficiently implement them on systems\sidenote{platforms and languages} that can achieve optimal performance. It's nearly impossible to build efficient programs with clever implementation of high complexity solutions. On the other hand, it's easy to achieve poor efficiency of low complexity solutions by making bad implementation choices.
 
 When we assess the complexity of our programs we're analyzing the algorithms. When we assess the real-world efficiency of our program we're often \textsc{profiling} its performance. Profiling is concrete and from the scientific perspective it is the empirical verification of the underlying (complexity) theory. Profiling is also appealing because it deals in real world measures. Time is measured by the clock and space by the byte.
 
@@ -29,7 +29,7 @@ If, however, you're attempting to experimentally verify the efficiency of a spec
 The general pattern for timing code is to check the time prior to code execution and then again after code execution. You then subtract the start time from the end time to get the elapsed duration. The C++11 library \textit{chrono} provides several classes that can be used to time the execution of code. There is a complete example for getting the execution time of a line of code in the example for the \textit{now} function, which gets the current time\sidenote{\url{http://www.cplusplus.com/reference/chrono/high\_resolution\_clock/now/}}
 
 
-To get the current time we'll use a \textit{high\_resolution\_clock::time\_point} object. As the name indicates, these objects measure time at a high resolution\sidenote{nano seconds}. We can store the difference of two time points as a \textit{duration$<$double$>$} which, by default, tells us the number of seconds as a double. We can access the number of seconds with the duration class method, \textit{count}.
+To get the current time we'll use a \textit{high\_resolution\_clock::time\_point} object. As the name indicates, these objects measure time at a high resolution\sidenote{nano seconds}. We can store the difference of two time points as a \textit{duration\(<\)double\(>\)} which, by default, tells us the number of seconds as a double. We can access the number of seconds with the duration class method, \textit{count}.
 
 Let's say we wanted to time the \textit{std::find} procedure\sidenote{aka search \url{http://www.cplusplus.com/reference/algorithm/find/}}. Then we might build a main procedure with the following:
 \begin{verbatim}
@@ -55,7 +55,7 @@ Let's say we wanted to time the \textit{std::find} procedure\sidenote{aka search
 
   std::cout << elapsed.count() << " secs\n";
 \end{verbatim}
-This code is simply a modification of the example found in the documentation for \textit{high\_resolution\_time::now}. What it illustrates is that the time oriented classes provide all the functionality we need for getting execution time and that we can even do things like subtract time points using \textit{operator-}.  Operators also work with \textit{duration$<$double$>$}, so you can add, subtract, multiply and divide durations as needed\sidenote{See \url{http://www.cplusplus.com/reference/chrono/duration/operators/}}.  It's also important to note that the time reported by \textit{elapsed.count()} is in seconds.
+This code is simply a modification of the example found in the documentation for \textit{high\_resolution\_time::now}. What it illustrates is that the time oriented classes provide all the functionality we need for getting execution time and that we can even do things like subtract time points using \textit{operator-}.  Operators also work with \textit{duration\(<\)double\(>\)}, so you can add, subtract, multiply and divide durations as needed\sidenote{See \url{http://www.cplusplus.com/reference/chrono/duration/operators/}}.  It's also important to note that the time reported by \textit{elapsed.count()} is in seconds.
 
 \subsection{Some notes on chrono}
 
@@ -64,7 +64,7 @@ It's pretty clear from our example the the namespaces and types involved in the 
 \begin{center}
 \begin{tabular}{ll}
 high\_resolution\_clock::time\_point & \url{http://www.cplusplus.com/reference/chrono/time\_point/} \\
-duration$<$double$>$ & \url{http://www.cplusplus.com/reference/chrono/duration/}
+duration\(<\)double\(>\) & \url{http://www.cplusplus.com/reference/chrono/duration/}
 \end{tabular}
 \end{center}
 
@@ -93,11 +93,11 @@ The number of elementary operations carried out by the computer when computing \
 \end{quote}
 Earlier I said that we typically think in terms of the worst case. The language ``up to linear'' implies that worst case upper bound is linear. For this reason we call std::find a \textit{linear time procedure}.
 
-We can express all of this very concisely using mathematics. Let $\mathcal{T}$ be the function that computes the elementary operations carried out by std::find given the size $n$ of the vector being searched. Then there must exist some $a > 0$ and $b$ such that,
+We can express all of this very concisely using mathematics. Let \(\mathcal{T}\) be the function that computes the elementary operations carried out by std::find given the size \(n\) of the vector being searched. Then there must exist some \(a > 0\) and \(b\) such that,
 \begin{equation}
 \mathcal{T}(n) \leq an+b
 \end{equation}
-When we look at the math, we see how much we're simplifying matters.  By saying that std::find is linear, we're ignore the details of the line\sidenote{the value of $a$ and $b$} and simply saying, ``I can draw a line such that all the values of the time function $\mathcal{T}$ are on or below that line''. In the next set of notes we'll learn \textsc{Big-O notation} which allows us to express this kind of mathematical information in an even more concise manner. Big-O notation is the official ``language'' of complexity. You'll learn some basics in this class and continue to use and refine your understanding of it as you progress in the major.
+When we look at the math, we see how much we're simplifying matters.  By saying that std::find is linear, we're ignore the details of the line\sidenote{the value of \(a\) and \(b\)} and simply saying, ``I can draw a line such that all the values of the time function \(\mathcal{T}\) are on or below that line''. In the next set of notes we'll learn \textsc{Big-O notation} which allows us to express this kind of mathematical information in an even more concise manner. Big-O notation is the official ``language'' of complexity. You'll learn some basics in this class and continue to use and refine your understanding of it as you progress in the major.
 
 \subsection{Verifying the complexity of \textit{std::find}}
 
@@ -107,17 +107,17 @@ If you said, ``a line'' you're both right and wrong. First off, for any given si
 \begin{quote}
 The number of elementary operations carried out by the computer when computing \textit{std::find} is up to linear in the size of the vector being searched because \textit{std::find} compares elements until a match is found.
 \end{quote}
-The ``compares elements'' part implies that we traverse the vector until we find the item we're looking for. Sometimes that item is the first item and sometimes it's the last. Sometimes it's in the middle and sometimes it's not there at all. If we wanted to be more specific, then we could identify $n+1$ cases for vectors of size $n$\sidenote{$n$ locations and not there at all}. On our graph, we'll see $n+1$ points at each size $n$. It seems highly unlikely that each of these sub-cases of $n$ will take exactly the same time.  Don't agree? Let $n$ be 10000000. Do you think it will take the same amount of time to look at one element (the case where it's the first item) as it will to look at all of them (the case there it's not in the vector)? I don't.
+The ``compares elements'' part implies that we traverse the vector until we find the item we're looking for. Sometimes that item is the first item and sometimes it's the last. Sometimes it's in the middle and sometimes it's not there at all. If we wanted to be more specific, then we could identify \(n+1\) cases for vectors of size \(n\)\sidenote{\(n\) locations and not there at all}. On our graph, we'll see \(n+1\) points at each size \(n\). It seems highly unlikely that each of these sub-cases of \(n\) will take exactly the same time.  Don't agree? Let \(n\) be 10000000. Do you think it will take the same amount of time to look at one element (the case where it's the first item) as it will to look at all of them (the case there it's not in the vector)? I don't.
 
-Even if it were possible for all $n+1$ sub-cases to have the same running time, we'd have to contend with experimental error. Running programs isn't really just a function of elementary operations. Lots of things can happen in the memory system that affect running time. The operating system could be multi-tasking and the other tasks could affect our procedure's execution. More formally, we have to expect some noise, some variance from one experiment to the next even when the inputs are exactly the same.
+Even if it were possible for all \(n+1\) sub-cases to have the same running time, we'd have to contend with experimental error. Running programs isn't really just a function of elementary operations. Lots of things can happen in the memory system that affect running time. The operating system could be multi-tasking and the other tasks could affect our procedure's execution. More formally, we have to expect some noise, some variance from one experiment to the next even when the inputs are exactly the same.
 
 We won't see a line because we have multiple data-points (cases) per x-value (vector size) and our data will be a bit noisy. We also won't see ``a line'' in the data because (worst case) complexity isn't about the data, it's about \textit{an upper bound on the data}. The line you should see is the one you can draw just above all of your data points. This is what we expect to see. This probably means we can find lines and a general linear shape in the data, but most importantly it means we can box all of our std::find data into a quadrilateral with sides the x-axis, y-axis, max size value, and the upper-bound line. This general shape is what we want to see.
 
 \subsection{Gathering Data}
 
-The data set we need to verify the efficiency of std::find should be clear.  The complete set involves execution times for all $n+1$ cases for each vector size $n$ from $[0,m]$ where $m$ is some suitably large upper bound on the vector size. This set is so regular that you can\sidenote{and will!} write programs to gather it for you automatically. Even still, we need to understand some issues inherent in this data set and what we can do with it.
+The data set we need to verify the efficiency of std::find should be clear.  The complete set involves execution times for all \(n+1\) cases for each vector size \(n\) from \([0,m]\) where \(m\) is some suitably large upper bound on the vector size. This set is so regular that you can\sidenote{and will!} write programs to gather it for you automatically. Even still, we need to understand some issues inherent in this data set and what we can do with it.
 
-The first problem we see in this approach is that we really don't know what happens after $m$.  That's OK. Mathematics and statistics will let us make some pretty sound inferences about this unknown region of std::find's efficiency. It may also be OK because we simply don't care about vectors above a certain size. Either out problem deals with a fixed max size or sizes above $m$ don't fit in the computer's memory and we need a different algorithm anyway.
+The first problem we see in this approach is that we really don't know what happens after \(m\).  That's OK. Mathematics and statistics will let us make some pretty sound inferences about this unknown region of std::find's efficiency. It may also be OK because we simply don't care about vectors above a certain size. Either out problem deals with a fixed max size or sizes above \(m\) don't fit in the computer's memory and we need a different algorithm anyway.
 
 The second limitation of the data set is that it quickly becomes unwieldy. We can actually compute exactly how many data points we're talking about using some basic discrete math\sidenote{you don't need to know this math...yet}.
 \begin{equation}
@@ -128,8 +128,9 @@ The second limitation of the data set is that it quickly becomes unwieldy. We ca
 \end{equation}
 
 This quadratic function grows pretty fast.
+
 \begin{tabular}{ll}
-$m$ & size of data set \\ \hline
+\(m\) & size of data set \\ \hline
 5 & 19 \\
 50 & 1301\\
 500 & 125500\\
