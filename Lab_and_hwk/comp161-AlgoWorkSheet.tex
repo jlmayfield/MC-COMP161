@@ -1,0 +1,105 @@
+\documentclass[nobib]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{COMP161 \\ Exam 6 Study Problems}
+\author{}
+\date{Spring 2017}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  Practice Problems for the last Exam. Each problem can/should be solved using basic recursive and iterative design.  Practice writing good documentation and tests along with the actual implementation. This is particularly helpful when dealing with the helper procedures that come along with recursive design. It might be help to classify each problem as a map, filter, or reduction. Recall that maps transform a vector into another vector by applying some function to each element. A filter selects elements that meet some criteria. A reduction combines elements of a vector in some consistent way.
+\end{abstract}
+
+\begin{enumerate}
+  \item \textbf{Complexity}
+    \begin{enumerate}
+      \item Provide names for the following classes (be ready to do  Names to Big-O as well)
+      \vspace{.2in}
+      \begin{center}
+        \begin{tabular}{ll}
+          \( O(n \log n) \) & \underline{\hspace{3in}} \\ \\
+          \( O(n) \) & \underline{\hspace{3in}} \\ \\
+          \( O(n!) \) & \underline{\hspace{3in}} \\ \\
+          \( O(1) \) & \underline{\hspace{3in}} \\ \\
+          \( O(n^2) \) & \underline{\hspace{3in}} \\ \\
+          \( O(2^n) \) & \underline{\hspace{3in}} \\ \\
+          \( O(\log n) \) & \underline{\hspace{3in}} \\ \\
+          \( O( n^3 ) \) & \underline{\hspace{3in}} \\ \\
+        \end{tabular}
+      \end{center}
+
+      \item What are the complexity classes of the following algorithms? What does the complexity class tell you, \textit{specifically}, about the algorithm? What do you not know by knowing the complexity class?
+      \vspace{.2in}
+      \begin{center}
+        \begin{tabular}{ll}
+          Linear Search & \underline{\hspace{3in}} \\ \\
+          Insertion Sort & \underline{\hspace{3in}} \\ \\
+        \end{tabular}
+      \end{center}
+      \newpage \thispagestyle{empty}
+
+      \item Fill in the blank with \( < \), \( > \), or \( = \) whichever is correct for the given complexity classes. (Know the ordering given in the lecture notes)
+
+      \vspace{.2in}
+      \begin{tabular}{lll}
+        \( O(n^2) \) & \underline{\hspace{2in}} & \( O(n) \) \\ \\
+        Logarithmic & \underline{\hspace{2in}} & Linearithmic \\ \\
+        \( O(1) \) & \underline{\hspace{2in}} & Factorial \\ \\
+        \( O(n^2)\) & \underline{\hspace{2in}} & \( O(2^n) \) \\ \\
+        \( O(n^2)\) & \underline{\hspace{2in}} & \( O(n \log n) \) \\ \\
+      \end{tabular}
+    \end{enumerate}
+\item Iterative and Recursive Design (Classic Problems)
+\begin{enumerate}
+  \item Search: Return a bool or return the location
+  \item Sort (Insert and Sort)
+  \item Min/Max: Return a bool or return the location
+  \item Exclusive Prefix Sum \newline
+  The exclusive prefix sum procedure would take a vector of numbers and compute for each number in that vector the sum of all the numbers proceeding it in the vector. For example, the vector containing \( \{3,5,8,2,7 \} \) has an exclusive prefix sum of \( \{ 0,3,8,16,18 \} \) where the fourth element is 16 because the sum of the first three numbers in the original vector is 16. This problem could be solved functionally (return the exclusive prefix sum) or as a mutator (modify the original vector).
+  \item Inclusive Prefix Sum \newline
+  Like the exclusive prefix sum but include the \(i^{th}\) element of the original vector in the \(i^{th}\) sum. The fourth element of the inclusive prefix sum example was 16, in the case of exclusive prefix sum we'd include the fourth element of the original vector, 2, to get 18. The complete exclusive prefix sum of \( \{3,5,8,2,7 \} \) is
+  \( \{3,8,16,18,25 \} \)
+\end{enumerate}
+\item Iterative and Recursive Design (Arbitrary Problems)
+\begin{enumerate}
+  \item A function to compute a vector of booleans given a vector of strings such that the returned vector contains true at index \( i \) if the string at index \(i\) of the argument vector contains the letter e. (Could generalize to a given character or rewrite for different specific letters)
+  \item A mutator that removes all the multiples of 5 from a given vector of integers. (This could also be a function that returns the vector containing numbers that are not a multiple of 5)
+  \item A function that counts the number of times a given string occurs in a vector of strings.
+  \item Compute a weighted average given a vector of scores and and vector of weights where the weight at index \(i\) goes with the score at index \(i\).
+  \item A predicate (function that returns a boolean) that returns true if a vector of doubles contains only positive numbers.
+  \item A predicate (function that returns a boolean) that returns true if a vector of characters contains only alphabetic letters.
+\end{enumerate}
+
+\end{enumerate}
+
+
+
+\end{document}

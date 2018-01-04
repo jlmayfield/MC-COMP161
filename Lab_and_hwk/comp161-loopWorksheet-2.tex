@@ -1,0 +1,75 @@
+\documentclass[nobib]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+  language=C++,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{COMP161 \\ Loops}
+\author{}
+\date{Spring 2017}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  Practice with Loops for the loop Exam.
+\end{abstract}
+
+\begin{enumerate}
+  \item In plain English, describe what this loop does. (Hint: Step through it for some small value of $n$ and see what it does. Then describe that in general terms. \textit{Do not translate the code verbatim to English.}).
+
+    \begin{lstlisting}
+      for(int i{0}; i < n; i++ ){
+        std::cout << n-1-i;
+        if( i % 5 == 4 ){
+          std::cout << '\n';
+        }
+        else{
+          std::cout << ' ';
+        }
+      }
+      if( n % 5 != 0 ){
+        std::cout << '\n';
+      }
+    \end{lstlisting}
+
+  \item Write a loop (any kind) that counts up through the first $n$ multiples of $7$ and prints them each.
+
+  \item Write a loop that counts down through the first $n$ multiples of $3$ and computes their product. When it's done, print that product.
+
+  \item Write a while loop that prints the characters of a string in reverse.
+
+  \item Write a loop that keeps getting integers from the user until they enter a multiple of $11$ at which point it prints that multiple and stops.
+
+  \item Write a validation loop that is suitable for getting a double from the interval $(0,1)$.
+
+  \item Write a guessing game loop. Users will be prompted to guess a number (integer). If their guess is some secrete number $n$ (just pick an $n$) then ``Congratulations!'' is printed to the screen and the loop ends. If it's wrong, they are prompted for a Yes/No answer to the question ``Do you want to guess again?''. (Hint: this is a riff on the until-quit loop that has two ways of quitting).
+
+\end{enumerate}
+
+
+
+\end{document}

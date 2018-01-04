@@ -1,0 +1,71 @@
+\documentclass[nobib]{tufte-handout}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{hyperref}
+\usepackage{framed}
+
+\title{COMP161 \\ Counted Loops}
+\author{}
+\date{Spring 2017}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  In this worksheet you'll practice reading, writing, and analyzing loops that count.
+\end{abstract}
+
+\section*{ Some Vocabulary }
+
+A \textsc{counted loop} is a loop that works to count out some set of numbers. Alternatively, we can say that the loop does a \textsc{traversal} of this set. As we've seen, these loops typically work by modifying the state of a counter variable such that over the course of the loop that variable takes on the value of every number from the desired set of numbers.
+
+The code within the curly brackets of the loop is called the \textsc{loop body}. A single execution of the loop body is called an \textsc{iteration} of the loop. The amount that the counter is updated by from one iteration to the next is called the \textsc{stride}\sidenote{Often we'll talk in terms of the stride as the absolute difference as counting up (positive stride) or down (negative stride) is typically an option}.
+
+\section*{ Practice by Doing }
+
+A good way to practice code is to actually code. Here we're simply concerned with loops so the trick is to find a simple task to loop that lets us verify the correctness of our loop.  The traditional option is write a loop that prints your counter values. In Figure~\ref{fig:printloop} we see a loop that we can drop inside a \textit{main} procedure such that the resultant program will give us visual confirmation that our loop counts through the interval $[0,7)$. Choosing a smallish value for $n$ makes verifying the output easy while ensuring the loop is definitely going through several iterations. We could then go change the value of $n$ to see how the loop behaves as $n$ changes\sidenote{What happens if $n$ is zero? What if $n$ is negative?}
+
+\begin{figure}
+\begin{lstlisting}
+
+  int n{7};
+  int i{0};
+  while( i < n ){
+    std::cout << i << ' '
+  }
+  std::cout << '\n';
+\end{lstlisting}
+\caption{ Testing that the loop counts to $n$ by output}
+\label{fig:printloop}
+\end{figure}
+
+There are ways to write gTest tests to verify our loop, but we'll save those for when we have a few more tricks up our sleeve.
+
+\begin{center}
+  \textbf{Write all the loops requested by worksheet in a single main procedure as shown above. Use different variables for each loop.}
+\end{center}
+
+\begin{enumerate}
+  \item Counting the interval $\left[{0,n}\right)$
+  \begin{enumerate}
+    \item Write a \textit{for} loop that counts out the interval $[0,n)$.
+    \item Write a \textit{do-while} loop that counts out the interval $[0,n)$.  Will this loop work exactly the same as your for loop for every value of $n$?
+    \item Write a \textit{while} loop that counts backwards through the interval.
+  \end{enumerate}
+\item Other Counting
+\begin{enumerate}
+  \item Write a \textit{for} loop that counts down through the first $n$ multiples of $5$.
+  \item Write a \textit{while} loop that counts up through the first $n$ multiples of $7$ but uses a stride of $1$. (Hint: Notice that we're counting iterations now. So on the $i^{th}$ iteration use $i$ to compute the $i^{th}$ multiple.)
+  \item Write two \textit{do-while} loop that counts up through the even numbers in the interval $[2n,5n)$. The first should count by setting the counter directly, and the second should count number of iterations while computing the desired numbers\sidenote{the second has a stride of 1 and the first does not}.
+  \item Write a loop of your choosing that counts up through the first $n$ powers of $2$ such that the value of your counter is the $i^{th}$ power on the $i^{th}$ iteration.
+  \item Write a loop of your choosing that counts down through the first $n$ powers of $3$ such that the value of your counter is the $i^{th}$ power on the $i^{th}$ iteration.
+\end{enumerate}
+\item Some of these things are not like the others.
+\begin{enumerate}
+  \item What is the stride for all the loops your wrote except the last two?
+  \vspace{2in}
+  \item How would you characterize the stride on the final two loops?
+  \vspace{2in}
+  \item If I started at 1 and counted to $n$ using the powers of two stride pattern, how many iterations would I need to reach $n$?  (Hint: Start by picking some $n$ that are powers of two and count it out. See if you can find a pattern.)
+\end{enumerate}
+\end{enumerate}
+\end{document}
