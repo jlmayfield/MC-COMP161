@@ -1,11 +1,11 @@
-\documentclass[]{tufte-handout}
+\documentclass[nobib]{tufte-handout}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{hyperref}
 \usepackage{framed}
 
 \title{COMP161 \\ Lab 4 \& Homework 4}
 \author{}
-\date{Spring 2017}
+\date{Spring 2018}
 
 \begin{document}
 \maketitle
@@ -28,8 +28,8 @@ $>
 \end{verbatim}
 
 
-\item A program that provides a basic REPL interface for some of the distance conversion functions from lab/hwk 3. \\
-The executable program should be named \textit{convert}. The program should prompt the user for three things: the distance to be converted, its units, and the target units. Your program should only allow the conversion to and from inches, centimeters, and feet. Units can be specified by a single letter\sidenote{i.e.\ a char value}: i for inches, c for centimeters, and f for feet. If the user enters a negative value for the distance or a unit not covered by the program, then the program should write an error message to the standard error and continue to the next loop without attempting a conversion. Otherwise, the program should produce descriptive output. A execution of the program that terminates after a single loop might look like this:
+\item A program that provides a basic REPL interface for \textit{some} of the distance conversion functions from lab/hwk 3. \\
+The executable program should be named \textit{convert}. The program should prompt the user for three things: the distance to be converted, its units, and the target units. Your program should only allow the conversion to and from inches, centimeters, and feet. Units can and should be specified by a single letter\sidenote{i.e.\ a char value}: i for inches, c for centimeters, and f for feet. If the user enters a negative value for the distance or a unit not covered by the program, then the program should write an error message to the standard error and continue to the next loop without attempting a conversion. Otherwise, the program should produce descriptive output. A execution of the program that terminates after a single loop might look like this:
 \begin{verbatim}
 $> ./convert
 What would you like to convert: 12 i
@@ -47,6 +47,7 @@ Before you dive into writing the actual implementations for main you should get 
 \begin{enumerate}
 \item Stub out two files, one for each \textit{main} //
 This means creating two files, adding the appropriate comments at the top, add the appropriate includes, and stubbing out \textit{main} in each file.
+
 \item Add rules to your Makefile for building each of the executable programs
 \end{enumerate}
 When these steps are complete you should be able to build three executable programs using your Makefile: the gTest program that runs your tests from last week and two programs that do nothing. Once again, your goal is to quickly get a working foundation upon which you can build your program(s).
@@ -59,7 +60,7 @@ When the lab period is over, submit your source documents and your Makefile as \
 \section{Homework 4}
 
 \begin{center}
-\textbf{Due by 8am on Monday 2/20}
+\textbf{Due by 8am on Wednesday 2/14}
 \end{center}
 
 Complete both programs described under lab 4. Submit the source code and Makefile as \textit{hwk4} using handin\sidenote{Be certain to clean out your working directory of non-source files before submitting}.
