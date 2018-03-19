@@ -7,22 +7,22 @@
 
 \title{COMP161 \\ Lab 6 \& Homework 6}
 \author{}
-\date{Spring 2017}
+\date{Spring 2018}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For this lab you'll work on writing a mutator procedure. It's a problem we've looked at before. You'll be enhancing it a bit and approaching it from the perspective of stateful-mutation. For homework you'll work on an output procedure. Both topics are covered in lecture notes 9.
+For this lab you'll work on writing a mutator procedure. It's a problem we've looked at before. You'll be enhancing it a bit and approaching it from the perspective of state mutation. For homework you'll work on an output procedure. Both topics are covered in lecture notes 9.
 \end{abstract}
 
 \section{Lab 6}
 
 \begin{framed}
 \begin{quote}
-An $n$-gram letter frequency analysis counts the frequency of $n$ letter sequences in a string. These statistics can then be used for several purposes in natural language processing and cryptography. A common technique to handle the begging and end of a document is to pad both with $(n-1)$ special characters such that the first $n$ gram is the first letter of the text preceded by $(n-1)	$ special characters and the last $n$ gram is the last character followed by $(n-1)$ special characters. It is usually important that the padding character is unique and doesn't occur elsewhere in the text as it signifies the beginning and end of the document.
+An $n$-gram letter frequency analysis counts the frequency of $n$ letter sequences in a string. These statistics can then be used for several purposes in natural language processing and cryptography. A common technique to handle the begging and end of a document is to pad both with $(n-1)$ special characters such that the first $n$ gram is the first letter of the text preceded by $(n-1)$ special characters and the last $n$ gram is the last character followed by $(n-1)$ special characters. It is usually important that the padding character is unique and doesn't occur elsewhere in the text as it signifies the beginning and end of the document.
 
-Your task is to design and develop a general purpose \textsc{string mutator} called \textit{add\_padding} that can be used for this purpose. The procedure should take a string $str$, a positive integer $pad\_size$, and a character $pad\_char$. If the character $pad\_char$ doesn't occur in \textit{str}, then it should then modify $str$ by adding  $pad\_size$ occurrences of $pad\_char$ to both the beginning and end of the string. If $pad\_char$ does occur in $str$, then it should leave $str$ unchanged.
+Your task is to design and develop a general purpose \textsc{string mutator} called \textit{add\_padding} that can be used for this purpose. The procedure should take a string $str$, a positive integer $pad\_size$, and a character $pad\_char$. If the character $pad\_char$ doesn't occur in \textit{str}, then it should modify $str$ by adding  $pad\_size$ occurrences of $pad\_char$ to both the beginning and end of the string. If $pad\_char$ does occur in $str$, then it should leave $str$ unchanged.
 \end{quote}
 \end{framed}
 
@@ -33,7 +33,7 @@ In order to complete this procedure, you'll need to make use of the \textit{fill
 \section{Homework 6}
 
 \begin{center}
-\textbf{Due By 8am, Wednesday 3/15}
+\textbf{Due Monday 2/26}
 \end{center}
 
 Printing data in an organized, tabular form is a common output task.  Tabular output presents data aligned into columns and rows and typically prints each value in a specific way.  For this problem you are to write an output procedure called \textit{styleRowOut} that produces \textit{one row} of a table of beer style statistics like those you see here:
