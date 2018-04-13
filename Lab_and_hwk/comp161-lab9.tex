@@ -51,7 +51,7 @@ Get the code for lecture notes 14 from \textit{/home/comp161/sp18}. Within that 
   \item Trace the following iterative insert:
   \begin{lstlisting}
   std::vector<int> ex({2,4,6,8,10,12,5});
-  ln14::iter::insert(ex,0,ex.size());
+  ln14::iter::insert(ex,0,ex.size()-1);
   \end{lstlisting}
 
   \item Come up with an example that will have a trace table that has exactly 9 rows. Trace it.
@@ -87,17 +87,17 @@ We can record this in tabular format as follows. Label the table with the proced
 
 \begin{lstlisting}
 std::vector<int> ex({3,5,7,9,4});
-ln14::iter::insert(ex,0,ex.size());
+ln14::iter::insert(ex,0,ex.size()-1);
 \end{lstlisting}
 
 Then we might start out like:
 
 \begin{framed}
-Trace of \textit{ln14::iter::insert(std::vector<int>(\{3,5,7,9,4\}),0,5)}
+Trace of \textit{ln14::iter::insert(std::vector<int>(\{3,5,7,9,4\}),0,4)}
 \begin{center}
 \begin{tabular}{ccc}
   \underline{i} & \hspace{.25in} & \underline{data} \\
-  4 & & std::vector<int>(\{3,5,7,9,4\})
+  3 & & std::vector<int>(\{3,5,7,9,4\})
 \end{tabular}
 \end{center}
 \end{framed}
@@ -112,7 +112,7 @@ Once again, we can use a tabular format to trace our computation. This time each
 
 \begin{lstlisting}
 std::vector<int> ex({3,5,7,9,4});
-ln14::recur::insert(ex,0,ex.size());
+ln14::recur::insert(ex,1,ex.size());
 \end{lstlisting}
 
 Then we might begin our trace like this:

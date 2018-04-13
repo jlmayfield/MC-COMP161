@@ -1,123 +1,81 @@
-\documentclass[]{tufte-handout}
+ \documentclass[nobib]{tufte-handout}
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{hyperref}
 
-\title{COMP161 - Project 2 - Complexity and the Real World}
+\title{COMP161 \\ Project 2 \\ Basic Profilers}
 \author{}
-\date{Spring 2016}
+\date{Spring 2018}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For your final project you'll carry out empirical studies of key searching and sorting algorithms in order to better appreciate the interplay between complexity and real world performance. The ultimate goal is the collection of execution time data and the presentation of that data in the form of three mini-posters. 
-\end{abstract}
+For your second project you will write programs to profile the runtime of of some classic algorithms given random inputs for a variety of vector sizes. \end{abstract}
 
-\section{The Data Set}
+\section{A Basic Average-Case Profiler}
 
-One of the primary goals of this project is to generate data sets that allow you to visualize and explore the running times of classic searching and sorting algorithms. We'll look at the following set of procedures: 
+You are to setup your profilers as simple command-line scripts that work from two command-line arguments. The first is the number of times the procedure being profiled should be run, i.e.\ the number of experiments, and the second is the size of the vector.  For example, if the program executable for profiling std::find is named  \textit{profFind}, then you'd run \textit{profFind 10 10000} at the command-line to profile std::find on 10 randomly generated input vectors of size 10000.
+
+The programs should report the size of the vector and time taken in milliseconds for each execution writing not more than five execution times per line and placing a space between each time. Additionally, the minimum, average, and maximum time taken should be given on a line of its own after all the individual times have been reported. For example, say you had a vector of size 1000, ran std::find seven times, and they took 3, 5, 4, 3, 4, 7, and 9 milliseconds respectively\sidenote{these times are made up} for a minimum of 3, an average of 5, and a maximum of 9 milliseconds. Then your program would print:
+
+\begin{verbatim}
+  1000
+  3 5 9
+  3 5 4 3 4
+  7 9
+
+\end{verbatim}
+
+The basic output template is size on one line followed by the minimum, average, and maximum time on one line, and finally the individual times written five per line.
+
+\subsection{ The Procedures }
+
+From the C++ standard library\sidenote{specifically the \textit{algorithm} library}, you'll be profiling: \textit{std::find}, \textit{std::sort}, and \textit{std::binary\_search}. These represent well optimized versions of classic algorithms and give you a real feel for the linear, linearithmic, and logarithmic classes, respectively. From the instructor's \textit{searchsort} library you'll be profiling \textit{searchsort::insertsort}, \textit{searchsort::selectsort},  \textit{searchsort::mergesort}, and \textit{searchsort::quicksort}. These represent textbook presentations of classic algorithms and give you some points of comparison within the quadratic and linearithmic complexity classes.
+
+The true average case for these procedures is determined from some statistical knowledge of what kind of data they can expect to work with. We'll simply look at cases that are not guaranteed to be the worst or best case. For the sorts, this occurs when the input is random, unsorted data.  For the two searches this occurs when the item you're looking for is in the middle of the vector somewhere\sidenote{This can actually trigger Binary Search's best case, but we'll run with it for this project.}.
+
+Given that the sorts are mutators, it is important that every individual sort start with a freshly generated vector. Resorting an already sorted vector can induce best or worst case behavior depending on the sort.  For the searches you'll need to use the C++ \textit{random} library to generate a random integer in the middle range of indexes for the vector. For example, if our vector has a size of \(n\), then we want a random number drawn from the uniform distribution of \( [\frac{n}{4},\frac{3n}{4}] \). That number will be the index of the number for which we'll search. For example, if you randomly generate the number 17, then you should search for the number currently at index 17 in your vector. Each search should pick a new number to search for.  The vector itself can be reused but the index containing the search key must be regenerated.
+
+\subsection{Pre-Project Lab: Generating Test Data}
+
+In \textit{/home/com161/sp18} you'll find the file \textit{labp2-stater.zip}. It contains all the design work for the following procedures:
 \begin{itemize}
-\item binary search 
-\item  \textit{binary\_search} from the C++ \textit{algorithm} library 
-\item linear search 
-\item  \textit{find} from the C++ \textit{algorithm} library
-\item mergesort 
-\item quicksort 
-\item \textit{sort} the C++ \textit{algorithm} library 
-\item selectionSort 
-\item insertionSort 
+  \item \textit{fill\_rand} \\
+  A procedure for filling a vector with a random permutation of sequential integers.
+  \item \textit{fill\_sorted} \\
+  A procedure for filling vector with integers in greatest to least order.
 \end{itemize}
-This list includes procedures we'll develop and analyze in class and lecture notes as well as C++ standard library implementations. This lets us look at the efficiency of DIY implementations versus well engineered libraries. Additionally, the complete set of algorithms represents an important series of complexity classes\sidenote{$O(\log{n}),O(n),O(n\log{n}),O(n^2)$} and should allow us gain some appreciation for the order of magnitude differences these classes represent. 
+In your pre-project lab assignment you'll implement these two procedures.
 
-\subsection{Execution Times}
+These mutator procedures form the backbone of your project as they enable you to quickly generate new inputs for the procedures you'll be profiling. The procedure fill\_sorted can be implemented with basic iteration. The procedure fill\_rand requires randomness and therefore follows the design of randomized procedures as seen in lecture notes 18.
 
-Your first data set is the execution time for the theoretical worst case and five randomly selected procedure inputs for each of the 9 algorithms listed above and for each of the following input sizes: 10, 50, 100, 500, 1000, 5000, 10000, 25000, 50000, 75000, 100000, 150000, 200000, and 250000. When explicit generation of a worst-case generating input is not feasible or possible, then another random input should be used in its place. To be clear that's 14 sizes, 9 algorithms, and 6 executions per size-algorithm combination for a total of 756 timed executions\sidenote{84 per algorithm}. 
+To implement fill\_rand you should use fill\_sorted to get a vector full of the right sequence of numbers and then use a Fisher-Yates shuffle to randomize the order. This linear time algorithm works by traversing the vector from the greatest index to the least index while randomly selection a position prior to the current traversal index and swapping the value at that position with the current position. Fisher-Yates is already implemented as std::shuffle, but it's a simple enough randomized, iterative process that it makes for a good example to learn from so you'll write your own implementation.
 
-Gathering data on only 6 cases is, for most of the sizes we're looking at, too little data. We're being hyper conservative about scaling programs up to larger numbers of executions as the input vectors get bigger. Several of the procedures that you'll be dealing with can and will take on the order of minutes to execute. So, a procedure that takes 5 minutes repeated 20 times will take over an hour to run. Given that we're all working off the same server, we'd like to avoid overloading the server with a class sized set of compute jobs each needing hours of compute time. This is also the reason we're not looking at writing one uber-program that gathers all of our data in a single execution
+Once the procedures are implemented and the tests provided in the starter pass, use the program written in \textit{labp2\_main} to write a unit test for a fill\_rand with a vector size greater than 5. The program takes two positive integers at the command line. It will give you the exact sequence of numbers your shuffle will get from a given random number generator seed value. The second input is the seed value and the first is, in terms of shuffling, the vector size. So passing the program 15 and 2, gives you the random values your shuffle will be given for a seed value of 2 and a vector of size 15. From here you can predict exactly what your shuffle will do as you know exactly which elements will be swapped on each iteration of the shuffle.
 
-\section{Posters}
+Submit your labp2 code as assignment \textit{labp2}.  In the event you do not complete this lab, a working copy of the library will be provided to you in order for you to complete the project.
 
-Posters are common means of presenting information in the sciences. A lot of work can go into making high quality posters. The posters you'll be creating are not meant as a complete poster in the traditional sense. They will simply present the data without the usual introductory material and without drawing conclusions from the data. In short, we're simply presenting the results and the methodology by which they were gathered so that readers can draw their own conclusions. 
+\section{Gather Data}
 
-To tell the complete story of our data we need to combine both images and text. Posters are a simple and effective way to do this. You'll need to develop three 11x17 posters:
-\begin{enumerate}
-\item A poster that presents a table of worst case execution times for all algorithms and all sizes
-\item A poster that presents point plots of all collected execution times for the four search algorithms 
-\item A poster that presents point plots of all collected execution times for the five sorting algorithms
-\end{enumerate}
+Once your profiling programs work, you should use them to gather some basic data about the seven procedures in question and their associated algorithms. That data should be written to a file using command-line redirects such that each procedure has it's own file for a grand total of seven files worth of data.\sidenote{This means you should append each different run of your program to the procedure's data file.}
 
-Each poster should stand on its own. Towards this end, you must include the following items in each poster. 
-\begin{itemize}
-\item A Title
-\item Your name and affiliation\sidenote{Monmouth College, Department of Mathematics and Computer Science.}
-\item Some text that briefly describes the data, the visualizations, and the overall design of the visualizations so that the reader knows how to read and interpret the graphics\sidenote{Note we're describing what should be read from them, just how to read them. We leave conclusions to the reader}.
-\item The visualizations, each with a caption that includes a figure number, title, and brief description. 
-\end{itemize}
+Minimally, you must gather data on 10 executions for each procedure and for each of the following sizes: 100,500,1000,5000,10000,50000, and 100000. You're welcome to try more or less executions than 10 as well as different sizes. Be certain that you understand the performance of the procedure before you ramp things up. It is recommended that you work your way from least to most complex procedure.
 
-\subsection{The Visualizations}
+%\subsection{Bonus: Data Visualizations}
 
-Our posters require the following visualizations, which we'll generate with Mathematica. 
-\begin{itemize}
-\item A single table in which each row contains the maximum times for each procedure on a given size. The first row of data should be the times for the smallest size and the last row should be the times for the largest size. This table lets us easily compare the worst case execution times for the nine different procedures.\sidenote{A similarly structured table for average times would also be really interesting, but we'll focus our energies on worst case execution for now}.
-\item Nine point plots, one for each of the nine algorithms. These show all the times gathered for each procedure as a point in 2D space where the x-coordinate is vector size and the y-coordinate is execution time.    
-\end{itemize}
+%Experimental algorithms is the study of algorithms in practice. Researchers in this area profile algorithms in order to verify their performance in real world conditions. They see how well the theory works in practice. Presenting this kind of work requires visualizations of the profiling data. For extra credit you can generate one or more of the following:
+%\begin{itemize}
+  %\item \textit{A high quality table of average run times for all seven procedures and all seven of the sizes listed above.} All times should be reported in the most appropriate scale and labeled with units. For example, 5234 ms should be reported as 5.234 seconds. List the algorithms in rows in least to most complex order and sizes in columns for smallest to largest such that reported times should, in general, increase as you go down and right.
+  %\item \textit{A small multiples chart of all the data}. A small multiples chart is a chart containing multiple versions of the same visualization where each version reports on different data. This allows the viewer to carry out comparisons at several different levels. The chart that you need to repeat is a point plot of all the times where vector size is plotted on the x axis and time on the y axis. The end result will look a bit like columns of dots
+%\end{itemize}
 
+\section{Logistics}
 
-\section{The Profiling Programs}
-
-The code you're writing for this project is used to gather execution times for our set of nine procedures. The complete program has four components:
-\begin{enumerate}
-\item A library of the 7 algorithm implementations discussed in the lecture notes, i.e. the 7 non-C++ standard library procedures listed in the beginning. Much of this work will be done as a class and in lecture notes. 
-\item A library for generating random \textit{vector$<$int$>$} data, algorithm specific worst-case data, and reading some vector data to files .  Much of this was carried out in\textit{labp2}.
-\item A series of 9 programs, one per procedure, used to gather performance data.
-\item A Mathematica notebook used to process data and generate visualizations.
-\end{enumerate}
-
-
-\subsection{Algorithm Library}
-The first library should contain six procedures\sidenote{and any helpers needed to implement those procedures}-- one for each of following algorithms on a \textit{vector$<$int$>$} variable.
-\begin{itemize}
-\item binary search 
-\item linear search
-\item selectionSort
-\item insertionSort
-\item mergesort
-\item quicksort
-\end{itemize}
-These will be discussed in class and in lecture notes. Some code will be provided for you. You just need to be certain you have access to these procedures, that they work as specified, that you know how to use them, and that you understand their complexity analysis.
-
-\subsection{Random Vectors and Files Library}
-
-The second library is used to generate data for testing and writing test results to files for processing with Mathematica. It should be comprised of the following procedures:
-\begin{enumerate}
-\item \textit{rand\_ints} \\
-A procedure for computing a random permutation as a vector of integers. 
-\item \textit{sorted\_ints} \\
-A procedure for computing a vector of integers in greatest to least order.
-\item \textit{write\_ints} \\ 
-An output procedure which takes a vector of integers and an output file stream and then writes the contents of the vector to the file as comma separated values.
-\item \textit{write\_times} \\
-An output procedure which takes a vector of durations and an output file stream and then writes the durations, as seconds in double format, as comma separated values to the stream.
-\end{enumerate}
-These three procedures can be used to generate and report on all the test data we need. 
-
-\subsection{Profile Data Gathering Programs}
-
-Your need to write 9 programs, one per procedure. This lets you incrementally work through the algorithms and gather data as you go. Your goal is to get data and visualize that data. Work one procedure at a time, get the program written, gather and visualize the data, then move on to another procedure. Do not wait to get and work with timing data until you have a complete set. There is going to be a lot of code shared between these programs, so you'll likely save some time by copying and modifying as needed. 
-
-The goal of a profiling program is to produce a csv\sidenote{comma separated values} file with 15 lines of values on it. The first line is the sizes to profile the procedure. The remaining 14 lines are the execution times for each size. You should profile the procedure in smallest to largest size order. This means the second line of your file contains the times for the smallest size profiled and the last line of your file contains the times for the largest size profiled.
-
-\subsection{Mathematica Notebook}
-
-You should us a single Mathematica notebook to process all of your data. 
-
-\section{Logistics and TLDR}
-
+You are expected to use helper procedures and good program design practice where prudent. Code must be well documented and tested. You should not be cramming all the code into main. On the other hand, you do not need to do extreme decomposition into procedures.  Find a happy medium that works for you. In the end, there should be a clear sense of design and style. It should be easily read and followed by a human reader in addition to correctly carrying out the task at hand.
 
 \begin{itemize}
-\item \textit{Lab 4/20} - Labp2 starts work on some library procedures 
-\item \textit{Lab 4/27} - Open lab time to work. 
-\item \textit{\textbf{Wednesday 5/4}} Program code, data files, Mathematica Notebook, and digital copies of posters submitted via handin as \textit{proj2}. 
+\item \textit{Lab 4/26} --- Pre-Project lab (\textit{labp2}) and open work time.
+\item \textit{\textbf{Wednesday 5/2}} Program code \textit{and data files} submitted via handin as \textit{proj2}.
 \end{itemize}
 
 \end{document}
