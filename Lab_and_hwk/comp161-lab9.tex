@@ -2,130 +2,29 @@
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{hyperref}
 \usepackage{framed}
-\usepackage{listings}
-\usepackage{color}
-
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
-
-\lstset{
-  frame=tb,
-  language=C++,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle={\small\ttfamily},
-  numbers=left,
-  stepnumber=1,
-  firstnumber=1,
-  numbersep=5pt,
-  numberfirstline=true,
-  numberstyle=\tiny\color{black},
-  keywordstyle=\color{blue},
-  commentstyle=\color{dkgreen},
-  stringstyle=\color{mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3
-}
-
 
 \title{COMP161 --- Lab 9}
 \author{}
-\date{Spring 2018}
+\date{Spring 2019}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-For this lab you'll take a careful look at \textit{insert}, the core procedure used by insertion sort. First you'll be stepping through the ecursive and iterative versions of insert as presented in lecture notes 14. When that's done, you'll take a stab at inverting the logic of these procedures.
+In this lab you'll practice basic iterative and recursive design on the classic problem of finding the max. There is no required homework with this lab. It is, however, recommended you finish it out by Friday so that reviewing the solutions is more meaningful for you.
 \end{abstract}
 
 \section{Lab 9}
 
-Get the code for lecture notes 14 from \textit{/home/comp161/sp18}. Within that library is two implementations of insert: one iterative and one recursive. You'll be asked trace some very specific calls to both functions and then come up with some examples of your own to trace. Instructions for doing traces are given in the subsections below. We'll be using a tabular style of tracing that we started using in class this week.
-
+On the server in \textit{/home/comp161/sp19} you'll find c161-lab9-starter.zip. It contains the basic setup for implementing a basic max finding function for a vector of doubles. Get it and unzip it to your home directory. Then:
 \begin{enumerate}
-  \item Trace the following iterative insert:
-  \begin{lstlisting}
-  std::vector<int> ex({2,4,6,8,10,12,5});
-  ln14::iter::insert(ex,0,ex.size()-1);
-  \end{lstlisting}
-
-  \item Come up with an example that will have a trace table that has exactly 9 rows. Trace it.
-
-  \item Answer the following: For a vector of size \(n\) what is the minimum and maximum number of rows you can have in its trace table for this iterative insert?
-
-  \item Trace the following recursive insert:
-  \begin{lstlisting}
-  std::vector<int> ex({7,2,4,6,8,10,12});
-  ln14::recur::insert(ex,1,ex.size());
-  \end{lstlisting}
-
-  \item Come up with an example that will have a trace table that has exactly 7 rows but with a vector that has a size of 10. Trace it.
-
-  \item Answer the following: For a vector of size \(n\) what is the minimum and maximum number of rows you can have in its trace table for this iterative insert?
-
-  \item Both sort procedures work by repeatedly calling insert in such a way that the vector gets sorted. Test your understanding of insert and running program traces by doing a tabular trace of both the iterative sort procedures for the following vector.
-
-  \begin{lstlisting}
-  std::vector<int> ex({3,1,7,0,2})
-  \end{lstlisting}
-
-  In these traces treat insert like a black box. Don't trace it within the trace of the sort. This means your iterative sort trace should have one row for each repetition of the sort loop and not one for each sort loop repetition and one for each insert repetition within each sort repetition. For the recursive sort you must handle the fact that it is not tail recursive. To do this add a row to the table twice for each call to sort: once when it's called and once when it gets returned to, i.e.\ after it's finished recursively sorting ``the rest'' of the vector. The order of the rows should reflect the order in which events occurs in the program.
-
+\item Put your name in each of the file headers
+\item Write tests for both implementations in \textit{lab9-test.cpp}.  These tests can, and should, test the same data. The implementation doesn't change the problem.
+\item Finish documentation by filling in the pre and post conditions
+\item Implement the iterative version
+\item Implement the recursive version
 \end{enumerate}
 
-
-\subsection*{Tracing \textit{ln14::iter::insert}}
-
-When tracing iteration we need to track the state that controls the loop and whatever state is accumulating the result. In the case of our insert procedure this means the value of \(i\) and the current contents of the vector \textit{data}. A natural time to record this information is at the moment prior to each check of the loop's continuation condition as this provides a snap shot of key program state before iteration, during each step iteration, and when the iteration is complete.
-
-We can record this in tabular format as follows. Label the table with the procedure call. In the first column list the value of \(i\) and in the second column list the value of \textit{data}. The array value should be written just like it would in C++. For example, if we were tracing something like:
-
-\begin{lstlisting}
-std::vector<int> ex({3,5,7,9,4});
-ln14::iter::insert(ex,0,ex.size()-1);
-\end{lstlisting}
-
-Then we might start out like:
-
-\begin{framed}
-Trace of \textit{ln14::iter::insert(std::vector<int>(\{3,5,7,9,4\}),0,4)}
-\begin{center}
-\begin{tabular}{ccc}
-  \underline{i} & \hspace{.25in} & \underline{data} \\
-  3 & & std::vector<int>(\{3,5,7,9,4\})
-\end{tabular}
-\end{center}
-\end{framed}
-
-\subsection*{Tracing \textit{ln14::recur::insert}}
-
-When tracking iteration we could simply track key state at the the moment of testing the loop continuation. Tracing a recursive procedure can take a bit more care because we must maintain a clear picture of where we are within the stack of recursive procedure calls. This can mean tracking state whenever the function context changes, i.e.\ when a function is called and when it is returned to.
-
-Thankfully, the insert procedure is what's known as \textsc{tail recursive}, meaning the last thing it does is make a recursive call\sidenote{This is in contrast to the max procedure we saw last week which completed some computation after the recursive call returned.}. We'll only need to worry about taking snapshots whenever a recursive procedure call is made.
-
-Once again, we can use a tabular format to trace our computation. This time each row represents a recursive procedure call. This is tracked by the values of it's arguments: \textit{fst}, \textit{lst}, and \textit{data}. We will not start a table with each new call. For example, if we made the following call to insert:
-
-\begin{lstlisting}
-std::vector<int> ex({3,5,7,9,4});
-ln14::recur::insert(ex,1,ex.size());
-\end{lstlisting}
-
-Then we might begin our trace like this:
-
-\begin{framed}
-Trace of \textit{ln14::recur::insert(std::vector<int>(\{10,3,5,7,9\}),1,5)}
-\begin{center}
-\begin{tabular}{ccc}
-  \underline{fst} & \underline{lst} & \underline{data} \\
-  1 & 5 & std::vector<int>(\{10,3,5,7,9\}) \\
-  2 & 5 & std::vector<int>(\{3,10,5,7,9\})
-\end{tabular}
-\end{center}
-\end{framed}
+When you're done, or lab is over, submit your lab directory as assignment \textit{lab9} using the handin script.
 
 \end{document}
