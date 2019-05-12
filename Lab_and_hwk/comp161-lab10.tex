@@ -35,122 +35,50 @@
 
 \title{COMP161 - Lab 10}
 \author{ }
-\date{Spring 2016}
+\date{Spring 2019}
 
 \begin{document}
 \maketitle
 \thispagestyle{empty}
 
 \begin{abstract}
-In this lab you'll work some basic exercises on Big-O and algorithm analysis. Write solutions on this sheet and bring the sheet to class tomorrow. We'll discuss it, then you'll hand it in.
+For these problems you should simply cram each loop into a single main procedures. No libraries.
+No tests. Just a one file program containing a main.
 \end{abstract}
 
 \begin{enumerate}
-\item Rank the following complexity from least to greatest order, in terms of resources needs by members of the class, where $1$ is the least resource intense class and numbers proceed up from there.
+  \item Warm-up: Counting the interval $\left[{0,n}\right)$
+      \begin{enumerate}
+        \item Write a \textit{for} loop that counts out the interval $[0,n)$ while and computing and finally printing the sum of all the numbers in that interval.
+        \item Write a \textit{do-while} loop that counts and computes the sum of the interval $[0,n)$.  Will this loop work exactly the same as your for loop for every value of $n$?
+        \item Write a \textit{while} loop that counts backwards through the interval. Have it print the numbers, separated by spaces, as it counts.
+      \end{enumerate}
+    
+  \item In plain English, describe what this loop does. (Hint: Step through it for some small value of $n$ and see exactly what it does for that $n$. Then describe that in more general terms. \textit{Do not translate the code verbatim to English.}). Check yourself by copying and running the code.
 
-\begin{center}
-\begin{tabular}{ll} 
-       & \\
-$O(n \log n)$ & \underline{\hspace{1.5in}} \\
-       & \\
-$O(n^2)$ & \underline{\hspace{1.5in}} \\
-       & \\
-$O(1)$ & \underline{\hspace{1.5in}} \\
-       & \\
-$O(2^n)$ & \underline{\hspace{1.5in}} \\
-       & \\
-$O(n^3)$ & \underline{\hspace{1.5in}} \\
-       & \\
-$O(\log n)$ & \underline{\hspace{1.5in}} \\
-       & \\
-$O(n)$ & \underline{\hspace{1.5in}} 
-\end{tabular}
-\end{center}
+    \begin{lstlisting}
+      for(int i{0}; i < n; i++ ){
+        std::cout << n-1-i;
+        if( i % 5 == 4 ){
+          std::cout << '\n';
+        }
+        else{
+          std::cout << ' ';
+        }
+      }
+      if( n % 5 != 0 ){
+        std::cout << '\n';
+      }
+    \end{lstlisting}
 
+\item Write a validation loop that is suitable for getting a double from the interval $(0,1)$.
 
-\item Determine the Big-O for each of the following functions.
-\begin{enumerate}
-\item $3n+1500$
-\vspace{.35in}
-\item $\dfrac{x\log x}{25} - 5x + 3x^3$
-\vspace{.35in}
-\item $(n+1)(n+2)$
-\vspace{.35in}
-\item $10^9$
-\vspace{.35in}
-\item $\log y + 135 + \dfrac{y}{2}$
-\vspace{.35in}
+\item Write a loop that counts down through the first $n$ multiples of $3$ and computes their product. When it's done, print that product.
+
+\item Write a loop that prints out every other string in a vector of strings.  Print one string per line. Your loop should continue to work if you change the vector's size, i.e. don't hard-code 10 into the loop if the test vector contains 10 strings.
+
+\item Write a loop that works with a vector of integers and prints out the sum of adjacent, non-overlapping pairs. Assume the vector contains an even number of integers. For example, if the vector contains $\{1,2,3,4,5,6\}$ then it should print $3$, then $7$, and finally $11$ by adding $1$ and $2$, then $3$ and $4$, and finally $5$ and $6$. (Hint: You need to count through the pairs, not the individual vector elements).
+
 \end{enumerate}
-\newpage \thispagestyle{empty}
-
-\item A lot of looped/repeated code generates a pattern of incrementally increasing work. For example, the first iteration carries out 1 operation, then the next 2, the next 3, and so on up to some $n$. This pattern, called the \textit{arithmetic series}, is well studied in mathematics and is easily expressed with \textit{summation notation}. 
-\[
-\sum\limits_{i=1}^{n} i = 1 + 2 + \ldots + (n-1) + n =  \dfrac{n(n+1)}{2}
-\]
-For now, the import thing to notice is that we can determine the total of the sum without explicitly doing all the the addition by using the formula on the right in the above equation. What's the Big-O of this summation? 
-\vspace{2in}
-
-\item Consider the following loop that counts through $[0,n)$:
-\begin{center}
-\begin{lstlisting}
-for(int i{0} ; i < n ; ++i){ 
-}
-\end{lstlisting}
-\end{center}
-If the initialization of $i$ costs one operation, the $<$ costs one operation each time it executes, and $++$ costs 2 operators (because it's the same as $i=i+1$) each time it executes, then what's the total cost of this loop and what's the Big-O? [Double check your answer before moving on from this question]
-\newpage \thispagestyle{empty}
-
-\item Rewrite the loop from the previous question so that it counts through only the even numbers. Do this without doing anything inside the loop. To check yourself, write the loop in a main procedure so that you can pick an $n$ and print the numbers like this:
-\begin{lstlisting}
-int n{ ... }; // pick a number for n, not too big, not too small
-for(int i{0}; ... ; ... ){
-   std::cout << i << '\n';
-}
-\end{lstlisting}
-Intuitively we'd expect this to do half as much work as the original loop, what's that mean in Big-O terms? To check your intuition determine the exact number of operations needed for the loop and then Big-O of that. 
-\vspace{3in}
-
-\item Repeat the previous exercise but write a loop that counts by 5, i.e. counts through every fifth number in $[0,n)$. 
-
-\newpage \thispagestyle{empty}
-
-\item What do the previous exercises tell you about the effect of taking fixed sized steps with a counting loop? 
-\vspace{3in}
-
-\item Consider the following nested loop structure:
-\begin{lstlisting}
-for(int i{0}; i < n; i++){
-  for(int j{0}; j < n; j++){  
-  }
-}
-\end{lstlisting}
-Ignoring the interaction with the other loop, determine the exact number of operations and Big-O of each loop. Now, what's the exact operations done by the whole thing and what's the Big-O of that? To better understand the execution of these loops, code this up to print $i$ and $j$ like this:
-\begin{lstlisting}
-int n{ ... };
-std::cout << "i   js\n";
-for( int i{0}; i < n ; ++i){
-   std::cout << i << "  ";
-   for( int j{0}; j < m; ++j){
-      std::cout << j << ' ';
-   }
-   std::cout << "\n";
-}
-\end{lstlisting}
-\newpage \thispagestyle{empty}
-
-\item Consider the following nested loop structure:
-\begin{lstlisting}
-for(int i{0}; i < n; i++){
-  for(int j{i}; j < n; j++){  
-  }
-}
-\end{lstlisting}
-Code these loops up in the same fashion as the previous loop and see what they do. What's different about this code compared to the previous nested loop? Will it do more, less, or the same amount of work as the previous code? Now... if $n=5$, how many times is the inner loop executed and how many total operations does it carry out on each of those execution? What's the Big-O of this code? Why? 
-\vspace{2in}
-\item Would changing the step size of either loop in either of the above two examples change the complexity of the code?
-\vspace{2in}
-\item These loops tell us something about the efficiency limitations of our iterative strategy, what is it? 
-\end{enumerate}
-
 
 \end{document}
